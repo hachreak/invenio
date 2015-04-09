@@ -28,7 +28,7 @@ _styles.contents.append(
 
 js = Bundle(
     'js/messages/init.js',
-    output='messages.js',
+    output=u'messages.js',
     weight=70,
     filters=RequireJSFilter(exclude=[_j, _i]),
     bower={

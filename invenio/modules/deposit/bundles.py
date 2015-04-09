@@ -26,7 +26,7 @@ js = Bundle(
     "vendors/plupload/js/moxie.js",
     "vendors/plupload/js/plupload.dev.js",
     "js/deposit/init.js",
-    output="deposit.js",
+    output=u"deposit.js",
     filters=RequireJSFilter(exclude=[_j, _i]),
     weight=51,
     bower={
@@ -40,7 +40,7 @@ js = Bundle(
 styles = Bundle(
     "css/deposit/form.css",
     "vendors/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css",
-    output="deposit.css",
+    output=u"deposit.css",
     filters="cleancss",
     weight=51
 )

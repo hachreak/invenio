@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2014 CERN.
+# Copyright (C) 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -25,13 +25,13 @@ from invenio.ext.assets import Bundle
 js = Bundle(
     "js/communities/custom.js",
     filters="uglifyjs",
-    output="communities.js",
+    output=u"communities.js",
     weight=91
 )
 
 styles = Bundle(
     "css/communities/communities.less",
     filters="less,cleancss",
-    output="communities.css",
+    output=u"communities.css",
     weight=91
 )

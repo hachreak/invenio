@@ -36,14 +36,14 @@ js = Bundle(
     "js/editor/holdingpen.js",
     "js/editor/marcxml.js",
     "js/editor/clipboard.js",
-    output="editor.js",
+    output=u"editor.js",
     weight=51,
 )
 
 styles = Bundle(
     "css/editor/base.css",
     "vendors/jquery-ui/themes/redmond/jquery-ui.css",
-    output="editor.css",
+    output=u"editor.css",
     filters="cleancss",
     weight=51
 )

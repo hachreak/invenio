@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2014 CERN.
+# Copyright (C) 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -19,7 +19,7 @@
 
 """Previewer bundles."""
 
-from invenio.ext.assets import Bundle, RequireJSFilter, CleanCSSFilter
+from invenio.ext.assets import Bundle, CleanCSSFilter, RequireJSFilter
 
 
 pdfjs = Bundle(
@@ -29,7 +29,7 @@ pdfjs = Bundle(
     "js/previewer/pdfjs/viewer.js",
     "js/previewer/pdfjs/fullscreen.js",
     filters="uglifyjs",
-    output="previewer/pdfjs.js",
+    output=u"previewer/pdfjs.js",
     weight=20,
     bower={
         "pdfjs-build": "latest"
@@ -39,21 +39,21 @@ pdfjs = Bundle(
 pdftk = Bundle(
     "js/previewer/pdf_viewer.js",
     filters="uglifyjs",
-    output="previewer/pdftk.js",
+    output=u"previewer/pdftk.js",
     weight=20
 )
 
 pdfjscss = Bundle(
     "css/previewer/pdfjs/viewer.css",
     filters=CleanCSSFilter(),
-    output="previewer/pdfjs.css",
+    output=u"previewer/pdfjs.css",
     weight=20
 )
 
 csv_previewer = Bundle(
     "js/previewer/csv_previewer/init.js",
     filters=RequireJSFilter(),
-    output="previewer/csv_previewer.js",
+    output=u"previewer/csv_previewer.js",
     weight=20,
     bower={
         "d3": "latest"
@@ -63,6 +63,6 @@ csv_previewer = Bundle(
 pdftkcss = Bundle(
     "css/previewer/pdf_viewer.css",
     filters=CleanCSSFilter(),
-    output="previewer/pdftk.css",
+    output=u"previewer/pdftk.css",
     weight=20
 )

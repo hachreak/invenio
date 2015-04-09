@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2014 CERN.
+# Copyright (C) 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -25,14 +25,14 @@ from invenio.ext.assets import Bundle
 js = Bundle(
     'js/comments/comments.js',
     'js/comments/collapse.js',
-    output='comments.js',
+    output=u'comments.js',
     weight=10,
     filters='uglifyjs'
 )
 
 css = Bundle(
     'css/comments/comments.css',
-    output='comments.css',
+    output=u'comments.css',
     weight=10,
     filters='cleancss'
 )

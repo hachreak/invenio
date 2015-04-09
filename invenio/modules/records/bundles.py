@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2014 CERN.
+# Copyright (C) 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -25,13 +25,13 @@ from invenio.ext.assets import Bundle, RequireJSFilter
 js = Bundle(
     "js/records/init.js",
     filters=RequireJSFilter(),
-    output="records.js",
+    output=u"records.js",
     weight=20
 )
 
 css = Bundle(
     "css/records/record.css",
-    output="record.css",
+    output=u"record.css",
     weight=20,
     filters="cleancss"
 )

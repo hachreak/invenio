@@ -26,7 +26,7 @@ from invenio.ext.assets import Bundle, CleanCSSFilter, RequireJSFilter
 js = Bundle(
     'js/workflows/init.js',
     filters=RequireJSFilter(exclude=[_j, _i]),
-    output='workflows.js',
+    output=u'workflows.js',
     weight=50,
     bower={
         "bootstrap-tagsinput": "git://github.com/inspirehep/bootstrap-tagsinput.git#master",
@@ -46,7 +46,7 @@ css = Bundle(
     'vendors/datatables-tabletools/css/dataTables.tableTools.css',
     'css/workflows/workflows.css',
     filters=CleanCSSFilter(),
-    output='workflows.css',
+    output=u'workflows.css',
     weight=30,
     bower={
         "bootstrap-tagsinput": "git://github.com/inspirehep/bootstrap-tagsinput.git#master",

@@ -78,7 +78,7 @@ styles = Bundle(
     "less/user-menu.less",
     "less/sticky-footer.less",
     "less/footer.less",
-    output="invenio.css",
+    output=u"invenio.css",
     depends=[
         "less/base.less",
         "less/base/**/*.less"
@@ -94,7 +94,7 @@ styles = Bundle(
 
 jquery = Bundle(
     "js/init.js",
-    output="jquery.js",
+    output=u"jquery.js",
     filters="requirejs",
     weight=10,
     bower={
@@ -126,14 +126,14 @@ jquery = Bundle(
 
 invenio = Bundle(
     "js/invenio.js",
-    output="invenio.js",
+    output=u"invenio.js",
     filters=RequireJSFilter(exclude=[jquery]),
     weight=90
 )
 
 admin = Bundle(
     "js/admin.js",
-    output="admin.js",
+    output=u"admin.js",
     filters=RequireJSFilter(exclude=[jquery]),
     weight=50
 )
@@ -145,7 +145,7 @@ admin = Bundle(
 #
 lessjs = Bundle(
     "vendors/less/dist/less.js",
-    output="less.js",
+    output=u"less.js",
     filters="uglifyjs",
     weight=0,
     bower={
@@ -160,7 +160,7 @@ lessjs = Bundle(
 requirejs = Bundle(
     "vendors/requirejs/require.js",
     "js/settings.js",
-    output="require.js",
+    output=u"require.js",
     filters="uglifyjs",
     weight=0,
     bower={
@@ -176,7 +176,7 @@ requirejs = Bundle(
 almondjs = Bundle(
     "vendors/almond/almond.js",
     "js/settings.js",
-    output="almond.js",
+    output=u"almond.js",
     filters="uglifyjs",
     weight=0,
     bower={

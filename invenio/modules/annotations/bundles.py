@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2014 CERN.
+# Copyright (C) 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -20,10 +20,9 @@
 """Annotations bundles."""
 
 from invenio.ext.assets import Bundle
-
+from invenio.modules.comments.bundles import (css as _commentscss,
+                                              js as _commentsjs)
 from invenio.modules.previewer.bundles import pdftk as _pdftk
-from invenio.modules.comments.bundles import (js as _commentsjs,
-                                              css as _commentscss)
 
 
 _pdftk.contents += ("js/annotations/pdf_notes_helpers.js",)
@@ -37,7 +36,7 @@ js = Bundle(
     "js/annotations/annotations.js",
     "js/annotations/plupload_helper.js",
     filters="uglifyjs",
-    output="annotations.js",
+    output=u"annotations.js",
     weight=30,
     bower={
         "plupload": "latest"
