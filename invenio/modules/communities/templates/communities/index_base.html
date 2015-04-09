@@ -106,7 +106,7 @@
               {%- do new_args.update({'so': opt}) -%}
               <li>
                 <a href="{{ url_for('communities.index', **new_args) }}" class="active">
-                  <i class="pull-right icon {{ ' glyphicon glyphicon-ok' if args.get('so', 'ranking')==opt }}"></i>
+                  <i class="pull-right icon {{ (' glyphicon glyphicon-ok'|u) if args.get('so', 'ranking')==opt }}"></i>
                   {{ opt }}
                 </a>
               </li>
@@ -142,12 +142,12 @@
       {% if pagination.total_count > pagination.per_page %}
         <div align="center">
           <ul class="pagination">
-            <li{{ ' class="disabled"'|safe if not pagination.has_prev }}>
+            <li{{ (' class="disabled"'|safe|u) if not pagination.has_prev }}>
               {%- set new_args = args.copy() -%}
               {%- do new_args.update({'page': 1}) -%}
               <a title="first" href="{{ url_for('communities.index', **new_args) }}">&laquo;</a>
             </li>
-            <li{{ ' class="disabled"'|safe if not pagination.has_prev }}>
+            <li{{ (' class="disabled"'|safe|u) if not pagination.has_prev }}>
               {%- do args.update({'page': pagination.page-1 }) -%}
               <a title="prev" href="{{ url_for('communities.index', **args) }}">&lsaquo;</a>
             </li>
@@ -155,19 +155,19 @@
               {%- if page_p -%}
                 {%- set new_args = args.copy() -%}
                 {%- do new_args.update({'page': page_p}) -%}
-                <li{{ ' class="active"'|safe if page_p == pagination.page }}>
+                <li{{ (' class="active"'|safe|u) if page_p == pagination.page }}>
                   <a href="{{ url_for('communities.index', **new_args) }}">{{ page_p }}</a>
                 </li>
               {%- else -%}
                 <li class="disabled"><a href="#">...</a></li>
               {%- endif -%}
             {%- endfor -%}
-            <li{{ ' class="disabled"'|safe if not pagination.has_next }}>
+            <li{{ (' class="disabled"'|safe|u) if not pagination.has_next }}>
               {%- set new_args = args.copy() -%}
               {%- do new_args.update({'page': pagination.page+1}) -%}
               <a href="{{ url_for('communities.index', **new_args) }}">&rsaquo;</a>
             </li>
-            <li{{ ' class="disabled"'|safe if not pagination.has_next }}>
+            <li{{ (' class="disabled"'|safe|u) if not pagination.has_next }}>
               {%- set new_args = args.copy() -%}
               {%- do new_args.update({'page': pagination.pages }) -%}
               <a title="last" href="{{ url_for('communities.index', **new_args) }}">&raquo;</a>

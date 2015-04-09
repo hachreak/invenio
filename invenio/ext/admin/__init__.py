@@ -59,9 +59,10 @@ Usage example - create a file called <module>_admin.py::
                                     category="My Category"))
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from flask_admin import Admin
+
 from flask_registry import ModuleAutoDiscoveryRegistry
 
 from .views import AdminIndexView

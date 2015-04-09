@@ -71,7 +71,7 @@
   {%- for size in [144, 114, 72, 57] %}
     {%- set icon_name = 'apple-touch-icon-%d-precomposed.png' | format(size) %}
   <link rel="apple-touch-icon-precomposed" sizes="{{ size }}x{{ size }}"
-        {{- ' ' -}}
+        {{- (' '|u) -}}
         href="{{ url_for('static', filename=icon_name) }}"/>
   {%- endfor %}
   {%- endblock head_apple_icons %}

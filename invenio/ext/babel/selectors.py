@@ -19,7 +19,8 @@
 
 """Implement various localization selectors."""
 
-from flask import request, session, current_app
+from flask import current_app, request, session
+
 from flask_login import current_user
 
 
@@ -29,21 +30,21 @@ def get_locale():
     required_ln = None
     passed_ln = request.values.get('ln', type=str)
     if passed_ln:
-        ## If ln is specified explictly as a GET or POST argument
-        ## let's take it!
+        # If ln is specified explictly as a GET or POST argument
+        # let's take it!
         required_ln = wash_language(passed_ln)
         if passed_ln != required_ln:
-            ## But only if it was a valid language
+            # But only if it was a valid language
             required_ln = None
     if required_ln is None and 'ln' not in session:
-        ## If there is no language saved into the session...
+        # If there is no language saved into the session...
         user_language = current_user.get('language')
         if user_language:
-            ## ... and the user is logged in, we try to take it from its
-            ## settings.
+            # ... and the user is logged in, we try to take it from its
+            # settings.
             required_ln = user_language
         else:
-            ## Otherwise we try to guess it from its request headers
+            # Otherwise we try to guess it from its request headers
             for value, quality in request.accept_languages:
                 value = str(value)
                 ln = wash_language(value)
@@ -51,7 +52,7 @@ def get_locale():
                     required_ln = ln
                     break
             else:
-                ## Too bad! We stick to the default :-)
+                # Too bad! We stick to the default :-)
                 required_ln = current_app.config.get('CFG_SITE_LANG')
     elif required_ln is None:
         required_ln = session.get('ln')
@@ -62,7 +63,7 @@ def get_locale():
                                   current_app.config.get('CFG_SITE_LANG')):
         session['ln'] = required_ln
 
-    return required_ln
+    return unicode(required_ln)
 
 
 def get_timezone():

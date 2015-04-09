@@ -1,6 +1,6 @@
 {#
 # This file is part of Invenio.
-# Copyright (C) 2012, 2013, 2014 CERN.
+# Copyright (C) 2012, 2013, 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -90,7 +90,7 @@
               </li>
               {%- for item in current_menu.submenu('settings').children if item.visible %}
               {% if loop.first %}<li class="divider"></li>{% endif -%}
-              <li><a href="{{ item.url }}">{{ item.text|safe }}</a></li>
+              <li><a href="{{ item.url|u }}">{{ item.text|safe }}</a></li>
               {%- endfor %}
               <li class="divider"></li>
               <li>

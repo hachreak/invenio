@@ -29,7 +29,7 @@ from flask import g, url_for
 from intbitset import intbitset
 
 from invenio.base.globals import cfg
-from invenio.base.i18n import _, gettext_set_language
+from invenio.base.i18n import _
 from invenio.ext.sqlalchemy import db
 from invenio.ext.sqlalchemy.utils import attribute_multi_dict_collection
 from invenio.modules.formatter.registry import output_formats
@@ -390,7 +390,6 @@ class Collection(db.Model):
 
         if collectionboxname is None:
             # load the right message language
-            _ = gettext_set_language(ln)
             return _(Collectionboxname.TYPES.get(box_type, ''))
         else:
             return collectionboxname.value

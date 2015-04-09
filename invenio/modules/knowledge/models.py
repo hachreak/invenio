@@ -19,6 +19,8 @@
 
 """Knowledge database models."""
 
+from __future__ import unicode_literals
+
 import os
 
 from invenio.base.globals import cfg

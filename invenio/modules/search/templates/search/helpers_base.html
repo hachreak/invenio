@@ -95,10 +95,10 @@
 
 
 {%- macro collection_tree(collections, limit=None) %}
-{%- set macrokwargs = kwargs %}
+{%- set macrokwargs = (kwargs|u) %}
 {%- block collection_tree scoped %}
 {%- set idxs = [0] -%}
-<ul {{ macrokwargs|xmlattr|u }}>
+<ul {{ (macrokwargs|xmlattr|u) }}>
 {% for collection in collections recursive %}
   <li>
     {# Do not show checkboxes in new UI
@@ -107,15 +107,15 @@
     {% endif %}
     #}
     <a href="{{ url_for(".collection", name=collection.name, ln=g.ln, _external=True) }}">
-      {{ collection.name_ln|u }}
+      {{ (collection.name_ln|u) }}
     </a>
     <small class="text-muted">({{ collection.nbrecs }})</small>&nbsp;
   {% if collection.collection_children and idxs|length < limit %}
     {%- do idxs.append(loop.index) -%}
-    <ul {{ macrokwargs|xmlattr|u }}>
+    <ul {{ (macrokwargs|xmlattr|u) }}>
       {{ loop(collection.collection_children) }}
     </ul>
-    {%- do idxs.pop()|u -%}
+    {%- do (idxs.pop()|u) -%}
   {% endif %}
   </li>
 {% endfor %}
@@ -155,7 +155,7 @@
 
   {%- for name in ['rg', 'of', 'so', 'sf', 'rm'] -%}
   {%- if request.args.get(name) -%}
-  <input type="hidden" name="{{ name|u }}" value="{{ request.args.get(name, '') }}" />
+  <input type="hidden" name="{{ name|u }}" value="{{ request.args.get(name, '')|u }}" />
   {%- endif -%}
   {%- endfor -%}
 
@@ -330,7 +330,7 @@
     method="get"
     class="form-horizontal">
     <div class="row">
-    <input name="p" value="{{ request.args.get('p','') }}" type="hidden" />
+    <input name="p" value="{{ request.args.get('p','')|u }}" type="hidden" />
     <div class="form-group col-md-6">
       <label class="control-label col-sm-6 col-xs-5">{{ _('Display on page') }}</label>
       <div class="col-sm-6 col-xs-7">
@@ -339,7 +339,7 @@
           class="btn-sm form-control">
           {%- for i in [10, 25, 50, 100, 250, 500] -%}
             {%- if i <= config.CFG_WEBSEARCH_MAX_RECORDS_IN_GROUPS -%}
-              <option value="{{ i }}"{{ ' selected' if request.args.get('rg', 10, type=int)==i }}>{{ i }} {{ _('results') }}</option>
+              <option value="{{ i }}"{{ (' selected'|u) if request.args.get('rg', 10, type=int)==i }}>{{ i }} {{ _('results') }}</option>
             {%- endif -%}
           {%- endfor -%}
         </select>
@@ -353,7 +353,7 @@
               name="of"
               class="btn-sm form-control">
       {%- for i in collection.formatoptions if i.content_type == 'text/html' and i.visibility == 1 -%}
-        <option value="{{ i.code }}"{{ ' selected' if request.args.get('of','hb')==i.code }}>{{ i.name }}</option>
+        <option value="{{ i.code }}"{{ (' selected'|u) if request.args.get('of','hb')==i.code }}>{{ i.name }}</option>
       {%- endfor -%}
       </select>
     </div>
@@ -379,12 +379,12 @@
     <label class="control-label col-sm-6 col-xs-5">{{ _('Sort by most') }}</label>
     <div class="btn-group col-sm-6 col-xs-7" data-toggle="buttons">
     {%- for (k,v,vv) in [('recent', 'rm', ''), ('cited', 'rm', 'citation'), ('relevant', 'rm', 'wrd')] -%}
-      <label class="btn btn-sm btn-default {{ 'active' if request.args.get(v,'') == vv}}">
+      <label class="btn btn-sm btn-default {{ ('active'|u) if request.args.get(v,'') == vv}}">
         <input
           type="radio"
-          name="{{ v }}"
-          value="{{ vv }}"
-          {{ 'checked="checked"'|safe if request.args.get(v,'') == vv}}>
+          name="{{ v|u }}"
+          value="{{ vv|u }}"
+          {{ ('checked="checked"'|safe|u) if request.args.get(v,'') == vv}}>
         {{ _(k) }}
       </label>
     {%- endfor -%}
@@ -400,8 +400,8 @@
         <input
           type="radio"
           name="box"
-          value="{{ v }}"
-          {{ 'checked="checked"'|safe if active}}>
+          value="{{ v|u }}"
+          {{ ('checked="checked"'|safe|u) if active}}>
         {{ k }}
       </label>
       {%- endfor -%}
@@ -440,7 +440,7 @@ require(['jquery', 'js/search/form'], function($, searchForm) {
     matchingTypes: {
 {%- for v in config.CFG_WEBSEACH_MATCHING_TYPES %}
       {{ v.code }}: function(val, f) { {{ v.tokenize | safe }} }
-      {{- ',' if not loop.last }}
+      {{- (','|u) if not loop.last }}
 {%- endfor %}
     },
     keywords: {{ collection.search_within[1:] | tojson | safe }},

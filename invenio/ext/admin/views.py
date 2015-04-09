@@ -17,14 +17,19 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-from flask import current_app, abort
-from flask_admin import BaseView as FlaskBaseView, \
-    AdminIndexView as FlaskAdminIndexView
+from __future__ import unicode_literals
+
+from flask import abort, current_app
+
+from flask_admin import AdminIndexView as FlaskAdminIndexView, \
+    BaseView as FlaskBaseView
+
 from flask_admin.contrib.sqla import ModelView as FlaskModelView
+
 from flask_login import current_user
 
-from invenio.ext.sslify import ssl_required
 from invenio.ext.principal import permission_required
+from invenio.ext.sslify import ssl_required
 
 
 def can_acc_action(action):
