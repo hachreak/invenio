@@ -19,6 +19,8 @@
 
 """Admin interface for collections."""
 
+from __future__ import unicode_literals
+
 from flask import Blueprint, g, render_template, request, flash, redirect, \
     url_for, abort
 from flask_breadcrumbs import register_breadcrumb

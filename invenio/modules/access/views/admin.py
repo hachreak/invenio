@@ -19,6 +19,8 @@
 
 """WebAccess Admin Flask Blueprint."""
 
+from __future__ import unicode_literals
+
 from flask import redirect, url_for, Blueprint
 from flask_login import login_required
 from invenio.modules.access.models import AccACTION, AccROLE
