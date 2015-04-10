@@ -28,7 +28,7 @@
         <div class="panel-heading"><strong>Settings</strong></div>
         <ul class="list-group">
           {%- for item in current_menu.submenu('settings').children if item.visible %}
-          <li class="list-group-item{% if item.active %} active{% endif %}"><a href="{{ item.url }}">{{ item.text|safe }}</a></li>
+          <li class="list-group-item{% if item.active %} active{% endif %}"><a href="{{ item.url|u }}">{{ item.text|safe }}</a></li>
           {%- endfor %}
         </ul>
       </div>
