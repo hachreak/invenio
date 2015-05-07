@@ -59,10 +59,11 @@ def clone_paper(paper_id, user_id):
     should NOT be called alone as long as you are really sure that you want
     to do this. Refer to clone() instead.
     """
-    return run_sql("""INSERT INTO aulPAPERS (id, id_user, title, collaboration,
-                      experiment_number, last_modified) SELECT %s, id_user, title,
-                      collaboration, experiment_number, %s FROM aulPAPERS
-                      WHERE id = %s;""", (None, now(), paper_id,))
+    return run_sql(
+        """INSERT INTO "aulPAPERS" (id, id_user, title, collaboration,
+        experiment_number, last_modified) SELECT %s, id_user, title,
+        collaboration, experiment_number, %s FROM "aulPAPERS"
+        WHERE id = %s;""", (None, now(), paper_id,))
 
 def clone_references(paper_id, clone_id):
     """
@@ -71,8 +72,8 @@ def clone_references(paper_id, clone_id):
     function should NOT be used alone as long as you are really sure that you
     want to do this. Have a look on clone() instead.
     """
-    run_sql("""INSERT INTO aulREFERENCES (item, reference, paper_id)
-               SELECT item, reference, %s FROM aulREFERENCES
+    run_sql("""INSERT INTO "aulREFERENCES" (item, reference, paper_id)
+               SELECT item, reference, %s FROM "aulREFERENCES"
                WHERE paper_id = %s;""", (clone_id, paper_id,))
     return clone_id
 
@@ -83,10 +84,10 @@ def clone_affiliations(paper_id, clone_id):
     NOT be used alone as long as you are really sure that you want to do this.
     Have a look on clone() instead.
     """
-    run_sql("""INSERT INTO aulAFFILIATIONS (item, acronym, umbrella,
+    run_sql("""INSERT INTO "aulAFFILIATIONS" (item, acronym, umbrella,
                name_and_address, domain, member, spires_id, paper_id)
                SELECT item, acronym, umbrella, name_and_address,
-               domain, member, spires_id, %s FROM aulAFFILIATIONS
+               domain, member, spires_id, %s FROM "aulAFFILIATIONS"
                WHERE paper_id = %s;""", (clone_id, paper_id,))
     return clone_id
 
@@ -98,10 +99,10 @@ def clone_authors(paper_id, clone_id):
     should NOT be used alone as long as you are really sure that you want to do
     this. Have a look on clone() instead.
     """
-    run_sql("""INSERT INTO aulAUTHORS (item, family_name, given_name,
+    run_sql("""INSERT INTO "aulAUTHORS" (item, family_name, given_name,
                name_on_paper, status, paper_id)
                SELECT item, family_name, given_name, name_on_paper,
-               status, %s FROM aulAUTHORS
+               status, %s FROM "aulAUTHORS"
                WHERE paper_id = %s;""", (clone_id, paper_id,))
     clone_author_affiliations(paper_id, clone_id)
     clone_author_identifiers(paper_id, clone_id)
@@ -114,10 +115,10 @@ def clone_author_affiliations(paper_id, clone_id):
     reasons. Should NOT be used alone but only as part of clone() as long as you
     are not really sure what you are doing.
     """
-    run_sql("""INSERT INTO aulAUTHOR_AFFILIATIONS (item, affiliation_acronym,
+    run_sql("""INSERT INTO "aulAUTHOR_AFFILIATIONS" (item, affiliation_acronym,
                affiliation_status, author_item, paper_id)
                SELECT item, affiliation_acronym, affiliation_status,
-               author_item, %s FROM aulAUTHOR_AFFILIATIONS
+               author_item, %s FROM "aulAUTHOR_AFFILIATIONS"
                WHERE paper_id = %s;""", (clone_id, paper_id,))
     return clone_id
 
@@ -128,10 +129,10 @@ def clone_author_identifiers(paper_id, clone_id):
     reasons. Should NOT be used alone but only as part of clone() as long as you
     are not really sure what you are doing.
     """
-    run_sql("""INSERT INTO aulAUTHOR_IDENTIFIERS (item, identifier_number,
+    run_sql("""INSERT INTO "aulAUTHOR_IDENTIFIERS" (item, identifier_number,
                identifier_name, author_item, paper_id)
                SELECT item, identifier_number, identifier_name,
-               author_item, %s FROM aulAUTHOR_IDENTIFIERS
+               author_item, %s FROM "aulAUTHOR_IDENTIFIERS"
                WHERE paper_id = %s;""", (clone_id, paper_id,))
     return clone_id
 
@@ -159,7 +160,7 @@ def delete_paper(paper_id):
     unless you are sure that you want to do this. Refer to delete() instead.
     Returns the paper_id for convenience reasons.
     """
-    run_sql("""DELETE FROM aulPAPERS WHERE id = %s;""", (paper_id,))
+    run_sql("""DELETE FROM "aulPAPERS" WHERE id = %s;""", (paper_id,))
     return paper_id
 
 def delete_references(paper_id):
@@ -169,7 +170,7 @@ def delete_references(paper_id):
     that you want to do this. Refer to delete() instead. Returns the paper_id
     for convenience reasons.
     """
-    run_sql("""DELETE FROM aulREFERENCES WHERE paper_id = %s;""", (paper_id,))
+    run_sql("""DELETE FROM "aulREFERENCES" WHERE paper_id = %s;""", (paper_id,))
     return paper_id
 
 def delete_affiliations(paper_id):
@@ -179,7 +180,8 @@ def delete_affiliations(paper_id):
     alone unless you are sure that you want to do this. Refer to delete()
     instead. Returns the paper id for convenience reasons.
     """
-    run_sql("""DELETE FROM aulAFFILIATIONS WHERE paper_id = %s;""", (paper_id,))
+    run_sql(
+        """DELETE FROM "aulAFFILIATIONS" WHERE paper_id = %s;""", (paper_id,))
     return paper_id
 
 def delete_authors(paper_id):
@@ -190,7 +192,7 @@ def delete_authors(paper_id):
     doing. Refer to delete() instead. Returns the paper id for convenience
     reasons.
     """
-    run_sql("""DELETE FROM aulAUTHORS WHERE paper_id = %s;""", (paper_id,))
+    run_sql("""DELETE FROM "aulAUTHORS" WHERE paper_id = %s;""", (paper_id,))
     return paper_id
 
 def delete_author_affiliations(paper_id):
@@ -201,7 +203,7 @@ def delete_author_affiliations(paper_id):
     what you are doing. Refer to delete() instead. Returns the paper id for
     convenience reasons.
     """
-    run_sql("""DELETE FROM aulAUTHOR_AFFILIATIONS
+    run_sql("""DELETE FROM "aulAUTHOR_AFFILIATIONS"
                WHERE paper_id = %s;""", (paper_id,))
     return paper_id
 
@@ -213,7 +215,7 @@ def delete_author_identifiers(paper_id):
     what you are doing. Refer to delete() instead. Returns the paper id for
     convenience reasons.
     """
-    run_sql("""DELETE FROM aulAUTHOR_IDENTIFIERS
+    run_sql("""DELETE FROM "aulAUTHOR_IDENTIFIERS"
                WHERE paper_id = %s;""", (paper_id,))
     return paper_id
 
@@ -225,7 +227,7 @@ def itemize(id_user):
     """
     data = {}
     papers = run_sql("""SELECT id, title, collaboration, experiment_number,
-                        last_modified FROM aulPAPERS WHERE id_user = %s
+                        last_modified FROM "aulPAPERS" WHERE id_user = %s
                         ORDER BY last_modified DESC;""" % (id_user))
     out_papers = data.setdefault('data', [])
     for paper in papers:
@@ -262,7 +264,7 @@ def load_paper(paper_id, data):
     convenience reasons.
     """
     paper = run_sql("""SELECT title, collaboration, experiment_number,
-                       last_modified  FROM aulPAPERS
+                       last_modified  FROM "aulPAPERS"
                        WHERE id = %s;""", (paper_id,))
     if (not paper):
         # TODO add message here
@@ -288,7 +290,7 @@ def load_references(paper_id, data):
     are not sure what you are doing. Refer to load() instead. Returns the passed
     id for convenience reasons.
     """
-    references = run_sql("""SELECT reference FROM aulREFERENCES
+    references = run_sql("""SELECT reference FROM "aulREFERENCES"
                             WHERE paper_id = %s;""", (paper_id,))
     reference_ids = [reference[0] for reference in references]
     data[cfg.JSON.REFERENCE_IDS] = reference_ids
@@ -303,7 +305,7 @@ def load_affiliations(paper_id, data):
     passed id for convenience reasons.
     """
     result = run_sql("""SELECT item, acronym, umbrella, name_and_address, domain,
-                        member, spires_id FROM aulAFFILIATIONS
+                        member, spires_id FROM "aulAFFILIATIONS"
                         WHERE paper_id = %s ORDER BY item;""", (paper_id,))
     affiliations = data.setdefault(cfg.JSON.AFFILIATIONS_KEY, [])
 
@@ -323,7 +325,7 @@ def load_authors(paper_id, data):
     passed id for convenience reasons.
     """
     result = run_sql("""SELECT item, family_name, given_name, name_on_paper,
-                        status FROM aulAUTHORS
+                        status FROM "aulAUTHORS"
                         WHERE paper_id = %s ORDER BY item;""", (paper_id,))
     authors = data.setdefault(cfg.JSON.AUTHORS_KEY, [])
 
@@ -344,7 +346,7 @@ def load_author_affiliations(paper_id, author_id):
     this case the paper id is NOT returned but the author affiliations.
     """
     result = run_sql("""SELECT affiliation_acronym, affiliation_status
-                        FROM aulAUTHOR_AFFILIATIONS WHERE author_item = %s
+                        FROM "aulAUTHOR_AFFILIATIONS" WHERE author_item = %s
                         AND paper_id = %s ORDER BY item;""", (author_id, paper_id,))
     author_affiliations = []
 
@@ -362,7 +364,7 @@ def load_author_identifiers(paper_id, author_id):
     this case the paper id is NOT returned but the author affiliations.
     """
     result = run_sql("""SELECT identifier_number, identifier_name
-                        FROM aulAUTHOR_IDENTIFIERS WHERE author_item = %s
+                        FROM "aulAUTHOR_IDENTIFIERS" WHERE author_item = %s
                         AND paper_id = %s ORDER BY item;""", (author_id, paper_id,))
     author_identifiers = []
 
@@ -421,7 +423,8 @@ def save_paper(paper_id, user_id, data):
                     data[cfg.JSON.EXPERIMENT_NUMBER],
                     timestamp)
 
-    return run_sql("""INSERT INTO aulPAPERS (id, id_user, title, collaboration,
+    return run_sql(
+        """INSERT INTO "aulPAPERS" (id, id_user, title, collaboration,
                       experiment_number, last_modified)
                       VALUES (%s, %s, %s, %s, %s, %s)
                       ON DUPLICATE KEY UPDATE
@@ -450,15 +453,16 @@ def save_references(paper_id, data):
                       reference)
 
         run_sql("""INSERT INTO
-                   aulREFERENCES (item, reference, paper_id)
+                   "aulREFERENCES" (item, reference, paper_id)
                    VALUES (%s, %s, %s)
                    ON DUPLICATE KEY UPDATE
                    reference = %s;""", data_tuple)
 
     # Delete old references that are out of bounds - i.e. have a higher index
     # than the length of the reference list
-    run_sql("""DELETE FROM aulREFERENCES WHERE item >= %s AND paper_id = %s;""",
-            (len(reference_ids), paper_id))
+    run_sql(
+        """DELETE FROM "aulREFERENCES" WHERE item >= %s AND paper_id = %s;""",
+        (len(reference_ids), paper_id))
 
     return paper_id
 
@@ -490,22 +494,25 @@ def save_affliations(paper_id, data):
                       affiliation[cfg.JSON.MEMBER],
                       affiliation[cfg.JSON.SPIRES_ID])
 
-        run_sql("""INSERT INTO
-                   aulAFFILIATIONS (item, acronym, umbrella, name_and_address,
-                                    domain, member, spires_id, paper_id)
-                   VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
-                   ON DUPLICATE KEY UPDATE
-                   acronym = %s,
-                   umbrella = %s,
-                   name_and_address = %s,
-                   domain = %s,
-                   member = %s,
-                   spires_id = %s;""", data_tuple)
+        run_sql(
+            """INSERT INTO
+            "aulAFFILIATIONS" (item, acronym, umbrella, name_and_address,
+            domain, member, spires_id, paper_id)
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+            acronym = %s,
+            umbrella = %s,
+            name_and_address = %s,
+            domain = %s,
+            member = %s,
+            spires_id = %s;""", data_tuple)
 
     # Delete old affiliations that are out of bounds - i.e. have a higher index
     # than the length of the affiliations list
-    run_sql("""DELETE FROM aulAFFILIATIONS WHERE item >= %s AND paper_id = %s;""",
-            (len(affiliations), paper_id))
+    run_sql(
+        """DELETE FROM "aulAFFILIATIONS"
+        WHERE item >= %s AND paper_id = %s;""",
+        (len(affiliations), paper_id))
 
     return paper_id
 
@@ -534,8 +541,8 @@ def save_authors(paper_id, data):
                       author[cfg.JSON.STATUS])
 
         run_sql("""INSERT INTO
-                   aulAUTHORS (item, family_name, given_name, name_on_paper,
-                               status, paper_id)
+                   "aulAUTHORS" (item, family_name, given_name, name_on_paper,
+                                 status, paper_id)
                    VALUES(%s, %s, %s, %s, %s, %s)
                    ON DUPLICATE KEY UPDATE
                    family_name = %s,
@@ -550,7 +557,7 @@ def save_authors(paper_id, data):
 
     # Delete old authors that are out of bounds - i.e. have a higher index
     # than the length of the affiliations list
-    run_sql("""DELETE FROM aulAUTHORS WHERE item >= %s AND paper_id = %s;""",
+    run_sql("""DELETE FROM "aulAUTHORS" WHERE item >= %s AND paper_id = %s;""",
             (len(authors), paper_id))
 
     return paper_id
@@ -576,21 +583,21 @@ def save_author_affiliations(paper_id, author_id, number_of_authors, data):
                       affiliation[cfg.JSON.AFFILIATION_STATUS])
 
         run_sql("""INSERT INTO
-                   aulAUTHOR_AFFILIATIONS (item, affiliation_acronym,
-                                           affiliation_status, author_item,
-                                           paper_id)
+                   "aulAUTHOR_AFFILIATIONS" (item, affiliation_acronym,
+                                             affiliation_status, author_item,
+                                             paper_id)
                    VALUES(%s, %s, %s, %s, %s)
                    ON DUPLICATE KEY UPDATE
                    affiliation_acronym = %s,
                    affiliation_status = %s;""", data_tuple)
 
     # Delete entries that the author does not have anymore
-    run_sql("""DELETE FROM aulAUTHOR_AFFILIATIONS WHERE item >= %s
+    run_sql("""DELETE FROM "aulAUTHOR_AFFILIATIONS" WHERE item >= %s
                AND author_item = %s AND paper_id = %s;""",
             (len(data), author_id, paper_id))
 
     # Delete entries of non existing author
-    run_sql("""DELETE FROM aulAUTHOR_AFFILIATIONS WHERE author_item >= %s
+    run_sql("""DELETE FROM "aulAUTHOR_AFFILIATIONS" WHERE author_item >= %s
                 AND paper_id = %s;""",
             (number_of_authors, paper_id))
 
@@ -617,21 +624,21 @@ def save_author_identifiers(paper_id, author_id, number_of_authors, data):
                       identifier[cfg.JSON.IDENTIFIER_NAME])
 
         run_sql("""INSERT INTO
-                   aulAUTHOR_IDENTIFIERS (item, identifier_number,
-                                           identifier_name, author_item,
-                                           paper_id)
+                   "aulAUTHOR_IDENTIFIERS" (item, identifier_number,
+                                            identifier_name, author_item,
+                                            paper_id)
                    VALUES(%s, %s, %s, %s, %s)
                    ON DUPLICATE KEY UPDATE
                    identifier_number = %s,
                    identifier_name = %s;""", data_tuple)
 
     # Delete entries that the author does not have anymore
-    run_sql("""DELETE FROM aulAUTHOR_IDENTIFIERS WHERE item >= %s
+    run_sql("""DELETE FROM "aulAUTHOR_IDENTIFIERS" WHERE item >= %s
                AND author_item = %s AND paper_id = %s;""",
             (len(data), author_id, paper_id))
 
     # Delete entries of non existing author
-    run_sql("""DELETE FROM aulAUTHOR_IDENTIFIERS WHERE author_item >= %s
+    run_sql("""DELETE FROM "aulAUTHOR_IDENTIFIERS" WHERE author_item >= %s
                 AND paper_id = %s;""",
             (number_of_authors, paper_id))
 
@@ -639,7 +646,7 @@ def save_author_identifiers(paper_id, author_id, number_of_authors, data):
 
 def get_owner(paper_id):
     """Returns the id_user of a paper"""
-    result = run_sql("SELECT id_user FROM aulPAPERS WHERE id = %s;" % \
+    result = run_sql("""SELECT id_user FROM "aulPAPERS" WHERE id = %s;""" % \
         (paper_id))[0][0]
     if result:
         return result
