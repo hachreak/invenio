@@ -19,19 +19,23 @@
 
 """ API to fetch metadata in MARCXML format from crossref site using DOI """
 
-import sys
-import urllib
-import urllib2
 import datetime
-from xml.dom.minidom import parse
-from time import sleep
 
-from invenio.config import CFG_ETCDIR, CFG_CROSSREF_USERNAME, \
- CFG_CROSSREF_PASSWORD, CFG_CROSSREF_EMAIL
+import sys
+
+import urllib
+
+import urllib2
+
+from invenio.base.globals import cfg
 from invenio.legacy.bibconvert.xslt_engine import convert
 from invenio.legacy.bibrecord import record_get_field_value
-from invenio.utils.url import make_invenio_opener
 from invenio.utils.json import json, json_unicode_to_utf8
+from invenio.utils.url import make_invenio_opener
+
+from time import sleep
+
+from xml.dom.minidom import parse
 
 CROSSREF_OPENER = make_invenio_opener('crossrefutils')
 
@@ -58,15 +62,15 @@ def get_marcxml_for_doi(doi):
     1. DOI is malformed
     2. Record not found
     """
-    if not CFG_CROSSREF_USERNAME and not CFG_CROSSREF_PASSWORD:
+    if not cfg['CFG_CROSSREF_USERNAME'] and not cfg['CFG_CROSSREF_PASSWORD']:
         raise CrossrefError("error_crossref_no_account")
 
     # Clean the DOI
     doi = doi.strip()
 
     # Getting the data from external source
-    url = "http://www.crossref.org/openurl/?pid=" +  CFG_CROSSREF_USERNAME \
-        + ":" + CFG_CROSSREF_PASSWORD + "&noredirect=tru&id=doi:" + doi
+    url = "http://www.crossref.org/openurl/?pid=" +  cfg['CFG_CROSSREF_USERNAME'] \
+        + ":" + cfg['CFG_CROSSREF_PASSWORD'] + "&noredirect=tru&id=doi:" + doi
     request = urllib2.Request(url)
     response = CROSSREF_OPENER.open(request)
     header = response.info().getheader('Content-Type')
@@ -143,8 +147,8 @@ def get_doi_for_records(records):
     if len(pipes) > 0:
         for batchpipes in batch(pipes, 10):
             params = {
-                "usr": CFG_CROSSREF_USERNAME,
-                "pwd": CFG_CROSSREF_PASSWORD,
+                "usr": cfg['CFG_CROSSREF_USERNAME'],
+                "pwd": cfg['CFG_CROSSREF_PASSWORD'],
                 "format": "unixref",
                 "qdata": "\n".join(batchpipes)
             }
@@ -185,7 +189,7 @@ def get_metadata_for_dois(dois):
     metadata = {}
     if len(pipes) > 0:
         params = {
-            "usr": CFG_CROSSREF_EMAIL,
+            "usr": cfg['CFG_CROSSREF_EMAIL'],
             "format": "piped",
             "qdata": "\n".join(pipes)
         }

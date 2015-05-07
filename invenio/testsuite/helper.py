@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # This file is part of Invenio.
 # Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015 CERN.
 #
@@ -17,9 +19,7 @@
 
 # pylint: disable=E1102
 
-"""
-Helper functions for building and running test suites.
-"""
+"""Helper functions for building and running test suites."""
 
 __revision__ = "$Id$"
 
@@ -30,7 +30,6 @@ import sys
 import time
 import unittest
 import cgi
-import subprocess
 
 from warnings import warn
 from functools import wraps
@@ -45,17 +44,11 @@ except ImportError:
     # web tests will not be available, but unit and regression tests will:
     pass
 
-from invenio.config import (CFG_SITE_URL,
-                            CFG_SITE_SECURE_URL,
-                            CFG_LOGDIR,
-                            CFG_SITE_NAME_INTL,
-                            CFG_PYLIBDIR,
-                            CFG_JSTESTDRIVER_PORT,
-                            CFG_WEBDIR,
-                            CFG_BASE_URL)
-from invenio.utils.w3c_validator import (w3c_validate,
-                                   w3c_errors_to_str,
-                                   CFG_TESTS_REQUIRE_HTML_VALIDATION)
+from invenio.base.globals import cfg
+from invenio.utils.w3c_validator import (
+    w3c_validate,
+    w3c_errors_to_str,
+    CFG_TESTS_REQUIRE_HTML_VALIDATION as cfg_require_html_val)
 
 try:
     from nose.tools import nottest
@@ -65,14 +58,14 @@ except ImportError:
         f.__test__ = False
         return f
 
+
 @nottest
 def warn_user_about_tests(test_suite_type='regression'):
-    """
-    Display a standard warning about running tests that might modify
-    user data, and wait for user confirmation, unless --yes-i-know
-    was specified in the comman line.
-    """
+    """Display a standard warning about running tests.
 
+    That might modify user data, and wait for user confirmation,
+    unless --yes-i-know was specified in the comman line.
+    """
     # Provide a command line option to avoid having to type the
     # confirmation every time during development.
     if '--yes-i-know' in sys.argv:
@@ -122,64 +115,68 @@ Please confirm by typing 'Yes, I know!': """ % test_suite_type)
 
     return
 
+
 @nottest
 def make_test_suite(*test_cases):
-    """ Build up a test suite given separate test cases"""
+    """Build up a test suite given separate test cases."""
     return unittest.TestSuite([unittest.makeSuite(case, 'test')
                                for case in test_cases])
 
+
 @nottest
 def run_test_suite(testsuite, warn_user=False):
-    """
-    Convenience function to embed in test suites.  Run given testsuite
-    and eventually ask for confirmation of warn_user is True.
+    """Convenience function to embed in test suites.
+
+    Run given testsuite and eventually ask for confirmation of warn_user
+    is True.
     """
     if warn_user:
         warn_user_about_tests()
     res = unittest.TextTestRunner(verbosity=2).run(testsuite)
     return res.wasSuccessful()
 
-def make_url(path, **kargs):
-    """ Helper to generate an absolute invenio URL with query
-    arguments"""
 
-    url = CFG_SITE_URL + path
+def make_url(path, **kargs):
+    """Helper to generate an absolute invenio URL with query arguments."""
+    url = cfg['CFG_SITE_URL'] + path
 
     if kargs:
         url += '?' + urlencode(kargs, doseq=True)
 
     return url
+
 
 def make_surl(path, **kargs):
-    """ Helper to generate an absolute invenio Secure URL with query
-    arguments"""
-
-    url = CFG_SITE_SECURE_URL + path
+    """Generate an absolute invenio Secure URL with query arguments."""
+    url = cfg['CFG_SITE_SECURE_URL'] + path
 
     if kargs:
         url += '?' + urlencode(kargs, doseq=True)
 
     return url
+
 
 def make_rurl(path, **kargs):
-    """ Helper to generate an relative invenio URL with query
-    arguments"""
-
-    url = CFG_BASE_URL + path
+    """Helper to generate an relative invenio URL with query arguments."""
+    url = cfg['CFG_BASE_URL'] + path
 
     if kargs:
         url += '?' + urlencode(kargs, doseq=True)
 
     return url
 
+
 class InvenioTestUtilsBrowserException(Exception):
+
     """Helper exception for the regression test suite browser."""
+
     pass
+
 
 @nottest
 def test_web_page_existence(url):
-    """
-    Test whether URL exists and is well accessible.
+    """Test whether URL exists and is well accessible.
+
     Return True or raise exception in case of problems.
     """
     import mechanize
@@ -190,20 +187,22 @@ def test_web_page_existence(url):
         raise
     return True
 
+
 def get_authenticated_mechanize_browser(username="guest", password=""):
-    """
-    Return an instance of a mechanize browser already authenticated
-    to Invenio
+    """Return an instance of a mechanize browser.
+
+    The instance already authenticated to Invenio
     """
     try:
         import mechanize
     except ImportError:
-        raise InvenioTestUtilsBrowserException('ERROR: Cannot import mechanize.')
+        raise InvenioTestUtilsBrowserException(
+            'ERROR: Cannot import mechanize.')
     browser = mechanize.Browser()
-    browser.set_handle_robots(False) # ignore robots.txt, since we test gently
+    browser.set_handle_robots(False)  # ignore robots.txt, since we test gently
     if username == "guest":
         return browser
-    browser.open(CFG_SITE_SECURE_URL + "/youraccount/login")
+    browser.open(cfg['CFG_SITE_SECURE_URL'] + "/youraccount/login")
     browser.select_form(nr=0)
     browser['p_un'] = username
     browser['p_pw'] = password
@@ -212,41 +211,42 @@ def get_authenticated_mechanize_browser(username="guest", password=""):
     try:
         username_account_page_body.index("You are logged in as %s." % username)
     except ValueError:
-        raise InvenioTestUtilsBrowserException('ERROR: Cannot login as %s.' % username)
+        raise InvenioTestUtilsBrowserException(
+            'ERROR: Cannot login as %s.' % username)
     return browser
 
+
 @nottest
-def test_web_page_content(url,
-                          username="guest",
-                          password="",
-                          expected_text="</html>",
-                          unexpected_text="",
-                          expected_link_target=None,
-                          expected_link_label=None,
-                          require_validate_p=CFG_TESTS_REQUIRE_HTML_VALIDATION):
-    """Test whether web page URL as seen by user USERNAME contains
-       text EXPECTED_TEXT and, eventually, contains a link to
-       EXPECTED_LINK_TARGET (if set) labelled EXPECTED_LINK_LABEL (if
-       set).  The EXPECTED_TEXT is checked via substring matching, the
-       EXPECTED_LINK_TARGET and EXPECTED_LINK_LABEL via exact string
-       matching.
+def test_web_page_content(url, username="guest", password="",
+                          expected_text="</html>", unexpected_text="",
+                          expected_link_target=None, expected_link_label=None,
+                          require_validate_p=cfg_require_html_val):
+    """Test whether web page URL as seen by user.
 
-       EXPECTED_TEXT, EXPECTED_LINK_LABEL and EXPECTED_LINK_TARGET can
-       either be strings or list of strings (in order to check multiple
-       values inside same page).
+    USERNAME contains
+    text EXPECTED_TEXT and, eventually, contains a link to
+    EXPECTED_LINK_TARGET (if set) labelled EXPECTED_LINK_LABEL (if
+    set).  The EXPECTED_TEXT is checked via substring matching, the
+    EXPECTED_LINK_TARGET and EXPECTED_LINK_LABEL via exact string
+    matching.
 
-       Before doing the tests, login as USERNAME with password
-       PASSWORD.  E.g. interesting values for USERNAME are "guest" or
-       "admin".
+    EXPECTED_TEXT, EXPECTED_LINK_LABEL and EXPECTED_LINK_TARGET can
+    either be strings or list of strings (in order to check multiple
+    values inside same page).
 
-       Return empty list in case of no problems, otherwise list of error
-       messages that may have been encountered during processing of
-       page.
+    Before doing the tests, login as USERNAME with password
+    PASSWORD.  E.g. interesting values for USERNAME are "guest" or
+    "admin".
+
+    Return empty list in case of no problems, otherwise list of error
+    messages that may have been encountered during processing of
+    page.
     """
     try:
         import mechanize
     except ImportError:
-        raise InvenioTestUtilsBrowserException('ERROR: Cannot import mechanize.')
+        raise InvenioTestUtilsBrowserException(
+            'ERROR: Cannot import mechanize.')
     if '--w3c-validate' in sys.argv:
         require_validate_p = True
         sys.stderr.write('Required validation\n')
@@ -269,8 +269,9 @@ def test_web_page_content(url,
                 url_body.index(cur_expected_text)
             except ValueError:
                 raise InvenioTestUtilsBrowserException, \
-                      'ERROR: Page %s (login %s) does not contain %s, but contains %s' % \
-                      (url, username, cur_expected_text, url_body)
+                    ('ERROR: Page %s (login %s) does not contain %s, '
+                     'but contains %s') % \
+                    (url, username, cur_expected_text, url_body)
 
         # now test for UNEXPECTED_TEXT:
         # first normalize unexpected_text
@@ -325,7 +326,7 @@ def test_web_page_content(url,
             if not valid_p:
                 error_text = 'ERROR: Page %s (login %s) does not validate:\n %s' % \
                                   (url, username, w3c_errors_to_str(errors, warnings))
-                open('%s/w3c-markup-validator.log' % CFG_LOGDIR, 'a').write(error_text)
+                open('%s/w3c-markup-validator.log' % cfg['CFG_LOGDIR'], 'a').write(error_text)
                 raise InvenioTestUtilsBrowserException, error_text
 
 
@@ -338,7 +339,7 @@ def test_web_page_content(url,
 
     try:
         # logout after tests:
-        browser.open(CFG_SITE_SECURE_URL + "/youraccount/logout")
+        browser.open(cfg['CFG_SITE_SECURE_URL'] + "/youraccount/logout")
         browser.response().read()
         browser.close()
     except UnboundLocalError:
@@ -372,7 +373,7 @@ def build_and_run_unit_test_suite():
 
     from invenio.pluginutils import PluginContainer
     test_modules_map = PluginContainer(
-        os.path.join(CFG_PYLIBDIR, 'invenio', '*_unit_tests.py'),
+        os.path.join(cfg['CFG_PYLIBDIR'], 'invenio', '*_unit_tests.py'),
         lambda plugin_name, plugin_code: getattr(plugin_code, "TEST_SUITE"))
     test_modules = [test_modules_map[name] for name in test_modules_map]
 
@@ -396,7 +397,7 @@ def build_and_run_regression_test_suite():
 
     from invenio.pluginutils import PluginContainer
     test_modules_map = PluginContainer(
-        os.path.join(CFG_PYLIBDIR, 'invenio', '*_regression_tests.py'),
+        os.path.join(cfg['CFG_PYLIBDIR'], 'invenio', '*_regression_tests.py'),
         lambda plugin_name, plugin_code: getattr(plugin_code, "TEST_SUITE"))
     test_modules = test_modules_map.values()
 
@@ -422,7 +423,7 @@ def build_and_run_web_test_suite():
 
     from invenio.pluginutils import PluginContainer
     test_modules_map = PluginContainer(
-        os.path.join(CFG_PYLIBDIR, 'invenio', '*_web_tests.py'),
+        os.path.join(cfg['CFG_PYLIBDIR'], 'invenio', '*_web_tests.py'),
         lambda plugin_name, plugin_code: getattr(plugin_code, "TEST_SUITE"))
     test_modules = test_modules_map.values()
 
@@ -679,7 +680,7 @@ class InvenioWebTestCase(unittest.TestCase):
         self.fill_textbox(textbox_name="p_pw",  text=password)
         self.find_element_by_name_with_timeout("action")
         self.browser.find_element_by_name("action").click()
-        if force_ln and CFG_SITE_NAME_INTL[force_ln] not in self.browser.page_source:
+        if force_ln and cfg['CFG_SITE_NAME_INTL'][force_ln] not in self.browser.page_source:
             splitted_url = list(urlsplit(self.browser.current_url))
             query = cgi.parse_qs(splitted_url[3])
             query.update({u'ln': unicode(force_ln)})

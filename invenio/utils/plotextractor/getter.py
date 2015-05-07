@@ -18,11 +18,7 @@
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 import time, os, sys, re
-from invenio.config import CFG_TMPDIR, \
-                           CFG_PLOTEXTRACTOR_SOURCE_BASE_URL, \
-                           CFG_PLOTEXTRACTOR_SOURCE_TARBALL_FOLDER, \
-                           CFG_PLOTEXTRACTOR_SOURCE_PDF_FOLDER, \
-                           CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT
+from invenio.base.globals import cfg
 from .config import CFG_PLOTEXTRACTOR_DESY_BASE, \
                                          CFG_PLOTEXTRACTOR_DESY_PIECE
 from invenio.legacy.search_engine import get_record
@@ -316,7 +312,7 @@ def tarballs_by_arXiv_id(arXiv_ids, sdir):
         tarball, dummy_pdf = harvest_single(arXiv_id, sdir, ("tarball",))
         if tarball != None:
             tarballs.append(tarball)
-            time.sleep(CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT)
+            time.sleep(cfg['CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT'])
 
     return tarballs
 
@@ -355,7 +351,7 @@ def parse_and_download(infile, sdir):
                 write_message(sys.exc_info()[0])
             filename = os.path.join(tardir, filename)
             tarfiles.append(filename)
-            time.sleep(CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT) # be nice!
+            time.sleep(cfg['CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT']) # be nice!
         elif line.startswith('arXiv'):
             tarfiles.extend(tarballs_by_arXiv_id([line.strip()], sdir))
 
@@ -374,18 +370,18 @@ def harvest_single(single, to_dir, selection=("tarball", "pdf")):
             if not found
     """
 
-    if single.find('arXiv') > -1 and 'arxiv.org' in CFG_PLOTEXTRACTOR_SOURCE_BASE_URL.lower():
+    if single.find('arXiv') > -1 and 'arxiv.org' in cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'].lower():
         id_str = re.findall('[a-zA-Z\\-]+/\\d+|\\d+\\.\\d+', single)[0]
         idno = id_str.split('/')
         if len(idno) > 0:
             idno = idno[-1]
         yymm = int(idno[:4])
         yymm_dir = make_useful_directories(yymm, to_dir)
-        url_for_file = CFG_PLOTEXTRACTOR_SOURCE_BASE_URL + \
-                       CFG_PLOTEXTRACTOR_SOURCE_TARBALL_FOLDER + \
+        url_for_file = cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'] + \
+                       cfg['CFG_PLOTEXTRACTOR_SOURCE_TARBALL_FOLDER'] + \
                        id_str
-        url_for_pdf = CFG_PLOTEXTRACTOR_SOURCE_BASE_URL + \
-                      CFG_PLOTEXTRACTOR_SOURCE_PDF_FOLDER + \
+        url_for_pdf = cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'] + \
+                      cfg['CFG_PLOTEXTRACTOR_SOURCE_PDF_FOLDER'] + \
                       id_str + '.pdf' # adds '.pdf' to avoid arXiv internal redirect from arXivID to arXivID.pdf
         individual_file = 'arXiv:' + id_str.replace('/', '_')
         individual_dir = make_single_directory(yymm_dir, individual_file)
@@ -413,14 +409,14 @@ def harvest_single(single, to_dir, selection=("tarball", "pdf")):
 
         return (tarball, pdf)
 
-    elif single.find('arXiv') > -1 and CFG_PLOTEXTRACTOR_SOURCE_BASE_URL != '':
+    elif single.find('arXiv') > -1 and cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'] != '':
         # hmm... is it a filesystem?
-        if CFG_PLOTEXTRACTOR_SOURCE_BASE_URL.startswith('/'):
-            if not os.path.exists(CFG_PLOTEXTRACTOR_SOURCE_BASE_URL):
+        if cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'].startswith('/'):
+            if not os.path.exists(cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL']):
                 write_message('PROBLEM WITH CFG_PLOTEXTRACTOR_SOURCE_BASE_URL: we cannot ' + \
                         'find this folder!')
                 return (None, None)
-            for root, files, dummy in os.walk(CFG_PLOTEXTRACTOR_SOURCE_BASE_URL):
+            for root, files, dummy in os.walk(cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL']):
                 for file_name in files:
                     id_no = single.replace('arXiv', '')
                     if file_name.find(id_no) > -1 or\
@@ -434,8 +430,8 @@ def harvest_single(single, to_dir, selection=("tarball", "pdf")):
             return (None, None)
 
         # okay... is it... a website?
-        elif CFG_PLOTEXTRACTOR_SOURCE_BASE_URL.startswith('http') and "tarball" in selection:
-            url_for_file = CFG_PLOTEXTRACTOR_SOURCE_BASE_URL + single
+        elif cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'].startswith('http') and "tarball" in selection:
+            url_for_file = cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'] + single
             individual_file = os.path.join(to_dir, single)
             abs_path = os.path.join(to_dir, individual_file)
             try:
@@ -503,7 +499,7 @@ def src_pdf_from_marc(marc_file):
     DESY_match = 'DESY-\\d{2,4}-\\d{3}'
 
     pdf_loc = None
-    to_dir = os.path.join(CFG_TMPDIR, 'plotdata')
+    to_dir = os.path.join(cfg['CFG_TMPDIR'], 'plotdata')
 
     possible_match = re.search(arXiv_match, marc_text)
     if possible_match != None:
@@ -538,7 +534,7 @@ def harvest_from_file(filename, to_dir):
                 write_message('error on ' + arXiv_name + '. continuing.')
                 continue
             harvest_single(arXiv_name, to_dir)
-            time.sleep(CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT)
+            time.sleep(cfg['CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT'])
 
     except IOError:
         write_message('Something is wrong with the file!')
@@ -581,20 +577,20 @@ def old_URL_harvest(from_date, to_date, to_dir, area):
             arXiv_id = area[AREA_STRING_INDEX] + next_to_harvest
             individual_dir = make_single_directory(sub_dir, arXiv_id)
 
-            full_url = CFG_PLOTEXTRACTOR_SOURCE_BASE_URL + CFG_PLOTEXTRACTOR_SOURCE_TARBALL_FOLDER + \
+            full_url = cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'] + cfg['CFG_PLOTEXTRACTOR_SOURCE_TARBALL_FOLDER'] + \
                        area[URL] + next_to_harvest
             abs_path = os.path.join(individual_dir, area[AREA_STRING_INDEX] + next_to_harvest)
             if not download_url(url=full_url,
                                 content_type='tar',
                                 download_to_file=abs_path):
                 break
-            full_pdf_url = CFG_PLOTEXTRACTOR_SOURCE_BASE_URL + CFG_PLOTEXTRACTOR_SOURCE_PDF_FOLDER + \
+            full_pdf_url = cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'] + cfg['CFG_PLOTEXTRACTOR_SOURCE_PDF_FOLDER'] + \
                            area[URL] + next_to_harvest
             abs_path = os.path.join(individual_dir, area[AREA_STRING_INDEX] + next_to_harvest + PDF_EXTENSION)
             download_url(url=full_pdf_url,
                          content_type='pdf',
                          download_to_file=abs_path)
-            time.sleep(CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT)
+            time.sleep(cfg['CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT'])
         if yearmonthindex % 100 == 12:
            # we reached the end of the year!
             yearmonthindex = yearmonthindex + FIX_FOR_YEAR_END
@@ -638,7 +634,7 @@ def new_URL_harvest(from_date, from_index, to_dir):
             arXiv_id = ARXIV_HEADER + next_to_harvest
             individual_dir = make_single_directory(sub_dir, arXiv_id)
 
-            full_url = CFG_PLOTEXTRACTOR_SOURCE_BASE_URL + CFG_PLOTEXTRACTOR_SOURCE_TARBALL_FOLDER + \
+            full_url = cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'] + cfg['CFG_PLOTEXTRACTOR_SOURCE_TARBALL_FOLDER'] + \
                        next_to_harvest
             abs_path = os.path.join(individual_dir, ARXIV_HEADER + next_to_harvest)
             if not download_url(url=full_url,
@@ -646,13 +642,13 @@ def new_URL_harvest(from_date, from_index, to_dir):
                                 download_to_file=abs_path):
                 break
 
-            full_pdf_url = CFG_PLOTEXTRACTOR_SOURCE_BASE_URL + CFG_PLOTEXTRACTOR_SOURCE_PDF_FOLDER + \
+            full_pdf_url = cfg['CFG_PLOTEXTRACTOR_SOURCE_BASE_URL'] + cfg['CFG_PLOTEXTRACTOR_SOURCE_PDF_FOLDER'] + \
                            next_to_harvest
             abs_path = os.path.join(individual_dir, ARXIV_HEADER + next_to_harvest + PDF_EXTENSION)
             download_url(url=full_pdf_url,
                          content_type='pdf',
                          download_to_file=abs_path)
-            time.sleep(CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT) # be nice to remote server
+            time.sleep(cfg['CFG_PLOTEXTRACTOR_DOWNLOAD_TIMEOUT']) # be nice to remote server
 
         if yearmonthindex % 100 == 12:
             # we reached the end of the year!

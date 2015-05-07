@@ -29,15 +29,15 @@ from flask import Blueprint, current_app, request
 from flask_breadcrumbs import default_breadcrumb_root
 
 from invenio.base.globals import cfg
-from invenio.config import CFG_SITE_RECORD
 from invenio_records.views import request_record
 
 from .registry import previewers
 from .utils import get_record_documents, get_record_files
 
-blueprint = Blueprint('previewer', __name__, url_prefix="/" + CFG_SITE_RECORD,
-                      static_url_path='/record', template_folder='templates',
-                      static_folder='static')
+blueprint = Blueprint(
+    'previewer', __name__, url_prefix="/record",
+    static_url_path='/record', template_folder='templates',
+    static_folder='static')
 
 default_breadcrumb_root(blueprint, '.')
 

@@ -33,13 +33,9 @@ import re
 import sys
 
 import time
-
 from tempfile import mkstemp
 
-from invenio.config import CFG_PLOTEXTRACTOR_CONTEXT_EXTRACT_LIMIT, \
-    CFG_PLOTEXTRACTOR_CONTEXT_SENTENCE_LIMIT, \
-    CFG_PLOTEXTRACTOR_CONTEXT_WORD_LIMIT, CFG_PLOTEXTRACTOR_DISALLOWED_TEX, \
-    CFG_SITE_URL, CFG_TMPSHAREDDIR
+from invenio.base.globals import cfg
 from invenio.legacy.bibsched.bibtask import task_low_level_submission
 from invenio.utils.shell import Timeout, run_process_with_timeout, \
     run_shell_command
@@ -119,7 +115,7 @@ def main():
     with_docformat = None
     arXiv = None
     clean = False
-    refno_url = CFG_SITE_URL
+    refno_url = cfg['CFG_SITE_URL']
     skip_refno = False
     upload_mode = 'append'
 
@@ -175,14 +171,14 @@ def main():
         sys.exit()
 
     if sdir is None:
-        sdir = CFG_TMPSHAREDDIR
+        sdir = cfg['CFG_TMPSHAREDDIR']
     elif not os.path.isdir(sdir):
         try:
             os.makedirs(sdir)
         except Exception:
             write_message('Error: We can\'t use this sdir.  using ' +
                           'CFG_TMPSHAREDDIR')
-            sdir = CFG_TMPSHAREDDIR
+            sdir = cfg['CFG_TMPSHAREDDIR']
 
     if skip_refno:
         refno_url = ""
@@ -234,7 +230,7 @@ def main():
             upload_to_site(squash_path, yes_i_know, upload_mode)
 
 
-def process_single(tarball, sdir=CFG_TMPSHAREDDIR, xtract_text=False,
+def process_single(tarball, sdir=cfg['CFG_TMPSHAREDDIR'], xtract_text=False,
                    upload_plots=False, force=False, squash="",
                    yes_i_know=False, refno_url="",
                    clean=False, recid=None, upload_mode='append',
@@ -361,7 +357,7 @@ def get_defaults(tarball, sdir, refno_url, recid=None):
     """
     if not sdir or recid:
         # Missing sdir: using default directory: CFG_TMPDIR
-        sdir = CFG_TMPSHAREDDIR
+        sdir = cfg['CFG_TMPSHAREDDIR']
     else:
         sdir = os.path.split(tarball)[0]
 
@@ -492,10 +488,10 @@ def get_context(lines, backwards=False):
     #   2. If not, see if this is a TeX tag and see if its 'illegal'
     #   3. Otherwise, add word to context
     for word in word_list:
-        if len(context) >= CFG_PLOTEXTRACTOR_CONTEXT_WORD_LIMIT:
+        if len(context) >= cfg['CFG_PLOTEXTRACTOR_CONTEXT_WORD_LIMIT']:
             break
         match = tex_tag.match(word)
-        if match and match.group(1) in CFG_PLOTEXTRACTOR_DISALLOWED_TEX:
+        if match and match.group(1) in cfg['CFG_PLOTEXTRACTOR_DISALLOWED_TEX']:
             # TeX Construct matched, return
             if backwards:
                 # When reversed we need to go back and
@@ -516,9 +512,9 @@ def get_context(lines, backwards=False):
     if backwards:
         sentence_list.reverse()
 
-    if len(sentence_list) > CFG_PLOTEXTRACTOR_CONTEXT_SENTENCE_LIMIT:
+    if len(sentence_list) > cfg['CFG_PLOTEXTRACTOR_CONTEXT_SENTENCE_LIMIT']:
         return " ".join(
-            sentence_list[:CFG_PLOTEXTRACTOR_CONTEXT_SENTENCE_LIMIT])
+            sentence_list[:cfg['CFG_PLOTEXTRACTOR_CONTEXT_SENTENCE_LIMIT']])
     else:
         return " ".join(sentence_list)
 
@@ -557,7 +553,7 @@ def extract_context(tex_file, extracted_image_data):
                                              lines)]
         for startindex, endindex in indicies:
             # Retrive all lines before label until beginning of file
-            i = startindex - CFG_PLOTEXTRACTOR_CONTEXT_EXTRACT_LIMIT
+            i = startindex - cfg['CFG_PLOTEXTRACTOR_CONTEXT_EXTRACT_LIMIT']
             if i < 0:
                 text_before = lines[:startindex]
             else:
@@ -565,7 +561,7 @@ def extract_context(tex_file, extracted_image_data):
             context_before = get_context(text_before, backwards=True)
 
             # Retrive all lines from label until end of file and get context
-            i = endindex + CFG_PLOTEXTRACTOR_CONTEXT_EXTRACT_LIMIT
+            i = endindex + cfg['CFG_PLOTEXTRACTOR_CONTEXT_EXTRACT_LIMIT']
             text_after = lines[endindex:i]
             context_after = get_context(text_after)
             context_list.append(
