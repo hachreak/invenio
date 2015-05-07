@@ -492,8 +492,8 @@ def upload_record_sip():
     """
     @wraps(upload_record_sip)
     def create(obj, dummy_eng):
-        #FIXME change share tmp directory
-        from invenio.config import CFG_TMPSHAREDDIR
+        # FIXME change share tmp directory
+        from invenio.base.globals import cfg
         from invenio.legacy.bibsched.bibtask import task_low_level_submission, \
             bibtask_allocate_sequenceid
         d = Deposition(obj)
@@ -504,7 +504,7 @@ def upload_record_sip():
         tmp_file_fd, tmp_file_path = mkstemp(
             prefix="webdeposit-%s-%s" % (d.id, sip.uuid),
             suffix='.xml',
-            dir=CFG_TMPSHAREDDIR,
+            dir=cfg['CFG_TMPSHAREDDIR'],
         )
 
         os.write(tmp_file_fd, sip.package)

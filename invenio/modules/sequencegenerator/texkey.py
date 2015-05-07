@@ -26,7 +26,7 @@ from invenio.legacy.search_engine import perform_request_search, get_record
 from invenio.legacy.bibrecord import field_get_subfield_values, \
                               record_get_field_instances, \
                               record_add_field, print_rec
-from invenio.config import CFG_TMPSHAREDDIR, CFG_VERSION
+from invenio.base.globals import cfg
 from invenio.legacy.bibsched.bibtask import task_init, write_message, \
     task_low_level_submission, task_update_progress, \
     task_sleep_now_if_required
@@ -205,7 +205,7 @@ def submit_task(to_submit, mode, sequence_id):
     @rtype: int
     """
     (temp_fd, temp_path) = mkstemp(prefix=PREFIX,
-                                   dir=CFG_TMPSHAREDDIR)
+                                   dir=cfg['CFG_TMPSHAREDDIR'])
     temp_file = os.fdopen(temp_fd, 'w')
     temp_file.write('<?xml version="1.0" encoding="UTF-8"?>')
     temp_file.write('<collection>')
@@ -340,7 +340,7 @@ def main():
         authorization_msg="Texkey generator task submission",
         description=DESCRIPTION,
         help_specific_usage=HELP_MESSAGE,
-        version="Invenio v%s" % CFG_VERSION,
+        version="Invenio v%s" % cfg['CFG_VERSION'],
         specific_params=("", []),
         # task_submit_elaborate_specific_parameter_fnc=parse_option,
         # task_submit_check_options_fnc=check_options,

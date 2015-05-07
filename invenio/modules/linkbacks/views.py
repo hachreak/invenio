@@ -22,15 +22,12 @@
 from __future__ import unicode_literals
 
 from flask import Blueprint, Response, render_template, request
-
 from flask_login import current_user
-
 from flask_menu import register_menu
 
 from invenio.base.decorators import wash_arguments
+from invenio.base.globals import cfg
 from invenio.base.i18n import _
-from invenio.config import (CFG_SITE_RECORD,
-                            CFG_WEBLINKBACK_TRACKBACK_ENABLED)
 from invenio.ext.sqlalchemy import db
 from invenio.legacy.weblinkback.config import CFG_WEBLINKBACK_STATUS, \
     CFG_WEBLINKBACK_SUBSCRIPTION_DEFAULT_ARGUMENT_NAME
@@ -39,7 +36,7 @@ from invenio.modules.records.views import request_record
 
 from .models import LnkENTRY
 
-blueprint = Blueprint('weblinkback', __name__, url_prefix="/"+CFG_SITE_RECORD,
+blueprint = Blueprint('weblinkback', __name__, url_prefix="/record",
                       template_folder='templates', static_folder='static')
 
 
@@ -80,7 +77,7 @@ def sendtrackback(recid, url, title, excerpt, blog_name, id, source):
     from invenio.legacy.weblinkback.api import (perform_sendtrackback,
                                                 perform_sendtrackback_disabled)
     mime_type = 'text/xml; charset=utf-8'
-    if CFG_WEBLINKBACK_TRACKBACK_ENABLED:
+    if cfg['CFG_WEBLINKBACK_TRACKBACK_ENABLED']:
         xml_response, status = perform_sendtrackback(recid, url, title,
                                                      excerpt, blog_name, id,
                                                      source, current_user)

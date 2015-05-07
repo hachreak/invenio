@@ -32,18 +32,10 @@ from flask_login import login_required
 from invenio.base.decorators import wash_arguments
 from invenio.base.globals import cfg
 from invenio.base.i18n import _
-from invenio.config import (CFG_BIBCATALOG_SYSTEM_RT_URL,
-                            CFG_BIBEDIT_AUTOCOMPLETE,
-                            CFG_BIBEDIT_INTERNAL_DOI_PROTECTION_LEVEL,
-                            CFG_BIBEDIT_SHOW_HOLDING_PEN_REMOVED_FIELDS,
-                            CFG_CERN_SITE,
-                            CFG_INSPIRE_SITE,
-                            CFG_SITE_RECORD,
-                            CFG_SITE_URL)
 from invenio.ext.principal import permission_required
 from invenio.legacy.bibcatalog.api import BIBCATALOG_SYSTEM
-from invenio.legacy.bibedit.db_layer import (get_info_of_record_revision,
-                                             get_name_tags_all)
+from invenio.legacy.bibedit.db_layer import get_info_of_record_revision, \
+    get_name_tags_all
 
 blueprint = Blueprint('editor', __name__, url_prefix='/record/edit',
                       template_folder='templates', static_folder='static')
@@ -66,7 +58,7 @@ def index():
     protected_fields = ['001']
     protected_fields.extend(cfg['CFG_BIBEDIT_PROTECTED_FIELDS'].split(','))
     cern_site = 'false'
-    if CFG_CERN_SITE:
+    if cfg['CFG_CERN_SITE']:
         cern_site = 'true'
 
     data = {
@@ -74,11 +66,11 @@ def index():
         'gTAG_NAMES': tag_names,
         'gPROTECTED_FIELDS': protected_fields,
         'gINTERNAL_DOI_PROTECTION_LEVEL':
-            CFG_BIBEDIT_INTERNAL_DOI_PROTECTION_LEVEL,
-        'gSITE_URL': CFG_SITE_URL,
-        'gSITE_RECORD': CFG_SITE_RECORD,
+            cfg['CFG_BIBEDIT_INTERNAL_DOI_PROTECTION_LEVEL'],
+        'gSITE_URL': cfg['CFG_SITE_URL'],
+        'gSITE_RECORD': cfg['CFG_SITE_RECORD'],
         'gCERN_SITE': cern_site,
-        'gINSPIRE_SITE': CFG_INSPIRE_SITE,
+        'gINSPIRE_SITE': cfg['CFG_INSPIRE_SITE'],
         'gHASH_CHECK_INTERVAL': cfg['CFG_BIBEDIT_JS_HASH_CHECK_INTERVAL'],
         'gCHECK_SCROLL_INTERVAL': cfg['CFG_BIBEDIT_JS_CHECK_SCROLL_INTERVAL'],
         'gSTATUS_ERROR_TIME': cfg['CFG_BIBEDIT_JS_STATUS_ERROR_TIME'],
@@ -108,9 +100,10 @@ def index():
         'gDisplayReferenceTags': cfg['CFG_BIBEDIT_DISPLAY_REFERENCE_TAGS'],
         'gDisplayAuthorTags': cfg['CFG_BIBEDIT_DISPLAY_AUTHOR_TAGS'],
         'gExcludeCuratorTags': cfg['CFG_BIBEDIT_EXCLUDE_CURATOR_TAGS'],
-        'gSHOW_HP_REMOVED_FIELDS': CFG_BIBEDIT_SHOW_HOLDING_PEN_REMOVED_FIELDS,
-        'gBIBCATALOG_SYSTEM_RT_URL': repr(CFG_BIBCATALOG_SYSTEM_RT_URL),
-        'gAutoComplete': json.dumps(CFG_BIBEDIT_AUTOCOMPLETE)
+        'gSHOW_HP_REMOVED_FIELDS':
+            cfg['CFG_BIBEDIT_SHOW_HOLDING_PEN_REMOVED_FIELDS'],
+        'gBIBCATALOG_SYSTEM_RT_URL': repr(cfg['CFG_BIBCATALOG_SYSTEM_RT_URL']),
+        'gAutoComplete': json.dumps(cfg['CFG_BIBEDIT_AUTOCOMPLETE'])
     }
 
     fieldTemplates = get_available_fields_templates()

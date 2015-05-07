@@ -26,22 +26,11 @@ import mimetypes
 import re
 import time
 from xml.sax.saxutils import unescape
-from invenio.config import CFG_CERN_SITE
 
 
-if CFG_CERN_SITE:
-    # A host mirroring W3C validator
-    CFG_W3C_VALIDATOR_HOST = 'pcuds12.cern.ch'
-
-    # The selector for checking the page
-    CFG_W3C_VALIDATOR_SELECTOR = '/w3c-markup-validator/check'
-
-    # Whethever to sleep for 1s for kindness to the server
-    CFG_W3C_VALIDATOR_SLEEP_P = False
-else:
-    CFG_W3C_VALIDATOR_HOST = 'validator.w3.org'
-    CFG_W3C_VALIDATOR_SELECTOR = '/check'
-    CFG_W3C_VALIDATOR_SLEEP_P = True
+CFG_W3C_VALIDATOR_HOST = 'validator.w3.org'
+CFG_W3C_VALIDATOR_SELECTOR = '/check'
+CFG_W3C_VALIDATOR_SLEEP_P = True
 
 
 # Whethever we automatically exploit regression tests for validating pages.

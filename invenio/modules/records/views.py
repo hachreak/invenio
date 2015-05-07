@@ -37,7 +37,6 @@ from invenio.base.decorators import wash_arguments
 from invenio.base.globals import cfg
 from invenio.base.i18n import _
 from invenio.base.signals import pre_template_render
-from invenio.config import CFG_SITE_RECORD
 from invenio.ext.template.context_processor import \
     register_template_context_processor
 from invenio.modules.collections.models import Collection
@@ -49,9 +48,10 @@ from .models import Record as Bibrec
 from .utils import citations_nb_counts, references_nb_counts, \
     visible_collection_tabs
 
-blueprint = Blueprint('record', __name__, url_prefix="/" + CFG_SITE_RECORD,
-                      static_url_path='/record', template_folder='templates',
-                      static_folder='static')
+blueprint = Blueprint(
+    'record', __name__, url_prefix="/record",
+    static_url_path='/record', template_folder='templates',
+    static_folder='static')
 
 default_breadcrumb_root(blueprint, '.')
 

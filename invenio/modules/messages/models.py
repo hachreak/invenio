@@ -155,8 +155,6 @@ class MsgMESSAGE(db.Model):
 
 #TODO consider moving following lines to separate file.
 
-from invenio.modules.messages.config import CFG_WEBMESSAGE_EMAIL_ALERT
-from invenio.config import CFG_WEBCOMMENT_ALERT_ENGINE_EMAIL
 from invenio.utils.date import datetext_format
 from datetime import datetime
 

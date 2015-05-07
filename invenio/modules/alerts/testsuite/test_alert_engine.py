@@ -34,7 +34,7 @@ class TestWashHTMLtoText(InvenioTestCase):
 
     def test_wash_html_to_text(self):
         """webalert - stripping HTML markup for alert emails"""
-        from invenio.config import CFG_SITE_URL
+        from invenio.base.globals import cfg
         htparser = RecordHTMLParser()
         htparser.feed('''<style type="text/css">
                     <!--
@@ -42,9 +42,9 @@ class TestWashHTMLtoText(InvenioTestCase):
                        div.thumbMosaic span{display:none;}
                        div.thumbMosaic:hover span{display:inline;position:absolute;}
                      -->
-                     </style><!--START_NOT_FOR_TEXT--><strong>Abracadabra!</strong><!--END_NOT_FOR_TEXT--><br/><a class="moreinfo" href="%(CFG_SITE_URL)s">Detailed Record</a>''' % {'CFG_SITE_URL': CFG_SITE_URL})
+                     </style><!--START_NOT_FOR_TEXT--><strong>Abracadabra!</strong><!--END_NOT_FOR_TEXT--><br/><a class="moreinfo" href="%(CFG_SITE_URL)s">Detailed Record</a>''' % {'CFG_SITE_URL': cfg['CFG_SITE_URL']})
 
-        self.assertEqual('\nDetailed record : <%s>' % CFG_SITE_URL, htparser.result)
+        self.assertEqual('\nDetailed record : <%s>' % cfg['CFG_SITE_URL'], htparser.result)
 
     def test_entity_ref_conversion(self):
         """webalert - convert entity reference to text (Eg: '&lt;' -> '<')"""
