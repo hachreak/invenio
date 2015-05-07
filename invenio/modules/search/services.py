@@ -20,7 +20,7 @@
 """Provide the infrastructure to load/query search services."""
 
 import re
-from invenio.config import CFG_SITE_LANG
+from invenio.base.globals import cfg
 from invenio.modules.knowledge.api import get_kb_mappings
 from invenio.legacy.miscutil.data_cacher import DataCacher
 from invenio.legacy.bibindex.engine_stemmer import stem
@@ -96,7 +96,7 @@ class SearchService:
 
     cache = None
 
-    def get_description(self, ln=CFG_SITE_LANG):
+    def get_description(self, ln=cfg['CFG_SITE_LANG']):
         """Return service description.
 
         :rtype: string
@@ -176,7 +176,7 @@ class ListLinksService(SearchService):
 
     See also L{KnowledgeBaseService}.
     """
-    def get_label(self, ln=CFG_SITE_LANG):
+    def get_label(self, ln=cfg['CFG_SITE_LANG']):
         """
         Return label displayed next to the service responses.
 
@@ -184,7 +184,7 @@ class ListLinksService(SearchService):
         """
         return ""
 
-    def display_answer_helper(self, labels_and_urls, ln=CFG_SITE_LANG):
+    def display_answer_helper(self, labels_and_urls, ln=cfg['CFG_SITE_LANG']):
         """Display HTML to return an answer as HTML.
 
         Use this function to process your list of response and return
@@ -238,7 +238,7 @@ class KnowledgeBaseService(ListLinksService):
         """
         _ = gettext_set_language(ln)
         # words = [stem(unit[1], ln) for unit in search_units if unit[2] == '']
-        words = [stem(unit[1].lower(), CFG_SITE_LANG) for unit in search_units
+        words = [stem(unit[1].lower(), cfg['CFG_SITE_LANG']) for unit in search_units
                  if unit[2] == '']
         cache = self.get_data_cache()
 
@@ -279,7 +279,7 @@ class KnowledgeBaseService(ListLinksService):
         for mapping in get_kb_mappings(self.get_kbname()):
             key = mapping['key']
             value = mapping['value']
-            words = clean_and_split_words_and_stem(key, CFG_SITE_LANG,
+            words = clean_and_split_words_and_stem(key, cfg['CFG_SITE_LANG'],
                                                    stem_p=True)
             for word in words:
                 if word not in cache:
@@ -303,7 +303,7 @@ re_split_words_pattern = re.compile('\s*')
 re_non_alphanum_only = re.compile('\W')
 
 
-def clean_and_split_words_and_stem(string, ln=CFG_SITE_LANG, stem_p=True):
+def clean_and_split_words_and_stem(string, ln=cfg['CFG_SITE_LANG'], stem_p=True):
     """Split and stemp words in a string.
 
     :param ln: language to consider for stemming

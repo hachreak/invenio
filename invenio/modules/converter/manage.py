@@ -37,8 +37,10 @@ def update():
     """
     print(">>> Going to update converter templates...")
     import re
+
     import shutil
-    from invenio.config import CFG_SITE_RECORD, CFG_SITE_URL
+
+    from invenio.base.globals import cfg
     from invenio.legacy.bibconvert.registry import templates
 
     for tplfile in templates.itervalues():
@@ -48,11 +50,11 @@ def update():
             out = ''
             for line in open(tplfile, 'r').readlines():
                 match = re.search(
-                    r'^(.*)http://.*?/%s/(.*)$' % CFG_SITE_RECORD, line)
+                    r'^(.*)http://.*?/%s/(.*)$' % cfg['CFG_SITE_RECORD'], line)
                 if match:
                     out += "%s%s/%s/%s\n" % (match.group(1),
-                                             CFG_SITE_URL,
-                                             CFG_SITE_RECORD,
+                                             cfg['CFG_SITE_URL'],
+                                             cfg['CFG_SITE_RECORD'],
                                              match.group(2))
                 else:
                     out += line

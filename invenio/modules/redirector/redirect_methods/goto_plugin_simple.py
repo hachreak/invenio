@@ -19,12 +19,13 @@
 
 """Simple plugin to register an internal redirection."""
 
-from invenio.config import CFG_SITE_URL, CFG_SITE_SECURE_URL
+from invenio.base.globals import cfg
 
 
 def goto(url):
     """Redirect to url (assuming it is internal to the system)."""
     if url.startswith('/'):
-        url = CFG_SITE_URL + url
-    if url.startswith(CFG_SITE_URL) or url.startswith(CFG_SITE_SECURE_URL):
+        url = cfg['CFG_SITE_URL'] + url
+    if url.startswith(cfg['CFG_SITE_URL']) or \
+            url.startswith(cfg['CFG_SITE_SECURE_URL']):
         return url

@@ -16,12 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""
-WebJournal widget - display photos from given collections
-"""
-from invenio.modules.formatter.engine import BibFormatObject
+
+"""WebJournal widget - display photos from given collections."""
+
+from invenio.base.globals import cfg
 from invenio.legacy.search_engine import perform_request_search
-from invenio.config import CFG_CERN_SITE, CFG_SITE_URL, CFG_SITE_RECORD
+from invenio.modules.formatter.engine import BibFormatObject
+
 
 def format_element(bfo, collections, max_photos="3", separator="<br/>"):
     """
@@ -82,7 +83,7 @@ def get_widget_html(language, max_photos, collections, separator, ln):
                 # todo: exception, picture with no title
                 title = ""
 
-        if CFG_CERN_SITE and photo_record.fields('8567_'):
+        if cfg['CFG_CERN_SITE'] and photo_record.fields('8567_'):
             # Get from 8567_
             dfs_images = photo_record.fields('8567_')
             for image_block in dfs_images:
@@ -101,6 +102,6 @@ def get_widget_html(language, max_photos, collections, separator, ln):
                         break # Just one image per record
 
     # Build output
-    html_out = separator.join(['<a href="%s/%s/%i?ln=%s"><img class="phr" width="100" height="67" src="%s"/>%s</a>' % (CFG_SITE_URL, CFG_SITE_RECORD, recid, ln, photo_url, title) for (recid, photo_url, title) in images_urls])
+    html_out = separator.join(['<a href="%s/%s/%i?ln=%s"><img class="phr" width="100" height="67" src="%s"/>%s</a>' % (cfg['CFG_SITE_URL'], cfg['CFG_SITE_RECORD'], recid, ln, photo_url, title) for (recid, photo_url, title) in images_urls])
 
     return html_out

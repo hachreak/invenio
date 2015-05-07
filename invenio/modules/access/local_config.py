@@ -24,9 +24,8 @@ __revision__ = \
 
 # pylint: disable=C0301
 
-from invenio.config import CFG_SITE_NAME, CFG_SITE_URL, CFG_SITE_SECURE_URL, CFG_SITE_SUPPORT_EMAIL, CFG_SITE_RECORD, CFG_SITE_ADMIN_EMAIL
 from invenio.base.i18n import _
-from invenio.base.globals import cfg as config
+from invenio.base.globals import cfg
 
 # VALUES TO BE EXPORTED
 # CURRENTLY USED BY THE FILES access_control_engine.py modules.access.control.py webaccessadmin_lib.py
@@ -245,38 +244,38 @@ DEF_AUTHS = (('basketusers', 'usebaskets', {}),
 
 # Activities (i.e. actions) for which exists an administrative web interface.
 CFG_ACC_ACTIVITIES_URLS = {
-    'runbibedit' : (_("Run Record Editor"), "%s/%s/edit/?ln=%%s" % (CFG_SITE_URL, CFG_SITE_RECORD)),
-    'runbibeditmulti' : (_("Run Multi-Record Editor"), "%s/%s/multiedit/?ln=%%s" % (CFG_SITE_URL, CFG_SITE_RECORD)),
-    'runbibdocfile' : (_("Run Document File Manager"), "%s/%s/managedocfiles?ln=%%s" % (CFG_SITE_URL, CFG_SITE_RECORD)),
-    'runbibmerge' : (_("Run Record Merger"), "%s/%s/merge/?ln=%%s" % (CFG_SITE_URL, CFG_SITE_RECORD)),
-    'runbibswordclient' : (_("Run BibSword client"), "%s/bibsword/?ln=%%s" % CFG_SITE_URL),
-    'cfgbibknowledge' : (_("Configure BibKnowledge"), "%s/kb?ln=%%s" % CFG_SITE_URL),
-    'cfgbibformat' : (_("Configure BibFormat"), "%s/admin/bibformat/bibformatadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgoaiharvest' : (_("Configure OAI Harvest"), "%s/admin/oaiharvest/oaiharvestadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgoairepository' : (_("Configure OAI Repository"), "%s/admin/oairepository/oairepositoryadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgbibindex' : (_("Configure BibIndex"), "%s/admin/bibindex/bibindexadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgbibrank' : (_("Configure BibRank"), "%s/admin/bibrank/bibrankadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgwebaccess' : (_("Configure WebAccess"), "%s/admin/webaccess/webaccessadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgwebcomment' : (_("Configure WebComment"), "%s/admin/webcomment/webcommentadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgweblinkback' : (_("Configure WebLinkback"), "%s/admin/weblinkback/weblinkbackadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgwebsearch' : (_("Configure WebSearch"), "%s/admin/websearch/websearchadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgwebsubmit' : (_("Configure WebSubmit"), "%s/admin/websubmit/websubmitadmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgwebjournal' : (_("Configure WebJournal"), "%s/admin/webjournal/webjournaladmin.py?ln=%%s" % CFG_SITE_URL),
-    'cfgbibsort' : (_("Configure BibSort"), "%s/admin/bibsort/bibsortadmin.py?ln=%%s" % CFG_SITE_URL),
-    'runbibcirculation' : (_("Run BibCirculation"), "%s/admin/bibcirculation/bibcirculationadmin.py?ln=%%s" % CFG_SITE_URL),
-    'runbatchuploader' : (_("Run Batch Uploader"), "%s/batchuploader/metadata?ln=%%s" % CFG_SITE_URL),
-    'runinfomanager' : (_("Run Info Space Manager"), "%s/info/manage?ln=%%s" % CFG_SITE_URL),
-    'claimpaper_claim_others_papers' : (_("Run Person/Author Manager"), "%s/author/search?ln=%%s" % CFG_SITE_URL)
+    'runbibedit' : (_("Run Record Editor"), "%s/%s/edit/?ln=%%s" % (cfg['CFG_SITE_URL'], cfg['CFG_SITE_RECORD'])),
+    'runbibeditmulti' : (_("Run Multi-Record Editor"), "%s/%s/multiedit/?ln=%%s" % (cfg['CFG_SITE_URL'], cfg['CFG_SITE_RECORD'])),
+    'runbibdocfile' : (_("Run Document File Manager"), "%s/%s/managedocfiles?ln=%%s" % (cfg['CFG_SITE_URL'], cfg['CFG_SITE_RECORD'])),
+    'runbibmerge' : (_("Run Record Merger"), "%s/%s/merge/?ln=%%s" % (cfg['CFG_SITE_URL'], cfg['CFG_SITE_RECORD'])),
+    'runbibswordclient' : (_("Run BibSword client"), "%s/bibsword/?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgbibknowledge' : (_("Configure BibKnowledge"), "%s/kb?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgbibformat' : (_("Configure BibFormat"), "%s/admin/bibformat/bibformatadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgoaiharvest' : (_("Configure OAI Harvest"), "%s/admin/oaiharvest/oaiharvestadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgoairepository' : (_("Configure OAI Repository"), "%s/admin/oairepository/oairepositoryadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgbibindex' : (_("Configure BibIndex"), "%s/admin/bibindex/bibindexadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgbibrank' : (_("Configure BibRank"), "%s/admin/bibrank/bibrankadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgwebaccess' : (_("Configure WebAccess"), "%s/admin/webaccess/webaccessadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgwebcomment' : (_("Configure WebComment"), "%s/admin/webcomment/webcommentadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgweblinkback' : (_("Configure WebLinkback"), "%s/admin/weblinkback/weblinkbackadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgwebsearch' : (_("Configure WebSearch"), "%s/admin/websearch/websearchadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgwebsubmit' : (_("Configure WebSubmit"), "%s/admin/websubmit/websubmitadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgwebjournal' : (_("Configure WebJournal"), "%s/admin/webjournal/webjournaladmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'cfgbibsort' : (_("Configure BibSort"), "%s/admin/bibsort/bibsortadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'runbibcirculation' : (_("Run BibCirculation"), "%s/admin/bibcirculation/bibcirculationadmin.py?ln=%%s" % cfg['CFG_SITE_URL']),
+    'runbatchuploader' : (_("Run Batch Uploader"), "%s/batchuploader/metadata?ln=%%s" % cfg['CFG_SITE_URL']),
+    'runinfomanager' : (_("Run Info Space Manager"), "%s/info/manage?ln=%%s" % cfg['CFG_SITE_URL']),
+    'claimpaper_claim_others_papers' : (_("Run Person/Author Manager"), "%s/author/search?ln=%%s" % cfg['CFG_SITE_URL'])
 }
 
 CFG_WEBACCESS_MSGS = {
-    0: 'Try to <a href="%s/youraccount/login?referer=%%s">login</a> with another account.' % (CFG_SITE_SECURE_URL),
-    1: '<br />If you think this is not correct, please contact: <a href="mailto:%s">%s</a>' % (CFG_SITE_SUPPORT_EMAIL, CFG_SITE_SUPPORT_EMAIL),
-    2: '<br />If you have any questions, please write to <a href="mailto:%s">%s</a>' % (CFG_SITE_SUPPORT_EMAIL, CFG_SITE_SUPPORT_EMAIL),
-    3: 'Guest users are not allowed, please <a href="%s/youraccount/login">login</a>.' % CFG_SITE_SECURE_URL,
+    0: 'Try to <a href="%s/youraccount/login?referer=%%s">login</a> with another account.' % (cfg['CFG_SITE_SECURE_URL']),
+    1: '<br />If you think this is not correct, please contact: <a href="mailto:%s">%s</a>' % (cfg['CFG_SITE_SUPPORT_EMAIL'], cfg['CFG_SITE_SUPPORT_EMAIL']),
+    2: '<br />If you have any questions, please write to <a href="mailto:%s">%s</a>' % (cfg['CFG_SITE_SUPPORT_EMAIL'],'[gfc CFG_SITE_SUPPORT_EMAI]'),
+    3: 'Guest users are not allowed, please <a href="%s/youraccount/login">login</a>.' % cfg['CFG_SITE_SECURE_URL'],
     4: 'The site is temporarily closed for maintenance.  Please come back soon.',
     5: 'Authorization failure',
-    6: '%s temporarily closed' % CFG_SITE_NAME,
+    6: '%s temporarily closed' % cfg['CFG_SITE_NAME'],
     7: 'This functionality is temporarily closed due to server maintenance. Please use only the search engine in the meantime.',
     8: 'Functionality temporarily closed',
     9: '<br />If you think this is not correct, please contact: <a href="mailto:%s">%s</a>',
@@ -307,6 +306,6 @@ CFG_WEBACCESS_WARNING_MSGS = {
     20: """No roles are authorized to perform action %s with the given parameters.""",
     21: """Verification cancelled""",
     22: """Verification failed. Please try again or use another provider to login""",
-    23: """Verification failed. It is probably because the configuration isn't set properly. Please contact with the <a href="mailto:%s">administator</a>""" % CFG_SITE_ADMIN_EMAIL
+    23: """Verification failed. It is probably because the configuration isn't set properly. Please contact with the <a href="mailto:%s">administator</a>""" % cfg['CFG_SITE_ADMIN_EMAIL']
 }
 

@@ -20,31 +20,29 @@
    Document is given by its URL.
 """
 
-import os
-import sys
 import logging
-import urllib2
+import os
 import re
+import sys
+import urllib2
 
+from intbitset import intbitset
 from six import iteritems
 
-from invenio.config import \
-     CFG_SOLR_URL, \
-     CFG_XAPIAN_ENABLED, \
-     CFG_BIBINDEX_FULLTEXT_INDEX_LOCAL_FILES_ONLY, \
-     CFG_BIBINDEX_SPLASH_PAGES
-from invenio.utils.html import get_links_in_html_page
-from invenio.legacy.websubmit.file_converter import convert_file, get_file_converter_logger
-from invenio.legacy.miscutil.solrutils_bibindex_indexer import solr_add_fulltext
-from invenio.legacy.miscutil.xapianutils_bibindex_indexer import xapian_add
-from invenio.legacy.bibdocfile.api import bibdocfile_url_p, \
-     bibdocfile_url_to_bibdoc, download_url, \
-     BibRecDocs, InvenioBibDocFileError
+from invenio.base.globals import cfg
+from invenio.ext.logging import register_exception
+from invenio.legacy.bibdocfile.api import BibRecDocs, InvenioBibDocFileError, \
+    bibdocfile_url_p, bibdocfile_url_to_bibdoc, download_url
 from invenio.legacy.bibindex.engine_utils import get_idx_indexer
 from invenio.legacy.bibsched.bibtask import write_message
-from invenio.ext.logging import register_exception
-from intbitset import intbitset
-from invenio.modules.indexer.tokenizers.BibIndexDefaultTokenizer import BibIndexDefaultTokenizer
+from invenio.legacy.miscutil.solrutils_bibindex_indexer import \
+    solr_add_fulltext
+from invenio.legacy.miscutil.xapianutils_bibindex_indexer import xapian_add
+from invenio.legacy.websubmit.file_converter import convert_file, \
+    get_file_converter_logger
+from invenio.modules.indexer.tokenizers.BibIndexDefaultTokenizer import \
+    BibIndexDefaultTokenizer
+from invenio.utils.html import get_links_in_html_page
 
 fulltext_added = intbitset() # stores ids of records whose fulltexts have been added
 
@@ -105,9 +103,9 @@ class BibIndexFulltextTokenizer(BibIndexDefaultTokenizer):
                             except InvenioBibDocFileError:
                                 # Invalid PDF
                                 continue
-                            if indexer == 'SOLR' and CFG_SOLR_URL:
+                            if indexer == 'SOLR' and cfg['CFG_SOLR_URL']:
                                 solr_add_fulltext(recid, text)
-                            elif indexer == 'XAPIAN' and CFG_XAPIAN_ENABLED:
+                            elif indexer == 'XAPIAN' and cfg['CFG_XAPIAN_ENABLED']:
                                 xapian_add(recid, 'fulltext', text)
 
                         fulltext_added.add(recid)
@@ -121,12 +119,12 @@ class BibIndexFulltextTokenizer(BibIndexDefaultTokenizer):
                         text = bibdoc.get_text()
                     return self.tokenize_for_words_default(text)
             else:
-                if CFG_BIBINDEX_FULLTEXT_INDEX_LOCAL_FILES_ONLY:
+                if cfg['CFG_BIBINDEX_FULLTEXT_INDEX_LOCAL_FILES_ONLY']:
                     write_message("... %s is external URL but indexing only local files" % url_direct_or_indirect, verbose=2)
                     return []
                 write_message("... %s is an external URL" % url_direct_or_indirect, verbose=2)
                 urls_to_index = set()
-                for splash_re, url_re in iteritems(CFG_BIBINDEX_SPLASH_PAGES):
+                for splash_re, url_re in iteritems(cfg['CFG_BIBINDEX_SPLASH_PAGES']):
                     if re.match(splash_re, url_direct_or_indirect):
                         write_message("... %s is a splash page (%s)" % (url_direct_or_indirect, splash_re), verbose=2)
                         html = urllib2.urlopen(url_direct_or_indirect).read()
@@ -154,9 +152,9 @@ class BibIndexFulltextTokenizer(BibIndexDefaultTokenizer):
 
                             indexer = get_idx_indexer('fulltext')
                             if indexer != 'native':
-                                if indexer == 'SOLR' and CFG_SOLR_URL:
+                                if indexer == 'SOLR' and cfg['CFG_SOLR_URL']:
                                     solr_add_fulltext(None, text) # FIXME: use real record ID
-                                if indexer == 'XAPIAN' and CFG_XAPIAN_ENABLED:
+                                if indexer == 'XAPIAN' and cfg['CFG_XAPIAN_ENABLED']:
                                     #xapian_add(None, 'fulltext', text) # FIXME: use real record ID
                                     pass
                                 # we are relying on an external information retrieval system
@@ -191,4 +189,3 @@ class BibIndexFulltextTokenizer(BibIndexDefaultTokenizer):
 
     def tokenize_for_phrases(self, phrase):
         return []
-

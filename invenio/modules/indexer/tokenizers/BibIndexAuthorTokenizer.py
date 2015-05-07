@@ -24,7 +24,7 @@
 
 import re
 
-from invenio.config import CFG_BIBINDEX_AUTHOR_WORD_INDEX_EXCLUDE_FIRST_NAMES
+from invenio.base.globals import cfg
 from invenio.modules.indexer.tokenizers.BibIndexDefaultTokenizer import BibIndexDefaultTokenizer
 
 
@@ -328,7 +328,7 @@ class BibIndexAuthorTokenizer(BibIndexDefaultTokenizer):
             If CFG_BIBINDEX_AUTHOR_WORD_INDEX_EXCLUDE_FIRST_NAMES is 1 we tokenize only for family names.
             In other case we perform standard tokenization for words.
         """
-        if CFG_BIBINDEX_AUTHOR_WORD_INDEX_EXCLUDE_FIRST_NAMES:
+        if cfg['CFG_BIBINDEX_AUTHOR_WORD_INDEX_EXCLUDE_FIRST_NAMES']:
             return self.get_author_family_name_words_from_phrase(phrase)
         else:
             return self.tokenize_for_words_default(phrase)

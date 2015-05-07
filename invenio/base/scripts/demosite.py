@@ -37,8 +37,6 @@ warnings.warn("Use of `inveniomanage demosite populate` is being deprecated. "
               PendingDeprecationWarning)
 
 
-
-
 manager = Manager(usage=__doc__)
 
 # Shortcuts for manager options to keep code DRY.
@@ -76,7 +74,8 @@ def populate(packages=[], default_data=True, files=None,
     from invenio.legacy.bibupload.engine import main as bibupload
     from invenio.legacy.bibindex.engine import main as bibindex
     from invenio.legacy.bibformat.bibreformat import main as bibreformat
-    from invenio.legacy.oairepository.updater import main as oairepositoryupdater
+    from invenio.legacy.oairepository.updater import main as \
+        oairepositoryupdater
     from invenio.legacy.bibsort.daemon import main as bibsort
     from invenio.legacy.bibdocfile.cli import main as bibdocfile
     from invenio.legacy.bibrank.cli import main as bibrank
@@ -97,7 +96,7 @@ def populate(packages=[], default_data=True, files=None,
 
     from invenio.ext.sqlalchemy import db
     print(">>> Going to load demo records...")
-    db.session.execute("TRUNCATE schTASK")
+    db.session.execute("""TRUNCATE "schTASK" """)
     db.session.commit()
     if files is None:
         files = [pkg_resources.resource_filename(

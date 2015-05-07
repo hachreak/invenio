@@ -21,36 +21,39 @@
 WebJournal Element - Creates an overview of all the articles of a
 certain category in one specific issue.
 """
-import re
+
 import os
-import urllib, urllib2
+
+import re
+
+import urllib
+
+import urllib2
+
 try:
     from PIL import Image
     PIL_imported = True
 except ImportError:
     PIL_imported = False
-from invenio.modules.formatter.engine import BibFormatObject
-from invenio.utils.html import HTMLWasher, remove_html_markup
+
+from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language
-from invenio.config import \
-     CFG_ACCESS_CONTROL_LEVEL_SITE, \
-     CFG_TMPDIR, \
-     CFG_SITE_LANG
+from invenio.modules.formatter.engine import BibFormatObject
+from invenio.legacy.bibdocfile.api import decompose_file
 from invenio.legacy.webjournal.utils import \
      cache_index_page, \
+     get_current_issue, \
      get_index_page_from_cache, \
-     parse_url_string, \
-     make_journal_url, \
      get_journal_articles, \
-     issue_is_later_than, \
-     get_current_issue
-from invenio.legacy.webjournal.utils import \
-     img_pattern, \
      header_pattern, \
      header_pattern2, \
-     para_pattern
+     img_pattern, \
+     issue_is_later_than, \
+     make_journal_url, \
+     para_pattern, \
+     parse_url_string
+from invenio.utils.html import HTMLWasher, remove_html_markup
 from invenio.utils.url import create_html_link
-from invenio.legacy.bibdocfile.api import decompose_file
 
 def format_element(bfo, number_of_featured_articles="1",
            number_of_articles_with_image="3", new_articles_first='yes',
@@ -212,7 +215,7 @@ def format_element(bfo, number_of_featured_articles="1",
                     width_and_height = ''
                     if PIL_imported:
                         try:
-                            local_img = os.path.join(CFG_TMPDIR,
+                            local_img = os.path.join(cfg['CFG_TMPDIR'],
                                                      'webjournal_' + \
                                                      ''.join([char for char in img \
                                                               if char.isalnum()]))
@@ -316,7 +319,7 @@ def format_element(bfo, number_of_featured_articles="1",
                               'css_classes': ' '.join(css_classes),
                               'header_tag_size': header_tag_size}
     out += '</table>'
-    if verbose == 0 and not CFG_ACCESS_CONTROL_LEVEL_SITE == 2 :
+    if verbose == 0 and not cfg['CFG_ACCESS_CONTROL_LEVEL_SITE'] == 2 :
         cache_index_page(out, journal_name, category_name,
                          this_issue_number, ln)
 
@@ -329,7 +332,7 @@ def escape_values(bfo):
     """
     return 0
 
-def _get_feature_image(record, ln=CFG_SITE_LANG):
+def _get_feature_image(record, ln=cfg['CFG_SITE_LANG']):
     """
     Looks for an image that can be featured on the article overview page.
     """

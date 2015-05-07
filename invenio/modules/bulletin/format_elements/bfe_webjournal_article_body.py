@@ -21,12 +21,15 @@ WebJournal Element - display article body. Also has support for old
 CERN Bulletin articles.
 """
 import re
+
 import types
-from invenio.utils.html import HTMLWasher
+
+from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language
-from invenio.utils.url import create_html_mailto
-from invenio.config import CFG_CERN_SITE
 from invenio.modules.formatter.format_elements import bfe_fulltext
+from invenio.utils.html import HTMLWasher
+from invenio.utils.url import create_html_mailto
+
 
 def format_element(bfo, separator='<br/>', max_chars=""):
     """
@@ -51,7 +54,7 @@ def format_element(bfo, separator='<br/>', max_chars=""):
                 (article[0].strip() in ['', '<br />', '<!--HTML--><br />'])):
             article = bfo.fields('590__b')
 
-    if not CFG_CERN_SITE or \
+    if not cfg['CFG_CERN_SITE'] or \
            not bfo.field('980__a').startswith('BULLETIN'):
         output = separator.join(article)
         if max_chars.isdigit() and \

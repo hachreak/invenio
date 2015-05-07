@@ -17,6 +17,8 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+"""Upgrade command line."""
+
 from __future__ import absolute_import
 
 from datetime import date
@@ -124,10 +126,10 @@ def cmd_upgrade_check(upgrader=None):
 
 def cmd_upgrade(upgrader=None):
     """Command for applying upgrades."""
-    from invenio.config import CFG_LOGDIR
+    from invenio.base.globals import cfg
     from invenio.utils.text import wrap_text_in_a_box, wait_for_user
 
-    logfilename = os.path.join(CFG_LOGDIR, 'invenio_upgrader.log')
+    logfilename = os.path.join(cfg['CFG_LOGDIR'], 'invenio_upgrader.log')
     if not upgrader:
         upgrader = InvenioUpgrader()
     logger = upgrader.get_logger(logfilename=logfilename)
