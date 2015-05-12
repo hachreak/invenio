@@ -28,85 +28,79 @@ Used mainly by BibFormat elements.
 __revision__ = "$Id$"
 
 import re
-import zlib
 
-from invenio.config import \
-     CFG_OAI_ID_FIELD, \
-     CFG_WEBSEARCH_FULLTEXT_SNIPPETS, \
-     CFG_WEBSEARCH_FULLTEXT_SNIPPETS_CHARS, \
-     CFG_INSPIRE_SITE, \
-     CFG_WEBSEARCH_FULLTEXT_SNIPPETS_GENERATOR
 from invenio.legacy.dbquery import run_sql
 from invenio.utils.url import string_to_numeric_char_reference
-from invenio.utils.text import encode_for_xml
 from invenio.utils.shell import run_shell_command
-from invenio.legacy.bibrecord import get_fieldvalues
+
 
 def highlight_matches(text, compiled_pattern,
                       prefix_tag='<strong>', suffix_tag="</strong>"):
-    """
-    Highlight words in 'text' matching the 'compiled_pattern'
+    """Highlight words in 'text' matching the 'compiled_pattern'.
 
-    @param text: the text in which we want to "highlight" parts
-    @param compiled_pattern: the parts to highlight
-    @type compiled_pattern: a compiled regular expression
-    @param prefix_tag: prefix to use before each matching parts
-    @param suffix_tag: suffix to use after each matching parts
-    @return: a version of input X{text} with words matching X{compiled_pattern} surrounded by X{prefix_tag} and X{suffix_tag}
+    :param text: the text in which we want to "highlight" parts
+    :param compiled_pattern: the parts to highlight
+    :type compiled_pattern: a compiled regular expression
+    :param prefix_tag: prefix to use before each matching parts
+    :param suffix_tag: suffix to use after each matching parts
+    :return: a version of input X{text} with words matching
+        X{compiled_pattern} surrounded by X{prefix_tag} and X{suffix_tag}
     """
-
-    #Add 'prefix_tag' and 'suffix_tag' before and after 'match'
-    #FIXME decide if non english accentuated char should be desaccentuaded
+    # Add 'prefix_tag' and 'suffix_tag' before and after 'match'
+    # FIXME decide if non english accentuated char should be desaccentuaded
     def replace_highlight(match):
-        """ replace match.group() by prefix_tag + match.group() + suffix_tag"""
+        """replace match.group() by prefix_tag + match.group() + suffix_tag."""
         return prefix_tag + match.group() + suffix_tag
 
-    #Replace and return keywords with prefix+keyword+suffix
+    # Replace and return keywords with prefix+keyword+suffix
     return compiled_pattern.sub(replace_highlight, text)
 
+
 def highlight(text, keywords=None,
-              prefix_tag='<strong>', suffix_tag="</strong>", whole_word_matches=False):
-    """
-    Returns text with all words highlighted with given tags (this
-    function places 'prefix_tag' and 'suffix_tag' before and after
+              prefix_tag='<strong>', suffix_tag="</strong>",
+              whole_word_matches=False):
+    """Return text with all words highlighted with given tags.
+
+    (this function places 'prefix_tag' and 'suffix_tag' before and after
     words from 'keywords' in 'text').
 
-    for example set prefix_tag='<b style="color: black; background-color: rgb(255, 255, 102);">' and suffix_tag="</b>"
+    for example set prefix_tag='<b style="color: black;
+        background-color: rgb(255, 255, 102);">' and suffix_tag="</b>"
 
-    @param text: the text to modify
-    @param keywords: a list of string
-    @param prefix_tag: prefix to use before each matching parts
-    @param suffix_tag: suffix to use after each matching parts
-    @param whole_word_matches: to use whole word matches
-    @return: highlighted text
+    :param text: the text to modify
+    :param keywords: a list of string
+    :param prefix_tag: prefix to use before each matching parts
+    :param suffix_tag: suffix to use after each matching parts
+    :param whole_word_matches: to use whole word matches
+    :return: highlighted text
     """
-
     if not keywords:
         return text
 
     escaped_keywords = []
     for k in keywords:
         escaped_keywords.append(re.escape(k))
-    #Build a pattern of the kind keyword1 | keyword2 | keyword3
+    # Build a pattern of the kind keyword1 | keyword2 | keyword3
     if whole_word_matches:
         pattern = '|'.join(['\\b' + key + '\\b' for key in escaped_keywords])
     else:
         pattern = '|'.join(escaped_keywords)
     compiled_pattern = re.compile(pattern, re.IGNORECASE)
 
-    #Replace and return keywords with prefix+keyword+suffix
+    # Replace and return keywords with prefix+keyword+suffix
     return highlight_matches(text, compiled_pattern,
                              prefix_tag, suffix_tag)
+
 
 def get_contextual_content(text, keywords, max_lines=2):
     """
     Returns some lines from a text contextually to the keywords in
     'keywords_string'
 
-    @param text: the text from which we want to get contextual content
-    @param keywords: a list of keyword strings ("the context")
-    @param max_lines: the maximum number of line to return from the record
-    @return: a string
+    :param text: the text from which we want to get contextual content
+    :param keywords: a list of keyword strings ("the context")
+    :param max_lines: the maximum number of line to return from the record
+    :return: a string
     """
 
     def grade_line(text_line, keywords):
@@ -205,8 +199,8 @@ def parse_tag(tag):
     >> parse_tag('245$$%') = ['245', '', '', '']
     >> parse_tag('2%5$$a') = ['2%5', '', '', 'a']
 
-    @param tag: tag to parse
-    @return: a canonical form of the input X{tag}
+    :param tag: tag to parse
+    :return: a canonical form of the input X{tag}
     """
 
     p_tag = ['', '', '', ''] # tag, ind1, ind2, code
@@ -254,9 +248,9 @@ def get_all_fieldvalues(recID, tags_in):
     >>> get_all_fieldvalues(123, '100__')
     ['Ellis, J', 'CERN', 'Smith, K']
 
-    @param recID: record ID to consider
-    @param tags_in: list of tags got retrieve
-    @return: a list of values corresponding to X{tags_in} found in X{recID}
+    :param recID: record ID to consider
+    :param tags_in: list of tags got retrieve
+    :return: a list of values corresponding to X{tags_in} found in X{recID}
     """
     out = []
     if type(tags_in) is not list:
@@ -315,8 +309,8 @@ def latex_to_html(text):
     Do some basic interpretation of LaTeX input. Gives some nice
     results when used in combination with MathJax.
 
-    @param text: input "LaTeX" markup to interpret
-    @return: a representation of input LaTeX more suitable for HTML
+    :param text: input "LaTeX" markup to interpret
+    :return: a representation of input LaTeX more suitable for HTML
     """
     # Process verbatim environment first
     def make_verbatim(match_obj):

@@ -38,10 +38,11 @@ from .config import InvenioBibFormatError
 format_templates_cache = {}
 format_outputs_cache = {}
 
-html_field = '<!--HTML-->' # String indicating that field should be
-                           # treated as HTML (and therefore no escaping of
-                           # HTML tags should occur.
-                           # Appears in some field values.
+html_field = '<!--HTML-->'
+# String indicating that field should be
+# treated as HTML (and therefore no escaping of
+# HTML tags should occur.
+# Appears in some field values.
 
 # Regular expression for finding <lang>...</lang> tag in format templates
 pattern_lang = re.compile(r'''
@@ -55,7 +56,7 @@ pattern_lang = re.compile(r'''
 # Builds regular expression for finding each known language in <lang> tags
 ln_pattern_text = r"<("
 for lang in language_list_long(enabled_langs_only=False):
-    ln_pattern_text += lang[0] +r"|"
+    ln_pattern_text += lang[0] + r"|"
 
 ln_pattern_text = ln_pattern_text.rstrip(r"|")
 ln_pattern_text += r")>(.*?)</\1>"
@@ -301,7 +302,7 @@ def filter_languages(format_template, ln=None):
         pattern_current_lang = re.compile(r"<(" + current_lang +
                                           r")\s*>(.*)(</" + current_lang + r"\s*>)", re.IGNORECASE | re.DOTALL)
         if re.search(pattern_current_lang, lang_tag_content) is None:
-            current_lang = CFG_SITE_LANG
+            current_lang = cfg['CFG_SITE_LANG']
 
         cleaned_lang_tag = ln_pattern.sub(clean_language_tag, lang_tag_content)
         return cleaned_lang_tag.strip()
