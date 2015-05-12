@@ -28,7 +28,8 @@ from flask import current_app
 
 from intbitset import intbitset
 
-from invenio.config import CFG_SITE_ADMIN_EMAIL, CFG_SITE_LANG, CFG_SITE_RECORD
+from invenio.base.globals import cfg
+from invenio.base.config import CFG_SITE_LANG
 from invenio.ext import principal
 from invenio.ext.sqlalchemy import db
 from invenio.legacy.dbquery import run_sql, truncate_table
@@ -1329,7 +1330,7 @@ def acc_find_possible_activities(user_info, ln=CFG_SITE_LANG):
 
     if 'runbibedit' in your_admin_activities or \
        'runbibdocfile' in your_admin_activities and \
-       user_info['uri'].startswith('/' + CFG_SITE_RECORD + '/'):
+       user_info['uri'].startswith('/' + cfg['CFG_SITE_RECORD'] + '/'):
         try:
             # Get record ID and try to cast it to an int
             current_record_id = int(
@@ -1837,8 +1838,8 @@ def acc_add_default_settings(superusers=(),
         if type(user) is str:
             user = [user]
         DEF_USERS.append(user[0])
-    if CFG_SITE_ADMIN_EMAIL not in DEF_USERS:
-        DEF_USERS.append(CFG_SITE_ADMIN_EMAIL)
+    if cfg['CFG_SITE_ADMIN_EMAIL'] not in DEF_USERS:
+        DEF_USERS.append(cfg['CFG_SITE_ADMIN_EMAIL'])
 
     # add data
 

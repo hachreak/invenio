@@ -31,15 +31,7 @@ import re
 from cgi import escape
 
 from invenio.base.i18n import gettext_set_language
-from invenio.config import CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS, \
-    CFG_ACCESS_CONTROL_LEVEL_GUESTS, CFG_ACCESS_CONTROL_LEVEL_SITE, \
-    CFG_ACCESS_CONTROL_LIMIT_REGISTRATION_TO_DOMAIN, \
-    CFG_ACCESS_CONTROL_NOTIFY_ADMIN_ABOUT_NEW_ACCOUNTS, \
-    CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_ACTIVATION, \
-    CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_DELETION, \
-    CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT, CFG_SITE_ADMIN_EMAIL, \
-    CFG_SITE_LANG, CFG_SITE_NAME, CFG_SITE_SECURE_URL, \
-    CFG_SITE_SUPPORT_EMAIL
+from invenio.base.globals import cfg
 from invenio.ext.email import send_email
 from invenio.legacy.bibrank.adminlib import addadminbox, addcheckboxes, \
     createhiddenform, tupletotable, tupletotable_onlyselected
@@ -62,7 +54,7 @@ from sqlalchemy.exc import OperationalError
 
 
 def index(req, title='', body='', subtitle='', adminarea=2, authorized=0,
-          ln=CFG_SITE_LANG):
+          ln=cfg['CFG_SITE_LANG']):
     """main function to show pages for webaccessadmin.
 
     1. if user not logged in and administrator, show the mustlogin page
@@ -75,44 +67,44 @@ def index(req, title='', body='', subtitle='', adminarea=2, authorized=0,
     """
     navtrail_previous_links = \
         '<a class="navtrail" href="%s/help/admin">Admin Area' \
-        '</a>' % (CFG_SITE_SECURE_URL,)
+        '</a>' % (cfg['CFG_SITE_SECURE_URL'],)
 
     if body:
         if adminarea == 1:
             navtrail_previous_links += '&gt; <a class=navtrail ' \
                 ' href=%s/admin/webaccess/webaccessadmin.py/delegate_startarea>' \
-                'Delegate Rights</a> ' % (CFG_SITE_SECURE_URL, )
+                'Delegate Rights</a> ' % (cfg['CFG_SITE_SECURE_URL'], )
         if adminarea >= 2 and adminarea < 9:
             navtrail_previous_links += '&gt; ' \
                 '<a class="navtrail" href=%s/admin/webaccess/webaccessadmin.py>' \
-                'WebAccess Admin</a> ' % (CFG_SITE_SECURE_URL, )
+                'WebAccess Admin</a> ' % (cfg['CFG_SITE_SECURE_URL'], )
         if adminarea == 3:
             navtrail_previous_links += '&gt; <a class=navtrail ' \
                 'href=%s/admin/webaccess/webaccessadmin.py/rolearea>' \
-                'Role Administration</a> ' % (CFG_SITE_SECURE_URL, )
+                'Role Administration</a> ' % (cfg['CFG_SITE_SECURE_URL'], )
         elif adminarea == 4:
             navtrail_previous_links += '&gt; ' \
                 '<a class="navtrail" href=%s/admin/webaccess/webaccessadmin.py' \
                 '/actionarea>Action Administration</a> ' % (
-                    CFG_SITE_SECURE_URL, )
+                    cfg['CFG_SITE_SECURE_URL'], )
         elif adminarea == 5:
             navtrail_previous_links += '&gt; ' \
                 '<a class="navtrail" href=%s/admin/webaccess/webaccessadmin.py' \
-                '/userarea>User Administration</a> ' % (CFG_SITE_SECURE_URL, )
+                '/userarea>User Administration</a> ' % (cfg['CFG_SITE_SECURE_URL'], )
         elif adminarea == 6:
             navtrail_previous_links += '&gt; ' \
                 '<a class="navtrail" href=%s/admin/webaccess/webaccessadmin.py' \
                 '/resetarea>Reset Authorizations</a> ' % (
-                    CFG_SITE_SECURE_URL, )
+                    cfg['CFG_SITE_SECURE_URL'], )
         elif adminarea == 7:
             navtrail_previous_links += '&gt; ' \
                 '<a class="navtrail" href=%s/admin/webaccess/webaccessadmin.py' \
                 '/manageaccounts>Manage Accounts</a> ' % (
-                    CFG_SITE_SECURE_URL, )
+                    cfg['CFG_SITE_SECURE_URL'], )
         elif adminarea == 8:
             navtrail_previous_links += '&gt; ' \
                 '<a class="navtrail" href=%s/admin/webaccess/webaccessadmin.py' \
-                '/listgroups>List Groups</a> ' % (CFG_SITE_SECURE_URL, )
+                '/listgroups>List Groups</a> ' % (cfg['CFG_SITE_SECURE_URL'], )
 
     id_user = getUid(req)
     (auth_code, auth_message) = is_adminuser(req)
@@ -137,7 +129,7 @@ def mustloginpage(req, message):
     """show a page asking the user to login."""
     navtrail_previous_links = '<a class="navtrail" href="%s/admin/">' \
         'Admin Area</a> &gt; <a class="navtrail" href="%s/admin/webaccess/">' \
-        'WebAccess Admin</a> ' % (CFG_SITE_SECURE_URL, CFG_SITE_SECURE_URL)
+        'WebAccess Admin</a> ' % (cfg['CFG_SITE_SECURE_URL'], cfg['CFG_SITE_SECURE_URL'])
 
     return page_not_authorized(req=req, text=message,
                                navtrail=navtrail_previous_links)
@@ -521,7 +513,7 @@ def perform_resetdefaultsettings(req, superusers=[], confirm=0):
     <strong>confirm reset settings</strong> when you have added enough e-mails.
     <br />
     <strong>%s</strong> is added as default.
-    </p>""" % (SUPERADMINROLE, CFG_SITE_ADMIN_EMAIL)
+    </p>""" % (SUPERADMINROLE, cfg['CFG_SITE_ADMIN_EMAIL'])
 
     # add more superusers
     output += """
@@ -612,7 +604,7 @@ def perform_adddefaultsettings(req, superusers=[], confirm=0):
     <strong>confirm add settings</strong> when you have added enough e-mails.
     <br />
     <strong>%s</strong> is added as default.
-    </p>""" % (SUPERADMINROLE, CFG_SITE_ADMIN_EMAIL)
+    </p>""" % (SUPERADMINROLE, cfg['CFG_SITE_ADMIN_EMAIL'])
 
     # add more superusers
     output += """
@@ -696,8 +688,9 @@ def perform_manageaccounts(req, mtype='', content='', confirm=0):
     <td>4.&nbsp;<small><a href="%s/admin/webaccess/webaccessadmin.py/manageaccounts?mtype=perform_modifyaccounts#4">Edit accounts</a></small></td>
     </tr>
     </table>
-    """ % (CFG_SITE_SECURE_URL, CFG_SITE_SECURE_URL, CFG_SITE_SECURE_URL,
-           CFG_SITE_SECURE_URL, CFG_SITE_SECURE_URL)
+    """ % (cfg['CFG_SITE_SECURE_URL'], cfg['CFG_SITE_SECURE_URL'],
+           cfg['CFG_SITE_SECURE_URL'], cfg['CFG_SITE_SECURE_URL'],
+           cfg['CFG_SITE_SECURE_URL'])
 
     if mtype == "perform_accesspolicy" and content:
         fin_output += content
@@ -747,7 +740,7 @@ def perform_accesspolicy(req, callback='yes', confirm=0):
     if auth_code != 0:
         return mustloginpage(req, auth_message)
 
-    subtitle = """<a name="1"></a>1. Access policy.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % CFG_SITE_SECURE_URL
+    subtitle = """<a name="1"></a>1. Access policy.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % cfg['CFG_SITE_SECURE_URL']
 
     account_policy = {}
     account_policy[
@@ -771,21 +764,21 @@ def perform_accesspolicy(req, callback='yes', confirm=0):
     output = "(Modifications must be done in access_control_config.py)<br />"
     output += "<br /><b>Current settings:</b><br />"
     output += "Site status: %s<br />" % (
-        site_policy[CFG_ACCESS_CONTROL_LEVEL_SITE])
+        site_policy[cfg['CFG_ACCESS_CONTROL_LEVEL_SITE']])
     output += "Guest accounts allowed: %s<br />" % (
-        CFG_ACCESS_CONTROL_LEVEL_GUESTS == 0 and "Yes" or "No")
+        cfg['CFG_ACCESS_CONTROL_LEVEL_GUESTS'] == 0 and "Yes" or "No")
     output += "Account policy: %s<br />" % (
-        account_policy[CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS])
+        account_policy[cfg['CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS']])
     output += "Allowed email addresses limited: %s<br />" % (
-        CFG_ACCESS_CONTROL_LIMIT_REGISTRATION_TO_DOMAIN and CFG_ACCESS_CONTROL_LIMIT_REGISTRATION_TO_DOMAIN or "Not limited")
+        cfg['CFG_ACCESS_CONTROL_LIMIT_REGISTRATION_TO_DOMAIN'] and cfg['CFG_ACCESS_CONTROL_LIMIT_REGISTRATION_TO_DOMAIN'] or "Not limited")
     output += "Send email to admin when new account: %s<br />" % (
-        CFG_ACCESS_CONTROL_NOTIFY_ADMIN_ABOUT_NEW_ACCOUNTS == 1 and "Yes" or "No")
+        cfg['CFG_ACCESS_CONTROL_NOTIFY_ADMIN_ABOUT_NEW_ACCOUNTS'] == 1 and "Yes" or "No")
     output += "Send email to user after creating new account: %s<br />" % (
-        CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT == 1 and "Yes" or "No")
+        cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT'] == 1 and "Yes" or "No")
     output += "Send email to user when account is activated: %s<br />" % (
-        CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_ACTIVATION == 1 and "Yes" or "No")
+        cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_ACTIVATION'] == 1 and "Yes" or "No")
     output += "Send email to user when account is deleted/rejected: %s<br />" % (
-        CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_DELETION == 1 and "Yes" or "No")
+        cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_DELETION'] == 1 and "Yes" or "No")
 
     output += "<br />"
     output += "<b>Available 'login via' methods:</b><br />"
@@ -819,7 +812,7 @@ def perform_accountoverview(req, callback='yes', confirm=0):
     subtitle = """<a name="2"></a>2. Account overview.&nbsp;&nbsp;&nbsp;
         <small>[<a title="See guide"
         href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % \
-        CFG_SITE_SECURE_URL
+        cfg['CFG_SITE_SECURE_URL']
     output = ""
     res = run_sql("""SELECT COUNT(*) FROM "user" WHERE email='' """)
     output += "Guest accounts: %s<br />" % res[0][0]
@@ -852,7 +845,7 @@ def perform_createaccount(req, email='', password='', callback='yes',
     if auth_code != 0:
         return mustloginpage(req, auth_message)
 
-    subtitle = """<a name="3"></a>3. Create account.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % CFG_SITE_SECURE_URL
+    subtitle = """<a name="3"></a>3. Create account.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % cfg['CFG_SITE_SECURE_URL']
 
     output = ""
 
@@ -878,14 +871,14 @@ def perform_createaccount(req, email='', password='', callback='yes',
             db.session.add(u)
             db.session.commit()
 
-            if CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT == 1:
+            if cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT'] == 1:
                 emailsent = send_new_user_account_warning(
                     email, email, password) == 0
             if password:
                 output += '<b><span class="info">Account created with password and activated.</span></b>'
             else:
                 output += '<b><span class="info">Account created without password and activated.</span></b>'
-            if CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT == 1:
+            if cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT'] == 1:
                 if emailsent:
                     output += '<br /><b><span class="info">An email has been sent to the owner of the account.</span></b>'
                 else:
@@ -921,7 +914,7 @@ def perform_modifyaccountstatus(req, userID, email_user_pattern, limit_to,
             run_sql("""UPDATE "user" SET note=1 WHERE id=%s""", (userID, ))
             output += """<b><span class="info">The account '%s'
                 has been activated.</span></b>""" % res[0][1]
-            if CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_ACTIVATION == 1:
+            if cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_ACTIVATION'] == 1:
                 emailsent = send_account_activated_message(
                     res[0][1], res[0][1], '*****')
                 if emailsent:
@@ -966,7 +959,7 @@ def perform_editaccount(req, userID, mtype='', content='', callback='yes',
     if not res:
         if mtype == "perform_deleteaccount":
             text = """<b><span class="info">The selected account has been deleted, to continue editing, go back to 'Manage Accounts'.</span></b>"""
-            if CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_DELETION == 1:
+            if cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_DELETION'] == 1:
                 text += """<br /><b><span class="info">An email has been sent to the owner of the account.</span></b>"""
         else:
             text = """<b><span class="info">The selected accounts does not exist, please go back and select an account to edit.</span></b>"""
@@ -992,7 +985,7 @@ def perform_editaccount(req, userID, mtype='', content='', callback='yes',
     <td>4.&nbsp;<small><a href="%s/admin/webaccess/webaccessadmin.py/editaccount?userID=%s&amp;mtype=perform_modifyapikeydata">Edit REST API Key</a></small></td>
     </tr>
     </table>
-    """ % (CFG_SITE_SECURE_URL, userID, CFG_SITE_SECURE_URL, userID, CFG_SITE_SECURE_URL, userID, CFG_SITE_SECURE_URL, userID, CFG_SITE_SECURE_URL, userID)
+    """ % (cfg['CFG_SITE_SECURE_URL'], userID, cfg['CFG_SITE_SECURE_URL'], userID, cfg['CFG_SITE_SECURE_URL'], userID, cfg['CFG_SITE_SECURE_URL'], userID, cfg['CFG_SITE_SECURE_URL'], userID)
 
     if mtype == "perform_modifylogindata" and content:
         fin_output += content
@@ -1028,13 +1021,13 @@ def perform_becomeuser(req, userID='', callback='yes', confirm=0):
     if auth_code != 0:
         return mustloginpage(req, auth_message)
 
-    subtitle = """<a name="5"></a>5. Became user.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#5">?</a>]</small>""" % CFG_SITE_SECURE_URL
+    subtitle = """<a name="5"></a>5. Became user.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#5">?</a>]</small>""" % cfg['CFG_SITE_SECURE_URL']
 
     res = run_sql("""SELECT email FROM "user" WHERE id=%s""", (userID, ))
     output = ""
     if res:
         update_Uid(req, res[0][0])
-        redirect_to_url(req, CFG_SITE_SECURE_URL)
+        redirect_to_url(req, cfg['CFG_SITE_SECURE_URL'])
     else:
         output += '<b><span class="info">The account id given does not exist.</span></b>'
 
@@ -1057,7 +1050,7 @@ def perform_modifylogindata(req, userID, nickname='', email='', password='',
 
     subtitle = """<a name="1"></a>1. Edit login-data.&nbsp;&nbsp;&nbsp;<small>
         [<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?
-         </a>]</small>""" % CFG_SITE_SECURE_URL
+         </a>]</small>""" % cfg['CFG_SITE_SECURE_URL']
 
     res = run_sql(
         """SELECT id, email, nickname FROM "user" WHERE id=%s""", (userID, ))
@@ -1125,7 +1118,7 @@ def perform_modifypreferences(req, userID, login_method='', callback='yes',
     subtitle = """<a name="2"></a>2. Modify preferences.&nbsp;&nbsp;&nbsp;
     <small>[<a title="See guide"
     href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % \
-        CFG_SITE_SECURE_URL
+        cfg['CFG_SITE_SECURE_URL']
 
     res = run_sql("""SELECT id, email FROM "user" WHERE id=%s""", (userID, ))
     output = ""
@@ -1172,7 +1165,7 @@ def perform_deleteaccount(req, userID, callback='yes', confirm=0):
     if auth_code != 0:
         return mustloginpage(req, auth_message)
 
-    subtitle = """<a name="3"></a>3. Delete account.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % CFG_SITE_SECURE_URL
+    subtitle = """<a name="3"></a>3. Delete account.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % cfg['CFG_SITE_SECURE_URL']
 
     res = run_sql("""SELECT id, email FROM "user" WHERE id=%s""", (userID, ))
     output = ""
@@ -1189,7 +1182,7 @@ def perform_deleteaccount(req, userID, callback='yes', confirm=0):
         elif confirm in [1, "1"]:
             run_sql("""DELETE FROM "user" WHERE id=%s""", (userID, ))
             output += '<b><span class="info">Account deleted.</span></b>'
-            if CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_DELETION == 1:
+            if cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_DELETION'] == 1:
                 send_account_deleted_message(res[0][1], res[0][1])
     else:
         output += '<b><span class="info">The account id given does not exist.</span></b>'
@@ -1210,7 +1203,7 @@ def perform_modifyapikeydata(req, userID, keyID='', status='', callback='yes',
     if auth_code != 0:
         return mustloginpage(req, auth_message)
 
-    subtitle = """<a name="4"></a>4. Edit REST API Keys.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % CFG_SITE_SECURE_URL
+    subtitle = """<a name="4"></a>4. Edit REST API Keys.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % cfg['CFG_SITE_SECURE_URL']
 
     if confirm in [1, "1"]:
         run_sql("UPDATE webapikey SET status=%s WHERE id=%s", (status, keyID))
@@ -1265,7 +1258,7 @@ def perform_rejectaccount(req, userID, email_user_pattern, limit_to, maxpage,
     if res:
         run_sql("""DELETE FROM "user" WHERE id=%s""", (userID, ))
         output += '<b><span class="info">Account rejected and deleted.</span></b>'
-        if CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_DELETION == 1:
+        if cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_DELETION'] == 1:
             if not res[0][2] or res[0][2] == "0":
                 emailsent = send_account_rejected_message(res[0][1], res[0][1])
             elif res[0][2] == "1":
@@ -1299,7 +1292,7 @@ def perform_modifyaccounts(req, email_user_pattern='', limit_to=-1,
     if auth_code != 0:
         return mustloginpage(req, auth_message)
 
-    subtitle = """<a name="4"></a>4. Edit accounts.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % CFG_SITE_SECURE_URL
+    subtitle = """<a name="4"></a>4. Edit accounts.&nbsp;&nbsp;&nbsp;<small>[<a title="See guide" href="%s/help/admin/webaccess-admin-guide#4">?</a>]</small>""" % cfg['CFG_SITE_SECURE_URL']
 
     output = ""
 
@@ -3875,7 +3868,7 @@ def check_email(txt=''):
 
 
 def send_account_activated_message(account_email, send_to, password,
-                                   ln=CFG_SITE_LANG):
+                                   ln=cfg['CFG_SITE_LANG']):
     """Send account activated message.
 
     Send an email to the address given by send_to about the new activated
@@ -3884,67 +3877,69 @@ def send_account_activated_message(account_email, send_to, password,
     _ = gettext_set_language(ln)
     sub = _(
         "Your account on '%(x_name)s' has been activated",
-        x_name=CFG_SITE_NAME)
+        x_name=cfg['CFG_SITE_NAME'])
     body = _("Your account earlier created on '%(x_name)s' has "
              "been activated:",
-             x_name=CFG_SITE_NAME) + '\n\n'
+             x_name=cfg['CFG_SITE_NAME']) + '\n\n'
     body += '   ' + _("Username/Email:") + " %s\n" % account_email
     body += '   ' + _("Password:") + " %s\n" % ("*" * len(str(password)))
     body += "\n---------------------------------"
-    body += "\n%s" % CFG_SITE_NAME
+    body += "\n%s" % cfg['CFG_SITE_NAME']
 
-    return send_email(CFG_SITE_SUPPORT_EMAIL, send_to, sub, body, header='')
+    return send_email(cfg['CFG_SITE_SUPPORT_EMAIL'], send_to, sub, body, header='')
 
 
-def send_new_user_account_warning(new_account_email, send_to, password, ln=CFG_SITE_LANG):
+def send_new_user_account_warning(new_account_email, send_to, password,
+                                  ln=cfg['CFG_SITE_LANG']):
     """Send email to new user account.
 
     Send an email to the address given by send_to about the new account
     new_account_email.
     """
     _ = gettext_set_language(ln)
-    sub = _("Account created on '%(x_name)s'", x_name=CFG_SITE_NAME)
+    sub = _("Account created on '%(x_name)s'", x_name=cfg['CFG_SITE_NAME'])
     body = _("An account has been created for you on '%(x_name)s':",
-             x_name=CFG_SITE_NAME) + '\n\n'
+             x_name=cfg['CFG_SITE_NAME']) + '\n\n'
     body += '   ' + _("Username/Email:") + " %s\n" % new_account_email
     body += '   ' + _("Password:") + " %s\n" % ("*" * len(str(password)))
     body += "\n---------------------------------"
-    body += "\n%s" % CFG_SITE_NAME
+    body += "\n%s" % cfg['CFG_SITE_NAME']
 
-    return send_email(CFG_SITE_SUPPORT_EMAIL, send_to, sub, body, header='')
+    return send_email(cfg['CFG_SITE_SUPPORT_EMAIL'], send_to, sub, body, header='')
 
 
 def send_account_rejected_message(new_account_email, send_to,
-                                  ln=CFG_SITE_LANG):
+                                  ln=cfg['CFG_SITE_LANG']):
     """Send email of recjection.
 
     Send an email to the address given by send_to about the new account
     new_account_email.
     """
     _ = gettext_set_language(ln)
-    sub = _("Account rejected on '%(x_name)s'", x_name=CFG_SITE_NAME)
+    sub = _("Account rejected on '%(x_name)s'", x_name=cfg['CFG_SITE_NAME'])
     body = _("Your request for an account has been rejected on '%(x_name)s':",
-             x_name=CFG_SITE_NAME) + '\n\n'
+             x_name=cfg['CFG_SITE_NAME']) + '\n\n'
     body += '   ' + \
         _("Username/Email: %(x_email)s", x_email=new_account_email) + "\n"
     body += "\n---------------------------------"
-    body += "\n%s" % CFG_SITE_NAME
+    body += "\n%s" % cfg['CFG_SITE_NAME']
 
-    return send_email(CFG_SITE_SUPPORT_EMAIL, send_to, sub, body, header='')
+    return send_email(cfg['CFG_SITE_SUPPORT_EMAIL'], send_to, sub, body, header='')
 
 
-def send_account_deleted_message(new_account_email, send_to, ln=CFG_SITE_LANG):
+def send_account_deleted_message(new_account_email, send_to,
+                                 ln=cfg['CFG_SITE_LANG']):
     """Semd email of deletion.
 
     Send an email to the address given by send_to about the new account
     new_account_email.
     """
     _ = gettext_set_language(ln)
-    sub = _("Account deleted on '%(x_name)s'", x_name=CFG_SITE_NAME)
+    sub = _("Account deleted on '%(x_name)s'", x_name=cfg['CFG_SITE_NAME'])
     body = _("Your account on '%(x_name)s' has been deleted:",
-             x_name=CFG_SITE_NAME) + '\n\n'
+             x_name=cfg['CFG_SITE_NAME']) + '\n\n'
     body += '   ' + _("Username/Email:") + " %s\n" % new_account_email
     body += "\n---------------------------------"
-    body += "\n%s" % CFG_SITE_NAME
+    body += "\n%s" % cfg['CFG_SITE_NAME']
 
-    return send_email(CFG_SITE_SUPPORT_EMAIL, send_to, sub, body, header='')
+    return send_email(cfg['CFG_SITE_SUPPORT_EMAIL'], send_to, sub, body, header='')

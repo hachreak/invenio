@@ -24,12 +24,14 @@ __revision__ = \
 
 # pylint: disable=C0301
 
-from invenio.config import CFG_SITE_NAME, CFG_SITE_URL, CFG_SITE_SECURE_URL, CFG_SITE_SUPPORT_EMAIL, CFG_SITE_RECORD, CFG_SITE_ADMIN_EMAIL
 from invenio.base.i18n import _
-from invenio.base.globals import cfg as config
+from invenio.base.config import CFG_SITE_URL, CFG_SITE_RECORD, \
+    CFG_SITE_SECURE_URL, CFG_SITE_SUPPORT_EMAIL, CFG_SITE_NAME, \
+    CFG_SITE_ADMIN_EMAIL
 
 # VALUES TO BE EXPORTED
-# CURRENTLY USED BY THE FILES access_control_engine.py modules.access.control.py webaccessadmin_lib.py
+# CURRENTLY USED BY THE FILES access_control_engine.py
+#                             modules.access.control.py webaccessadmin_lib.py
 
 # name of the role giving superadmin rights
 SUPERADMINROLE = 'superadmin'
@@ -65,16 +67,16 @@ CFG_ACC_EMPTY_ROLE_DEFINITION_SER = None
 
 # List of tags containing (multiple) emails of users who should authorize
 # to access the corresponding record regardless of collection restrictions.
-#if CFG_CERN_SITE:
+# if CFG_CERN_SITE:
 #    CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_EMAILS_IN_TAGS = ['859__f', '270__m']
-#else:
+# else:
 
 CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_EMAILS_IN_TAGS = ['8560_f']
 CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_USERIDS_IN_TAGS = []
 
-#if CFG_CERN_SITE:
+# if CFG_CERN_SITE:
 #    CFG_ACC_GRANT_VIEWER_RIGHTS_TO_EMAILS_IN_TAGS = ['506__m']
-#else:
+# else:
 
 CFG_ACC_GRANT_VIEWER_RIGHTS_TO_EMAILS_IN_TAGS = []
 CFG_ACC_GRANT_VIEWER_RIGHTS_TO_USERIDS_IN_TAGS = []
