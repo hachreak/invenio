@@ -19,6 +19,7 @@
 """BibIndexYearTokenizer: useful for year index. Extracts words (year) from date tags.
 """
 
+# FIXME deprecate invenio.config
 from invenio.config import \
      CFG_INSPIRE_SITE
 from invenio.modules.indexer.tokenizers.BibIndexDefaultTokenizer import BibIndexDefaultTokenizer

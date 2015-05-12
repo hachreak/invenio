@@ -25,12 +25,12 @@
    - Phrases
 """
 
-from invenio.legacy.dbquery import run_sql
-from invenio.modules.indexer.tokenizers.BibIndexMultiFieldTokenizer import BibIndexMultiFieldTokenizer
-from invenio.config import \
-    CFG_CERN_SITE, \
-    CFG_INSPIRE_SITE
+# FIXME deprecate invenio.config
+from invenio.config import CFG_CERN_SITE, CFG_INSPIRE_SITE
 from invenio.legacy.bibindex.engine_utils import get_values_recursively
+from invenio.legacy.dbquery import run_sql
+from invenio.modules.indexer.tokenizers.BibIndexMultiFieldTokenizer import \
+    BibIndexMultiFieldTokenizer
 from invenio.modules.records.api import get_record
 
 if CFG_CERN_SITE:
