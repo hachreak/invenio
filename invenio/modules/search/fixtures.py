@@ -17,14 +17,14 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-from invenio.base.globals import cfg
+from invenio.config import CFG_SITE_NAME
 from fixture import DataSet
 
 
 class CollectionData(DataSet):
     class siteCollection:
         id = 1
-        name = cfg['CFG_SITE_NAME']
+        name = CFG_SITE_NAME
         dbquery = None
 
 

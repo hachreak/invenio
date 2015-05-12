@@ -16,22 +16,22 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-
-"""WebSearch service to answer based on BibKnowledge KB."""
-
-from invenio.base.globals import cfg
-from invenio.base.i18n import gettext_set_language
+"""
+WebSearch service to answer based on BibKnowledge KB
+"""
+from invenio.config import CFG_SITE_LANG
 from invenio.modules.search.services import KnowledgeBaseService
+from invenio.base.i18n import gettext_set_language
 
 __plugin_version__ = "Search Service Plugin API 1.0"
 
 class FAQKBService(KnowledgeBaseService):
 
-    def get_description(self, ln=cfg['CFG_SITE_LANG']):
+    def get_description(self, ln=CFG_SITE_LANG):
         "Return service description"
         return "Return links of interest based on query"
 
-    def get_label(self, ln=cfg['CFG_SITE_LANG']):
+    def get_label(self, ln=CFG_SITE_LANG):
         "Return label for the list of answers"
         _ = gettext_set_language(ln)
         return _("You might be interested in:")

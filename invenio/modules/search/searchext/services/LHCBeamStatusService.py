@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-
-"""WebSearch service to display LHC beam status."""
-
-from invenio.base.globals import cfg
-from invenio.base.i18n import gettext_set_language
+"""
+WebSearch service to display LHC beam status
+"""
 from invenio.modules.search.services import SearchService
+from invenio.base.i18n import gettext_set_language
+from invenio.config import CFG_SITE_LANG, CFG_SITE_URL
 
 __plugin_version__ = "Search Service Plugin API 1.0"
 
@@ -30,7 +30,7 @@ class LHCBeamStatusService(SearchService):
     Display LHC Beam Status
     """
 
-    def get_description(self, ln=cfg['CFG_SITE_LANG']):
+    def get_description(self, ln=CFG_SITE_LANG):
         "Return service description"
         return "Return LHC Beam status info"
 
@@ -69,7 +69,7 @@ $(document).ready(function(){
 	refresh();
 });
 </script>
-'''  % {'CFG_SITE_URL': cfg['CFG_SITE_URL']}
+'''  % {'CFG_SITE_URL': CFG_SITE_URL}
 
             return (70, out)
 

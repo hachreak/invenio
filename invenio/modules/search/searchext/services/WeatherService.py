@@ -30,7 +30,7 @@ try:
 except:
     meteoblue_widget_available_p = False
 from invenio.modules.formatter.engine import BibFormatObject
-from invenio.base.globals import cfg
+from invenio.config import CFG_SITE_LANG
 
 __plugin_version__ = "Search Service Plugin API 1.0"
 
@@ -39,7 +39,7 @@ class WeatherService(SearchService):
     Display local weather info
     """
 
-    def get_description(self, ln=cfg['CFG_SITE_LANG']):
+    def get_description(self, ln=CFG_SITE_LANG):
         "Return service description"
         return "Return weather info"
 

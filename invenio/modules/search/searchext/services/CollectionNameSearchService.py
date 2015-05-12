@@ -21,28 +21,31 @@ WebSearch service to search in collection names
 """
 import re
 import urllib
-
-from invenio.base.globals import cfg
+from invenio.modules.search.services import ListLinksService
 from invenio.base.i18n import gettext_set_language
 from invenio.legacy.bibindex.engine_stemmer import stem
 from invenio.legacy.dbquery import get_table_update_time
-from invenio.modules.search.services import ListLinksService
+from invenio.config import \
+     CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH, \
+     CFG_SITE_URL, \
+     CFG_SITE_NAME, \
+     CFG_SITE_LANG, \
+     CFG_CERN_SITE
 
 __plugin_version__ = "Search Service Plugin API 1.0"
 
 whitespace_re = re.compile('\s*')
 non_alphanum_chars_only_re = re.compile('\W')
 
-
 class CollectionNameSearchService(ListLinksService):
     """
     Search collection names
     """
-    def get_description(self, ln=cfg['CFG_SITE_LANG']):
+    def get_description(self, ln=CFG_SITE_LANG):
         "Return service description"
         return "Return collections of interest based on query"
 
-    def get_label(self, ln=cfg['CFG_SITE_LANG']):
+    def get_label(self, ln=CFG_SITE_LANG):
         "Return label for the list of answers"
         _ = gettext_set_language(ln)
         return _("Looking for a particular collection? Try:")
@@ -66,8 +69,8 @@ class CollectionNameSearchService(ListLinksService):
         # TODO: search in hosted collection names too
         # TODO: ignore unattached trees
         # TODO: use synonyms
-        if f or (cfg['CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH'] < 0) or \
-               (cfg['CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH'] == 0 and cc != cfg['CFG_SITE_NAME']):
+        if f or (CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH < 0) or \
+               (CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH == 0 and cc != CFG_SITE_NAME):
             return (0, '')
 
         words = [stem(unit[1], ln) for unit in search_units if unit[2] in ('', 'collection')] # Stemming
@@ -80,7 +83,7 @@ class CollectionNameSearchService(ListLinksService):
 
         matching_collections = {}
         for word in words:
-            if cfg['CFG_CERN_SITE'] and word == 'cern':
+            if CFG_CERN_SITE and word == 'cern':
                 # This keyword is useless here...
                 continue
 
@@ -99,7 +102,7 @@ class CollectionNameSearchService(ListLinksService):
         if not matching_collections_sorted:
             return (0, '')
 
-        matching_collections_names = [(get_coll_i18nname(coll, ln, False), cfg['CFG_SITE_URL'] + '/collection/' + urllib.quote(coll, safe='') + '?ln=en') \
+        matching_collections_names = [(get_coll_i18nname(coll, ln, False), CFG_SITE_URL + '/collection/' + urllib.quote(coll, safe='') + '?ln=en') \
                                       for coll, score in matching_collections_sorted]
 
         best_score = matching_collections_sorted[0][1]
