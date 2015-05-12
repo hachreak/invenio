@@ -26,17 +26,12 @@ from invenio.legacy.dbquery import run_sql
 from invenio.base.i18n import gettext_set_language
 from invenio.legacy.bibindex.engine_stemmer import stem
 from invenio.legacy.dbquery import get_table_update_time
-from invenio.config import \
-     CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH, \
-     CFG_SITE_URL, \
-     CFG_SITE_NAME, \
-     CFG_SITE_LANG, \
-     CFG_CERN_SITE
+from invenio.base.globals import cfg
 from invenio.legacy.webuser import isGuestUser
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.utils.html import nmtoken_from_string
 
-if CFG_CERN_SITE:
+if cfg['CFG_CERN_SITE']:
     try:
         from invenio.legacy.websubmit.functions.GENSBM_config import SUBMISSIONS_CONFIG as CERN_GENSBM_SUBMISSIONS_CONFIG
     except:
@@ -51,11 +46,11 @@ class SubmissionNameSearchService(ListLinksService):
     Search submission names
     """
 
-    def get_description(self, ln=CFG_SITE_LANG):
+    def get_description(self, ln=cfg['CFG_SITE_LANG']):
         "Return service description"
         return "Return submissions of interest based on query"
 
-    def get_label(self, ln=CFG_SITE_LANG):
+    def get_label(self, ln=cfg['CFG_SITE_LANG']):
         "Return label for the list of answers"
         _ = gettext_set_language(ln)
         return _("Looking for a particular submission? Try:")
@@ -70,11 +65,11 @@ class SubmissionNameSearchService(ListLinksService):
         and html_string being a formatted answer.
         """
         _ = gettext_set_language(ln)
-        if f or (CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH < 0) or \
-               (CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH == 0 and cc != CFG_SITE_NAME):
+        if f or (cfg['CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH'] < 0) or \
+               (cfg['CFG_WEBSEARCH_COLLECTION_NAMES_SEARCH'] == 0 and cc != cfg['CFG_SITE_NAME']):
             return (0, '')
 
-        words = [stem(unit[1].lower(), CFG_SITE_LANG) for unit in search_units if unit[2] == '']
+        words = [stem(unit[1].lower(), cfg['CFG_SITE_LANG']) for unit in search_units if unit[2] == '']
 
         if not words:
             return (0, '')
@@ -87,7 +82,7 @@ class SubmissionNameSearchService(ListLinksService):
 
         for word in words:
             # Look for submission names
-            if CFG_CERN_SITE and word == 'cern':
+            if cfg['CFG_CERN_SITE'] and word == 'cern':
                 # This keyword is useless here...
                 continue
 
@@ -95,7 +90,7 @@ class SubmissionNameSearchService(ListLinksService):
             for doctype, submission_label, category in submissions:
                 if acc_authorize_action(req, 'submit', \
                                         authorized_if_no_roles=not isGuestUser(user_info['uid']), \
-                                        doctype=(CFG_CERN_SITE and doctype.startswith('GENSBM#') and 'GENSBM') or doctype,
+                                        doctype=(cfg['CFG_CERN_SITE'] and doctype.startswith('GENSBM#') and 'GENSBM') or doctype,
                                         categ=category)[0] != 0:
                     # Not authorized to submit in this submission
                     continue
@@ -122,7 +117,7 @@ class SubmissionNameSearchService(ListLinksService):
         max_score_difference = 1.9
 
         matching_submissions_names = [(submission_label, \
-                                       CFG_SITE_URL + '/submit?doctype=' + doctype.split("#", 1)[0] + '&ln=' + ln + (CFG_CERN_SITE and doctype.startswith('GENSBM#') and '#' + doctype.split("#", 1)[-1] or '') ) \
+                                       cfg['CFG_SITE_URL'] + '/submit?doctype=' + doctype.split("#", 1)[0] + '&ln=' + ln + (cfg['CFG_CERN_SITE'] and doctype.startswith('GENSBM#') and '#' + doctype.split("#", 1)[-1] or '') ) \
                                       for (doctype, submission_label), score in matching_submissions_sorted if score > best_score - max_score_difference]
 
         best_sbm_words = whitespace_re.split(matching_submissions_sorted[0][0][1])
@@ -143,7 +138,7 @@ class SubmissionNameSearchService(ListLinksService):
 
         # TODO: only consider submissions that are attached to the tree
 
-        if CFG_CERN_SITE:
+        if cfg['CFG_CERN_SITE']:
             for submission_name, submission_config in CERN_GENSBM_SUBMISSIONS_CONFIG.iteritems():
                 if not submission_config.has_key('redirect'):
                     res += (('GENSBM#' + nmtoken_from_string(cgi.escape(submission_name)), submission_name),)
@@ -155,7 +150,7 @@ class SubmissionNameSearchService(ListLinksService):
 
 
             # Add submission name info
-            if CFG_CERN_SITE and doctype in ('ALIPH', 'BULIS', 'CMSREL', 'BULBN', 'BSA'):
+            if cfg['CFG_CERN_SITE'] and doctype in ('ALIPH', 'BULIS', 'CMSREL', 'BULBN', 'BSA'):
                 # These submissions are not interesting here
                 continue
             for word in clean_and_split_words_and_stem(submission_name):
@@ -168,7 +163,7 @@ class SubmissionNameSearchService(ListLinksService):
                     cache[word].append(item)
 
             # Add submission categories info
-            if CFG_CERN_SITE and doctype in ('CMSPUB', 'CMSCOM', 'CMSCMC',
+            if cfg['CFG_CERN_SITE'] and doctype in ('CMSPUB', 'CMSCOM', 'CMSCMC',
                                              'ATLPUB', 'ATLCOM', 'ATLCMC',
                                              'LHCBPB', 'LHCPCM', 'LHCBCC'):
                 # These categories are not interesting here
