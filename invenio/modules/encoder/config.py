@@ -21,6 +21,7 @@
 
 from __future__ import unicode_literals
 
+# FIXME deprecate invenio.config
 import invenio.config
 
 import pkg_resources

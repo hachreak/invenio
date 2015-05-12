@@ -26,6 +26,7 @@ import shutil
 import uuid
 from pprint import pformat
 
+from invenio.base.globals import cfg
 from invenio.legacy.bibsched.bibtask import (
                              task_update_progress,
                              write_message,
@@ -52,7 +53,6 @@ from invenio.ext.email import send_email
 from invenio.base.i18n import gettext_set_language
 from invenio.legacy.webuser import emailUnique, get_user_preferences
 from invenio.utils.json import json, json_decode_file
-import invenio.config
 
 # Stored messages for email notifications
 global _BATCH_STEP, _BATCH_STEPS
@@ -63,7 +63,7 @@ _MSG_HISTORY = []
 _UPD_HISTORY = []
 
 def _notify_error_admin(batch_job,
-                        email_admin=invenio.config.CFG_SITE_ADMIN_EMAIL):
+                        email_admin=cfg['CFG_SITE_ADMIN_EMAIL']):
     """Sends a notification email to the specified address, containing
        admin-only information. Is called by process_batch_job() if an error
        occured during the processing.
@@ -81,13 +81,13 @@ def _notify_error_admin(batch_job,
     html_text = template % {"batch_description": pformat(batch_job).replace("\n", "<br/>"),
              "message_log": "\n".join(_MSG_HISTORY)}
     text = html_text.replace("<br/>", "\n")
-    send_email(fromaddr=invenio.config.CFG_SITE_ADMIN_EMAIL,
+    send_email(fromaddr=cfg['CFG_SITE_ADMIN_EMAIL'],
                toaddr=email_admin,
                subject="Error during BibEncode batch processing",
                content=text,
                html_content=html_text)
 
-def _notify_error_user(email_user, original_filename, recid, submission_title, ln=invenio.config.CFG_SITE_LANG):
+def _notify_error_user(email_user, original_filename, recid, submission_title, ln=cfg['CFG_SITE_LANG']):
     """Sends an error notification to the specified address of the user.
        Is called by process_batch_job() if an error occured during the processing.
     @param email_user: email address of the user
@@ -103,7 +103,7 @@ def _notify_error_user(email_user, original_filename, recid, submission_title, l
         if language:
             ln = language
     _ = gettext_set_language(ln)
-    rec_url = invenio.config.CFG_SITE_URL + "/record/" + str(recid)
+    rec_url = cfg['CFG_SITE_URL ']+ "/record/" + str(recid)
     template = ("<br/>" +
             _("We are sorry, a problem has occured during the processing of"
             " your video upload%(submission_title)s.") +
@@ -126,14 +126,14 @@ def _notify_error_user(email_user, original_filename, recid, submission_title, l
              "submission_title": " <strong>%s</strong>" % submission_title,
              "record_url": "<a href=\"%s\">%s</a>" % (rec_url, rec_url),
              "guidelines_url": "<a href=\"locahost\">%s</a>" % _("the video guidelines")}
-    send_email(fromaddr=invenio.config.CFG_SITE_ADMIN_EMAIL,
+    send_email(fromaddr=cfg['CFG_SITE_ADMIN_EMAIL'],
                toaddr=email_user,
                subject="Problem during the processing of your video",
                content=text,
                html_content=html_text
                )
 
-def _notify_success_user(email_user, original_filename, recid, submission_title, ln=invenio.config.CFG_SITE_LANG):
+def _notify_success_user(email_user, original_filename, recid, submission_title, ln=cfg['CFG_SITE_LANG']):
     """Sends an success notification to the specified address of the user.
        Is called by process_batch_job() if the processing was successful.
     @param email_user: email address of the user
@@ -147,7 +147,7 @@ def _notify_success_user(email_user, original_filename, recid, submission_title,
         if language:
             ln = language
     _ = gettext_set_language(ln)
-    rec_url = invenio.config.CFG_SITE_URL + "/record/" + str(recid)
+    rec_url = cfg['CFG_SITE_URL ']+ "/record/" + str(recid)
     template = ("<br/>" +
             _("Your video submission%(submission_title)s was successfully processed.") +
             "<br/><br/>" +
@@ -167,7 +167,7 @@ def _notify_success_user(email_user, original_filename, recid, submission_title,
              "submission_title": " <strong>%s</strong>" % submission_title,
              "record_url": "<a href=\"%s\">%s</a>" % (rec_url, rec_url),
              "guidelines_url": "<a href=\"locahost\">%s</a>" % _("the video guidelines")}
-    send_email(fromaddr=invenio.config.CFG_SITE_ADMIN_EMAIL,
+    send_email(fromaddr=cfg['CFG_SITE_ADMIN_EMAIL'],
                toaddr=email_user,
                subject="Your video submission is now complete",
                content=text,
@@ -383,7 +383,7 @@ def process_batch_job(batch_job_file):
         """ Creates a temporary marcxml file and sends it to bibupload
         """
         xml_filename = 'bibencode_'+ str(batch_job['recid']) + '_' + str(uuid.uuid4()) + '.xml'
-        xml_filename = os.path.join(invenio.config.CFG_TMPSHAREDDIR, xml_filename)
+        xml_filename = os.path.join(cfg['CFG_TMPSHAREDDIR'], xml_filename)
         xml_file = file(xml_filename, 'w')
         xml_file.write(marcxml)
         xml_file.close()
@@ -606,7 +606,7 @@ def process_batch_job(batch_job_file):
                 profile = {}
             bibdoc_frame_subformat = getval(job, 'bibdoc_subformat')
             _task_write_message("Extracting frames to temporary directory")
-            tmpdir = invenio.config.CFG_TMPDIR + "/" + str(uuid.uuid4())
+            tmpdir = cfg['CFG_TMPDIR ']+ "/" + str(uuid.uuid4())
             os.mkdir(tmpdir)
             #Move this to the batch description
             bibdoc_frame_docname = getval(job, 'bibdoc_docname', bibdoc_video_docname)

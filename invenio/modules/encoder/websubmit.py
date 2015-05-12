@@ -34,11 +34,11 @@ Requirements:
 import os
 import pkg_resources
 
+from invenio.base.globals import cfg
 from invenio.modules.encoder.config import (
                     CFG_BIBENCODE_WEBSUBMIT_ASPECT_SAMPLE_DIR,
                     CFG_BIBENCODE_WEBSUBMIT_ASPECT_SAMPLE_FNAME
                     )
-from invenio.config import CFG_SITE_URL, CFG_PYLIBDIR
 
 def gcd(a,b):
     """ the euclidean algorithm """
@@ -95,11 +95,11 @@ def websubmit_singlepage(curdir, doctype, uid, access, session_id):
     else:
         resume = "false"
     body = form_body() % {
-               'CFG_SITE_URL' : CFG_SITE_URL,
+               'CFG_SITE_URL' : cfg['CFG_SITE_URL'],
                'guidelines_url': "localhost"
                }
     javascript = form_javascript() % {
-               'CFG_SITE_URL' : CFG_SITE_URL,
+               'CFG_SITE_URL' : cfg['CFG_SITE_URL'],
                'indir': indir,
                'doctype': doctype,
                'access': access,
