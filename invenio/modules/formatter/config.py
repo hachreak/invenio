@@ -27,6 +27,7 @@ import os
 
 import pkg_resources
 
+# FIXME deprecate invenio.config
 from invenio.config import CFG_ETCDIR
 
 __revision__ = "$Id$"

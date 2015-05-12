@@ -19,9 +19,10 @@
 
 """BibFormat element - return an image for the record"""
 
-from invenio.config import CFG_SITE_URL, CFG_SITE_SECURE_URL, CFG_CERN_SITE
-from invenio.legacy.bibdocfile.api import BibRecDocs, get_superformat_from_format
-from invenio.config import CFG_WEBSEARCH_ENABLE_OPENGRAPH
+from invenio.base.globals import cfg
+from invenio.legacy.bibdocfile.api import BibRecDocs, \
+    get_superformat_from_format
+
 
 def format_element(bfo, max_photos='', one_icon_per_bibdoc='yes', twitter_card_type='photo', use_webjournal_featured_image='no'):
     """Return an image of the record, suitable for the Open Graph protocol.
@@ -37,7 +38,7 @@ def format_element(bfo, max_photos='', one_icon_per_bibdoc='yes', twitter_card_t
     @param twitter_card_type: the type of Twitter card: 'photo' (single photo) or 'gallery'. Fall back to 'photo' if not enough pictures for a 'gallery'.
     @param use_webjournal_featured_image: if 'yes', use the "featured image" (as defined in bfe_webjournal_articles_overview) as image for the Twitter Card
     """
-    if not CFG_WEBSEARCH_ENABLE_OPENGRAPH:
+    if not cfg['CFG_WEBSEARCH_ENABLE_OPENGRAPH']:
         return ""
     bibarchive = BibRecDocs(bfo.recID)
     bibdocs = bibarchive.list_bibdocs()
@@ -67,12 +68,12 @@ def format_element(bfo, max_photos='', one_icon_per_bibdoc='yes', twitter_card_t
             if one_icon_per_bibdoc.lower() == 'yes':
                 found_icons = [found_icons[len(found_icons)/2]]
         for icon_size, icon_url in found_icons:
-            images.append((icon_url, icon_url.replace(CFG_SITE_URL, CFG_SITE_SECURE_URL), icon_size))
+            images.append((icon_url, icon_url.replace(cfg['CFG_SITE_URL'], cfg['CFG_SITE_SECURE_URL']), icon_size))
         # Link to main file too (?)
         if found_image_url:
-            images.append((found_image_url, found_image_url.replace(CFG_SITE_URL, CFG_SITE_SECURE_URL), found_image_size))
+            images.append((found_image_url, found_image_url.replace(cfg['CFG_SITE_URL'], cfg['CFG_SITE_SECURE_URL']), found_image_size))
 
-    if CFG_CERN_SITE:
+    if cfg['CFG_CERN_SITE']:
         # Add some more pictures from metadata
         dummy_size = 500*1024 # we don't we to check image size, we just make one (see Twitter Card limit)
         additional_images = [(image_url, image_url.replace("http://mediaarchive.cern.ch/", "https://mediastream.cern.ch"), dummy_size) for image_url in bfo.fields("8567_u") if image_url.split('.')[-1] in ('jpg', 'png', 'jpeg', 'gif') and 'A5' in image_url]

@@ -44,6 +44,7 @@ import sys
 import traceback
 import types
 import warnings
+
 from HTMLParser import HTMLParseError
 from operator import itemgetter
 
@@ -51,15 +52,12 @@ from flask import current_app, has_app_context
 from six import iteritems
 from werkzeug.utils import cached_property
 
-import invenio.legacy.bibformat.dblayer as bibformat_dblayer
 from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language, language_list_long, \
     wash_language
-from invenio.config import CFG_BIBFORMAT_CACHED_FORMATS, \
-    CFG_BIBFORMAT_DISABLE_I18N_FOR_CACHED_FORMATS, CFG_BIBFORMAT_HIDDEN_TAGS, \
-    CFG_SITE_LANG
 from invenio.ext.logging import register_exception
 from invenio.ext.template import render_template_to_string
+from invenio.legacy.bibformat import dblayer as bibformat_dblayer
 from invenio.legacy.bibrecord import create_record, record_empty, \
     record_get_field_instances, record_get_field_value, \
     record_get_field_values, record_xml_output
@@ -73,10 +71,7 @@ from invenio.utils.html import CFG_HTML_BUFFER_ALLOWED_ATTRIBUTE_WHITELIST, \
 from invenio.utils.memoise import memoize
 
 from . import registry
-from .config import CFG_BIBFORMAT_FORMAT_JINJA_TEMPLATE_EXTENSION, \
-    CFG_BIBFORMAT_FORMAT_OUTPUT_EXTENSION, \
-    CFG_BIBFORMAT_FORMAT_TEMPLATE_EXTENSION, CFG_BIBFORMAT_OUTPUTS_PATH, \
-    CFG_BIBFORMAT_TEMPLATES_DIR, InvenioBibFormatError
+from .config import InvenioBibFormatError
 from .engines import xslt
 
 # Cache for data we have already read and parsed
@@ -285,7 +280,7 @@ def get_format_element_path(filename):
     return TEMPLATE_CONTEXT_FUNCTIONS_CACHE.bibformat_elements()[filename].__file__
 
 
-def format_record(recID, of, ln=CFG_SITE_LANG, verbose=0,
+def format_record(recID, of, ln=cfg['CFG_SITE_LANG'], verbose=0,
                   search_pattern=None, xml_record=None, user_info=None, qid="",
                   **kwargs):
     """
@@ -347,7 +342,7 @@ def format_record(recID, of, ln=CFG_SITE_LANG, verbose=0,
     path = registry.format_templates_lookup.get(template)
 
     if template is None or not (
-       template.endswith("." + CFG_BIBFORMAT_FORMAT_JINJA_TEMPLATE_EXTENSION)
+       template.endswith("." + cfg['CFG_BIBFORMAT_FORMAT_JINJA_TEMPLATE_EXTENSION'])
        or path is None or os.access(path, os.R_OK)
        ):
         # template not found in new BibFormat. Call old one
@@ -382,7 +377,7 @@ def format_record(recID, of, ln=CFG_SITE_LANG, verbose=0,
     return out, needs_2nd_pass
 
 
-def format_record_1st_pass(recID, of, ln=CFG_SITE_LANG, verbose=0,
+def format_record_1st_pass(recID, of, ln=cfg['CFG_SITE_LANG'], verbose=0,
                            search_pattern=None, xml_record=None,
                            user_info=None, on_the_fly=False,
                            save_missing=True, **kwargs):
@@ -437,9 +432,9 @@ def format_record_1st_pass(recID, of, ln=CFG_SITE_LANG, verbose=0,
         Formatting record %i with output format %s.
         </span>""" % (recID, of)
     if not on_the_fly and \
-       (ln == CFG_SITE_LANG or
+       (ln == cfg['CFG_SITE_LANG'] or
         of.lower() == 'xm' or
-        (of.lower() in CFG_BIBFORMAT_DISABLE_I18N_FOR_CACHED_FORMATS)) and \
+        (of.lower() in cfg['CFG_BIBFORMAT_DISABLE_I18N_FOR_CACHED_FORMATS'])) and \
        record_exists(recID) != -1:
         # Try to fetch preformatted record. Only possible for records
         # formatted in CFG_SITE_LANG language (other are never
@@ -460,15 +455,17 @@ def format_record_1st_pass(recID, of, ln=CFG_SITE_LANG, verbose=0,
             if of.lower() == 'xm':
                 res = filter_hidden_fields(res, user_info)
             # try to replace language links in pre-cached res, if applicable:
-            if ln != CFG_SITE_LANG and of.lower() in CFG_BIBFORMAT_DISABLE_I18N_FOR_CACHED_FORMATS:
+            if ln != cfg['CFG_SITE_LANG'] and \
+                    of.lower() in \
+                    cfg['CFG_BIBFORMAT_DISABLE_I18N_FOR_CACHED_FORMATS']:
                 # The following statements try to quickly replace any
                 # language arguments in URL links.  Not an exact
                 # science, but should work most of the time for most
                 # of the formats, with not too many false positives.
                 # We don't have time to parse output much here.
-                res = res.replace('?ln=' + CFG_SITE_LANG, '?ln=' + ln)
-                res = res.replace('&ln=' + CFG_SITE_LANG, '&ln=' + ln)
-                res = res.replace('&amp;ln=' + CFG_SITE_LANG, '&amp;ln=' + ln)
+                res = res.replace('?ln=' + cfg['CFG_SITE_LANG'], '?ln=' + ln)
+                res = res.replace('&ln=' + cfg['CFG_SITE_LANG'], '&ln=' + ln)
+                res = res.replace('&amp;ln=' + cfg['CFG_SITE_LANG'], '&amp;ln=' + ln)
             out += res
             return out, needs_2nd_pass
         else:
@@ -517,7 +514,7 @@ def format_record_1st_pass(recID, of, ln=CFG_SITE_LANG, verbose=0,
         raise
 
 
-def format_record_2nd_pass(recID, template, ln=CFG_SITE_LANG,
+def format_record_2nd_pass(recID, template, ln=cfg['CFG_SITE_LANG'],
                            search_pattern=None, xml_record=None,
                            user_info=None, of=None, verbose=0, **kwargs):
     # Create light bfo object
@@ -574,7 +571,7 @@ def decide_format_template(bfo, of):
         return None
 
 
-def translate_template(template, ln=CFG_SITE_LANG):
+def translate_template(template, ln=cfg['CFG_SITE_LANG']):
     _ = gettext_set_language(ln)
 
     def translate(match):
@@ -615,11 +612,11 @@ def format_with_format_template(format_template_filename, bfo,
     """
     if format_template_code is not None:
         format_content = str(format_template_code)
-    elif not format_template_filename.endswith("." + CFG_BIBFORMAT_FORMAT_JINJA_TEMPLATE_EXTENSION):
+    elif not format_template_filename.endswith("." + cfg['CFG_BIBFORMAT_FORMAT_JINJA_TEMPLATE_EXTENSION']):
         format_content = get_format_template(format_template_filename)['code']
 
     if format_template_filename is None or \
-            format_template_filename.endswith("." + CFG_BIBFORMAT_FORMAT_TEMPLATE_EXTENSION):
+            format_template_filename.endswith("." + cfg['CFG_BIBFORMAT_FORMAT_TEMPLATE_EXTENSION']):
         # .bft
         warnings.warn(
             "BFT template format ({0}) is deprecated. "
@@ -634,7 +631,7 @@ def format_with_format_template(format_template_filename, bfo,
             evaluated_format = translate_template(evaluated_format, bfo.lang)
 
 
-    elif format_template_filename.endswith("." + CFG_BIBFORMAT_FORMAT_JINJA_TEMPLATE_EXTENSION):
+    elif format_template_filename.endswith("." + cfg['CFG_BIBFORMAT_FORMAT_JINJA_TEMPLATE_EXTENSION']):
         evaluated_format = '<!-- empty -->'
         #try:
         from functools import wraps
@@ -1022,7 +1019,7 @@ def eval_format_element(format_element, bfo, parameters=None, verbose=0):
                     str(exc.message)+'</span></b>', errors)
 
 
-def filter_languages(format_template, ln=CFG_SITE_LANG):
+def filter_languages(format_template, ln=cfg['CFG_SITE_LANG']):
     """
     Filters the language tags that do not correspond to the specified language.
 
@@ -1065,7 +1062,7 @@ def filter_languages(format_template, ln=CFG_SITE_LANG):
         pattern_current_lang = re.compile(r"<(" + current_lang +
                                           r")\s*>(.*)(</" + current_lang + r"\s*>)", re.IGNORECASE | re.DOTALL)
         if re.search(pattern_current_lang, lang_tag_content) is None:
-            current_lang = CFG_SITE_LANG
+            current_lang = cfg['CFG_SITE_LANG']
 
         cleaned_lang_tag = ln_pattern.sub(clean_language_tag, lang_tag_content)
         return cleaned_lang_tag.strip()
@@ -1089,9 +1086,9 @@ def get_format_template(filename, with_attributes=False):
     :param with_attributes: if True, fetch the attributes (names and description) for format'
     @return: strucured content of format template
     """
-    _ = gettext_set_language(CFG_SITE_LANG)
+    _ = gettext_set_language(cfg['CFG_SITE_LANG'])
 
-    if not filename.endswith("."+CFG_BIBFORMAT_FORMAT_TEMPLATE_EXTENSION) and \
+    if not filename.endswith("."+cfg['CFG_BIBFORMAT_FORMAT_TEMPLATE_EXTENSION']) and \
            not filename.endswith(".xsl"):
         return None
 
@@ -1114,7 +1111,7 @@ def get_format_template(filename, with_attributes=False):
 
         # Load format template code
         # Remove name and description
-        if filename.endswith("."+CFG_BIBFORMAT_FORMAT_TEMPLATE_EXTENSION):
+        if filename.endswith("."+cfg['CFG_BIBFORMAT_FORMAT_TEMPLATE_EXTENSION']):
             code_and_description = pattern_format_template_name.sub("",
                                                                     format_content, 1)
             code = pattern_format_template_desc.sub("", code_and_description, 1)
@@ -1154,7 +1151,7 @@ def get_format_templates(with_attributes=False):
     format_templates = {}
 
     for filename in registry.format_templates:
-        if filename.endswith("."+CFG_BIBFORMAT_FORMAT_TEMPLATE_EXTENSION) or \
+        if filename.endswith("."+cfg['CFG_BIBFORMAT_FORMAT_TEMPLATE_EXTENSION']) or \
                filename.endswith(".xsl"):
             filename = os.path.basename(filename)
             format_templates[filename] = get_format_template(filename,
@@ -1172,7 +1169,7 @@ def get_format_template_attrs(filename):
     :param filename: the name of a format template
     @return: a structure with detailed information about given format template
     """
-    _ = gettext_set_language(CFG_SITE_LANG)
+    _ = gettext_set_language(cfg['CFG_SITE_LANG'])
     attrs = {}
     attrs['name'] = ""
     attrs['description'] = ""
@@ -1230,7 +1227,7 @@ def get_format_element(element_name, verbose=0, with_built_in_params=False,
     :param with_built_in_params: if True, load the parameters built in all elements
     @return: a dictionary with format element attributes
     """
-    _ = gettext_set_language(CFG_SITE_LANG)
+    _ = gettext_set_language(cfg['CFG_SITE_LANG'])
 
     # Resolve filename and prepare 'name' as key for the cache
     filename = resolve_format_element_filename(element_name)
@@ -1646,7 +1643,7 @@ class BibFormatObject(object):
     record = None
 
     # The language in which the formatting has to be done
-    lang = CFG_SITE_LANG
+    lang = cfg['CFG_SITE_LANG']
 
     # A list of string describing the context in which the record has
     # to be formatted.
@@ -1665,7 +1662,7 @@ class BibFormatObject(object):
 
     req = None # DEPRECATED: use bfo.user_info instead. Used by WebJournal.
 
-    def __init__(self, recID, ln=CFG_SITE_LANG, search_pattern=None,
+    def __init__(self, recID, ln=cfg['CFG_SITE_LANG'], search_pattern=None,
                  xml_record=None, user_info=None, output_format=''):
         """
         Creates a new bibformat object, with given record.
@@ -2094,3 +2091,4 @@ def filter_hidden_fields(recxml, user_info=None, filter_tags=None,
         if omit and ('</datafield>' in line or '</marc:datafield>' in line):
             omit = False
     return out
+

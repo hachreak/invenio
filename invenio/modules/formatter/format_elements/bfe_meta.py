@@ -23,19 +23,20 @@ __revision__ = "$Id$"
 
 import cgi
 import re
-from invenio.utils.date import strftime, strptime
 import string
 from datetime import datetime
-from invenio.modules.formatter.format_elements.bfe_server_info import format_element as server_info
-from invenio.modules.formatter.format_elements.bfe_client_info import format_element as client_info
-from invenio.utils.date import get_i18n_month_name
-from invenio.utils.html import create_tag
+
+from invenio.base.globals import cfg
+# FIXME deprecate invenio.config
+from invenio.config import CFG_SITE_LANG
 from invenio.legacy.bibindex.engine_utils import get_field_tags
-from invenio.config import \
-     CFG_WEBSEARCH_ENABLE_GOOGLESCHOLAR, \
-     CFG_WEBSEARCH_ENABLE_OPENGRAPH, \
-     CFG_SITE_LANG, \
-     CFG_CERN_SITE
+from invenio.modules.formatter.format_elements.bfe_client_info import \
+    format_element as client_info
+from invenio.modules.formatter.format_elements.bfe_server_info import \
+    format_element as server_info
+from invenio.utils.date import get_i18n_month_name, strftime, strptime
+from invenio.utils.html import create_tag
+
 
 def format_element(bfo, name, tag_name='', tag='', kb='', kb_default_output='', var='', protocol='googlescholar'):
     """Prints a custom field in a way suitable to be used in HTML META
@@ -58,9 +59,9 @@ def format_element(bfo, name, tag_name='', tag='', kb='', kb_default_output='', 
     @param protocol: the protocol this tag is aimed at. Can be used to switch on/off support for a given "protocol". Can take values among 'googlescholar', 'opengraph'
     @see: bfe_server_info.py, bfe_client_info.py
     """
-    if protocol == 'googlescholar' and not CFG_WEBSEARCH_ENABLE_GOOGLESCHOLAR:
+    if protocol == 'googlescholar' and not cfg['CFG_WEBSEARCH_ENABLE_GOOGLESCHOLAR']:
         return ""
-    elif protocol == 'opengraph' and not CFG_WEBSEARCH_ENABLE_OPENGRAPH:
+    elif protocol == 'opengraph' and not cfg['CFG_WEBSEARCH_ENABLE_OPENGRAPH']:
         return ""
 
     matched_by_tag_name_p = False
@@ -106,7 +107,7 @@ def format_element(bfo, name, tag_name='', tag='', kb='', kb_default_output='', 
 
 
     if name == 'citation_dissertation_institution':
-        if CFG_CERN_SITE and \
+        if cfg['CFG_CERN_SITE'] and \
           'THESIS' in bfo.fields('980__a'):
                 authors = bfo.fields('100__', escape=9)
                 authors.extend(bfo.fields('700__', escape=9))

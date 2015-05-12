@@ -16,22 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""BibFormat element - Prints the control number of an Authority Record.
-"""
 
-from invenio.config import CFG_SITE_URL, CFG_SITE_NAME
+"""BibFormat element - Prints the control number of an Authority Record."""
 
-from invenio.legacy.bibauthority.config import \
-    CFG_BIBAUTHORITY_AUTHORITY_COLLECTION_NAME, \
-    CFG_BIBAUTHORITY_RECORD_CONTROL_NUMBER_FIELD, \
-    CFG_BIBAUTHORITY_RECORD_AUTHOR_CONTROL_NUMBER_FIELDS
-from invenio.legacy.bibauthority.engine import \
-    get_low_level_recIDs_from_control_no, \
-    get_dependent_records_for_control_no
-
-from invenio.utils.viaf import get_wikipedia_link,get_wiki_link_from_record
+from invenio.utils.viaf import get_wikipedia_link, get_wiki_link_from_record
 
 __revision__ = "$Id$"
+
 
 def format_element(bfo):
     """ Prints the control number of an author authority record in HTML.

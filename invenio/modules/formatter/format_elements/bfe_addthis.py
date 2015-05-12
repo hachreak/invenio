@@ -19,16 +19,12 @@
 
 """BibFormat element - wrap the Add This service: <http://www.addthis.com/>."""
 
-try:
-    from invenio.config import CFG_BIBFORMAT_ADDTHIS_ID
-except ImportError:
-    CFG_BIBFORMAT_ADDTHIS_ID = None
-
+from invenio.base.globals import cfg
 from invenio.legacy.search_engine import get_all_restricted_recids
 
 
 def format_element(bfo, only_public_records=1,
-                   addthis_id=CFG_BIBFORMAT_ADDTHIS_ID):
+                   addthis_id=cfg['CFG_BIBFORMAT_ADDTHIS_ID']):
     """Print the AddThis box from the <http://www.addthis.com/> service.
 
     :param only_public_records: if set to 1 (the default), prints the box only

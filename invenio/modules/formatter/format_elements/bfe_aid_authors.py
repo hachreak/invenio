@@ -59,10 +59,10 @@ def format_element(bfo, limit, separator='; ',
     record page
 
     """
-    from urllib import quote
-    from cgi import escape
     import re
-    from invenio.config import CFG_BASE_URL, CFG_SITE_RECORD, CFG_SITE_URL
+    from cgi import escape
+    from invenio.base.globals import cfg
+    from urllib import quote
 
     #regex for parsing last and first names and initials
     re_last_first = re.compile('^(?P<last>[^,]+)\s*,\s*(?P<first_names>[^\,]*)(?P<extension>\,?.*)$')
@@ -131,7 +131,7 @@ def format_element(bfo, limit, separator='; ',
                 if id_links == "yes" and 'i' in author:
                     author['i'] = author['i'][0]  #possible to have more IDs?
                     id_link = '<a class="authoridlink" href="' + \
-                              CFG_BASE_URL + \
+                              cfg['CFG_BASE_URL'] + \
                               '/search?' + \
                               'ln=' + bfo.lang + \
                               '&amp;p=100__i' + escape(':' + author['i']) + \
@@ -141,7 +141,7 @@ def format_element(bfo, limit, separator='; ',
 
                 author['display'] = '<a class="authorlink" target="_blank" ' + \
                                     'href="' + \
-                                    CFG_SITE_URL + \
+                                    cfg['CFG_SITE_URL'] + \
                                     '/author/search?q=' + bibrec_id + ':' + \
                                     quote(author['a']) + \
                                     '&ln=' + bfo.lang + \
@@ -201,7 +201,7 @@ def format_element(bfo, limit, separator='; ',
     # link the extension to detailed record
     if link_extension == 'yes' and interactive != 'yes':
         extension = '<a class="authorlink" href="' + \
-                    CFG_BASE_URL + '/' + CFG_SITE_RECORD + '∕' + str(bfo.recID) + '">' + \
+                    cfg['CFG_BASE_URL'] + '/' + cfg['CFG_SITE_RECORD'] + '∕' + str(bfo.recID) + '">' + \
                     extension + '</a>'
 
     # Detect Collaborations:
@@ -214,7 +214,7 @@ def format_element(bfo, limit, separator='; ',
         colls = [re_coll.sub('', coll) for coll in colls]
         if print_links.lower() == "yes":
             colls = ['<a class="authorlink" href="' + \
-                     CFG_BASE_URL + '/search' + \
+                     cfg['CFG_BASE_URL'] + '/search' + \
                      '?p=' + quote(coll) + \
                      '&amp;ln=' + bfo.lang + \
                      '&amp;f=collaboration' + \

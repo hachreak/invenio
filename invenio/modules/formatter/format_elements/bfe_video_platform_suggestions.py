@@ -17,21 +17,25 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-"""BibFormat element
+"""BibFormat element.
+
 * Part of the video platform prototype
 * Creates a list of video suggestions
 * Based on word similarity ranking
-* Must be done in a collection that holds video records with thumbnails, title and author
+* Must be done in a collection that holds video records with thumbnails,
+  title and author
 """
 
-from invenio.config import CFG_BASE_URL
-from invenio.legacy.bibdocfile.api import BibRecDocs
+import random
+
 from intbitset import intbitset
-from invenio.legacy.search_engine import perform_request_search
+
+from invenio.base.globals import cfg
 from invenio.legacy.bibrank.record_sorter import rank_records
 from invenio.legacy.bibrecord import get_fieldvalues
+from invenio.legacy.search_engine import perform_request_search
 from invenio.modules.encoder.utils import timecode_to_seconds
-import random
+
 
 html_skeleton_suggestion = """
 <!-- VIDEO SUGGESTION -->
@@ -134,7 +138,7 @@ def get_video_authors(recid):
 def get_video_record_url(recid):
     """ Return the URL of a video record
     """
-    return CFG_BASE_URL + "/record/" + str(recid)
+    return cfg['CFG_BASE_URL'] + "/record/" + str(recid)
 
 def get_video_duration(recid):
     """ Return the duration of a video

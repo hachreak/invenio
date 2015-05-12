@@ -18,12 +18,13 @@
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 """BibFormat element - Prints a link to BibDocFile
 """
-__revision__ = "$Id$"
 
-from invenio.utils.url import create_html_link
+from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language
-from invenio.config import CFG_BASE_URL, CFG_SITE_RECORD
 from invenio.modules.access.engine import acc_authorize_action
+from invenio.utils.url import create_html_link
+
+__revision__ = "$Id$"
 
 def format_element(bfo, style):
     """
@@ -44,11 +45,13 @@ def format_element(bfo, style):
         if style != '':
             linkattrd['style'] = style
 
-        out += create_html_link(CFG_BASE_URL + '/%s/managedocfiles' % CFG_SITE_RECORD,
-                                urlargd={'ln': bfo.lang,
-                                         'recid': str(bfo.recID)},
-                                link_label=_("Manage Files of This Record"),
-                                linkattrd=linkattrd)
+        out += create_html_link(
+            cfg['CFG_BASE_URL'] +
+            '/%s/managedocfiles' % cfg['CFG_SITE_RECORD'],
+            urlargd={'ln': bfo.lang,
+                     'recid': str(bfo.recID)},
+            link_label=_("Manage Files of This Record"),
+            linkattrd=linkattrd)
     return out
 
 def escape_values(bfo):
@@ -57,3 +60,4 @@ def escape_values(bfo):
     should be escaped.
     """
     return 0
+

@@ -21,17 +21,17 @@
 
 __revision__ = "$Id$"
 
-from invenio.config import CFG_SITE_URL
+from invenio.base.globals import cfg
 from invenio.legacy.bibauthority.config import \
     CFG_BIBAUTHORITY_RECORD_CONTROL_NUMBER_FIELD, \
     CFG_BIBAUTHORITY_AUTHORITY_COLLECTION_NAME
-
 from invenio.legacy.bibauthority.engine import \
     get_control_nos_from_recID, \
     guess_main_name_from_authority_recID
 from invenio.legacy.search_engine import \
     perform_request_search, \
     get_record
+
 
 def format_element(bfo, main_name='yes', detail='no'):
     """ Prints the data of an institute authority record in HTML. By default prints
@@ -66,7 +66,7 @@ def format_element(bfo, main_name='yes', detail='no'):
             "&c=" + "%s" + \
             "&p=" + "%s" + \
             "&sc=" + "%s"
-        link_pattern = "<a href='" + CFG_SITE_URL + '%s' + "'>" + '%s' + "</a>"
+        link_pattern = "<a href='" + cfg['CFG_SITE_URL'] + '%s' + "'>" + '%s' + "</a>"
         # populate the first 3 lists
         parent_htmls, predecessor_htmls, successor_htmls = \
             get_main_htmls(see_also_dicts, cc_val, c_val, record_url_pattern,

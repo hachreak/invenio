@@ -16,13 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""BibFormat element - Prints author data from an Authority Record.
-"""
-from invenio.config import CFG_SITE_URL, CFG_SITE_NAME
-from urllib import quote
+
+"""BibFormat element - Prints author data from an Authority Record."""
+
 import re
 
 __revision__ = "$Id$"
+
 
 def format_element(bfo, main_name='yes', detail='no'):
     """ Prints the data of an author authority record in HTML. By default prints

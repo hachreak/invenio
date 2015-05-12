@@ -16,11 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""BibFormat element - Prints BibTeX meta-data
-"""
-__revision__ = "$Id$"
 
-from invenio.config import CFG_SITE_LANG
+"""BibFormat element - Prints BibTeX meta-data"""
+
+from invenio.base.globals import cfg
+
+
+__revision__ = "$Id$"
 
 def format_element(bfo, width="50"):
     """
@@ -454,7 +456,7 @@ def get_year(date, default=""):
 
     return default
 
-def get_month(date, ln=CFG_SITE_LANG, default=""):
+def get_month(date, ln=cfg['CFG_SITE_LANG'], default=""):
     """
     Returns the year from a textual date retrieved from a record
 
