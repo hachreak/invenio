@@ -22,10 +22,7 @@
    $bibtasklet -N createicons -T bst_create_icons -a recid=123 -a icon_sizes=180,640,1440
    $bibtasklet -N createicons -T bst_create_icons -a "collection=ABC Photos" -a icon_sizes=180,640,1440"""
 
-try:
-    from invenio.config import CFG_ICON_CREATION_FORMAT_MAPPINGS
-except ImportError, e:
-    CFG_ICON_CREATION_FORMAT_MAPPINGS = {'*': ['jpg']}
+from invenio.base.globals import cfg
 from invenio.legacy.bibdocfile.api import BibRecDocs
 from invenio.legacy.bibdocfile.config import CFG_BIBDOCFILE_DEFAULT_ICON_SUBFORMAT
 from invenio.legacy.websubmit.icon_creator import create_icon, CFG_ALLOWED_FILE_EXTENSIONS
@@ -39,6 +36,8 @@ import sys
 
 CFG_DEFAULT_ICON_EXTENSION = "gif"
 CFG_DEFAULT_ICON_SIZE = '180'
+CFG_ICON_CREATION_FORMAT_MAPPINGS = cfg['CFG_ICON_CREATION_FORMAT_MAPPINGS'] \
+    or {'*': ['jpg']}
 
 def create_icons_for_record(recid, icon_sizes, icon_format_mappings=None,
                             docnames=None, add_default_icon=False, inherit_moreinfo=False):
