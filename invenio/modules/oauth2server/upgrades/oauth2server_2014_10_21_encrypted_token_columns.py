@@ -30,10 +30,10 @@ def info():
 
 def do_upgrade():
     """Implement your upgrades here."""
-    from invenio.config import SECRET_KEY
+    from invenio.base.globals import cfg
     from sqlalchemy_utils.types.encrypted import AesEngine
     engine = AesEngine()
-    engine._update_key(SECRET_KEY)
+    engine._update_key(cfg['SECRET_KEY'])
 
     for row in run_sql(
             "SELECT id, access_token, refresh_token FROM oauth2TOKEN"):

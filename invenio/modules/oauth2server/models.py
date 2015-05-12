@@ -25,8 +25,8 @@ from flask import current_app
 
 from flask_login import current_user
 
+from invenio.base.globals import cfg
 from invenio.base.i18n import _
-from invenio.config import SECRET_KEY as secret_key
 from invenio.ext.login.legacy_user import UserInfo
 from invenio.ext.sqlalchemy import db
 from invenio.modules.accounts.models import User
@@ -333,13 +333,13 @@ class Token(db.Model):
 
     access_token = db.Column(String255EncryptedType(
         type_in=db.String(255),
-        key=secret_key),
+        key=cfg['SECRET_KEY']),
         unique=True
     )
 
     refresh_token = db.Column(String255EncryptedType(
         type_in=db.String(255),
-        key=secret_key,
+        key=cfg['SECRET_KEY'],
         engine=NoneAesEngine),
         unique=True, nullable=True
     )
