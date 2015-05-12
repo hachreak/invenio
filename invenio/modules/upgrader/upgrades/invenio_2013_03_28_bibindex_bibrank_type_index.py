@@ -17,8 +17,8 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+from invenio.base.globals import cfg
 from invenio.legacy.dbquery import run_sql
-from invenio.config import CFG_DATABASE_NAME
 
 depends_on = ['invenio_release_1_1_0']
 
@@ -37,11 +37,12 @@ def do_upgrade():
 
 
 def estimate():
-    """  Estimate running time of upgrade in seconds (optional). """
-    count_rows = run_sql("SELECT SUM(TABLE_ROWS) FROM INFORMATION_SCHEMA.TABLES "
-                         "WHERE TABLE_SCHEMA = '%s' "
-                         "AND (TABLE_NAME like 'idx%%R' or TABLE_NAME like 'rnk%%R')"
-                         % (CFG_DATABASE_NAME,))[0][0]
+    """Estimate running time of upgrade in seconds (optional)."""
+    count_rows = run_sql(
+        "SELECT SUM(TABLE_ROWS) FROM INFORMATION_SCHEMA.TABLES "
+        "WHERE TABLE_SCHEMA = '%s' "
+        "AND (TABLE_NAME like 'idx%%R' or TABLE_NAME like 'rnk%%R')"
+        % (cfg['CFG_DATABASE_NAME'],))[0][0]
     return count_rows / 1000
 
 

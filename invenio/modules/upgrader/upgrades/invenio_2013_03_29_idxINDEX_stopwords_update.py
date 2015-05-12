@@ -29,11 +29,11 @@ def info():
 
 
 def do_upgrade():
-    #different stopwords file for every index:
-    #need to update default stopwords path for every index
-    from invenio.config import CFG_BIBINDEX_REMOVE_STOPWORDS
-    if CFG_BIBINDEX_REMOVE_STOPWORDS:
-        if CFG_BIBINDEX_REMOVE_STOPWORDS == 1:
+    # different stopwords file for every index:
+    # need to update default stopwords path for every index
+    from invenio.base.globals import cfg
+    if cfg['CFG_BIBINDEX_REMOVE_STOPWORDS']:
+        if cfg['CFG_BIBINDEX_REMOVE_STOPWORDS'] == 1:
             run_sql("UPDATE idxINDEX SET remove_stopwords='stopwords.kb'")
 
 

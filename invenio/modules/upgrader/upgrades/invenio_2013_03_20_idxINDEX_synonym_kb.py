@@ -37,10 +37,10 @@ def do_upgrade():
     #second step: fill tables
     run_sql("UPDATE idxINDEX SET synonym_kbrs='INDEX-SYNONYM-TITLE,exact' WHERE name IN ('global','title')")
     #third step: check invenio.conf
-    from invenio.config import CFG_BIBINDEX_SYNONYM_KBRS
-    if CFG_BIBINDEX_SYNONYM_KBRS:
-        for index in CFG_BIBINDEX_SYNONYM_KBRS:
-            synonym = ",".join(CFG_BIBINDEX_SYNONYM_KBRS[index])
+    from invenio.base.globals import cfg
+    if cfg['CFG_BIBINDEX_SYNONYM_KBRS']:
+        for index in cfg['CFG_BIBINDEX_SYNONYM_KBRS']:
+            synonym = ",".join(cfg['CFG_BIBINDEX_SYNONYM_KBRS'][index])
             query = "UPDATE idxINDEX SET synonym_kbrs='%s' WHERE name=%s" % (synonym, index)
             run_sql(query)
 

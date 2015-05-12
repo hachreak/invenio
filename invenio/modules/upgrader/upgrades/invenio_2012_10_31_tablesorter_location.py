@@ -17,12 +17,7 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-import warnings
-from invenio.legacy.dbquery import run_sql
-from invenio.utils.text import wait_for_user
-
 import os
-from invenio.config import CFG_WEBDIR
 
 depends_on = ['invenio_release_1_1_0']
 
@@ -31,9 +26,9 @@ def info():
 
 def do_upgrade():
     os.system("true")
-    #os.system("wget -O /tmp/jquery.tablesorter.zip http://invenio-software.org/download/jquery/jquery.tablesorter.20111208.zip")
-    #os.system("unzip /tmp/jquery.tablesorter.zip -d %s/js/tablesorter" % CFG_WEBDIR)
-    #os.system("rm -f /tmp/jquery.tablesorter.zip")
+    # os.system("wget -O /tmp/jquery.tablesorter.zip http://invenio-software.org/download/jquery/jquery.tablesorter.20111208.zip")
+    # os.system("unzip /tmp/jquery.tablesorter.zip -d %s/js/tablesorter" % CFG_WEBDIR)
+    # os.system("rm -f /tmp/jquery.tablesorter.zip")
 
 def estimate():
     return 10
