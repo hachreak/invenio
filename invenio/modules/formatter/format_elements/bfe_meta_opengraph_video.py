@@ -20,15 +20,17 @@
 """BibFormat element - return the video of a record"""
 
 import cgi
-from invenio.config import CFG_SITE_URL, CFG_SITE_SECURE_URL, CFG_CERN_SITE
-from invenio.legacy.bibdocfile.api import BibRecDocs, get_superformat_from_format
-from invenio.config import CFG_WEBSEARCH_ENABLE_OPENGRAPH
+
+from invenio.base.globals import cfg
+from invenio.legacy.bibdocfile.api import BibRecDocs, \
+    get_superformat_from_format
+
 
 def format_element(bfo):
     """
     Return the video of the record, suitable for the Open Graph protocol.
     """
-    if not CFG_WEBSEARCH_ENABLE_OPENGRAPH:
+    if not cfg['CFG_WEBSEARCH_ENABLE_OPENGRAPH']:
         return ""
     bibarchive = BibRecDocs(bfo.recID)
     bibdocs = bibarchive.list_bibdocs()
@@ -48,11 +50,11 @@ def format_element(bfo):
         found_icons.sort()
 
         for icon_size, icon_url in found_icons:
-            images.append((icon_url, icon_url.replace(CFG_SITE_URL, CFG_SITE_SECURE_URL)))
+            images.append((icon_url, icon_url.replace(cfg['CFG_SITE_URL'], cfg['CFG_SITE_SECURE_URL'])))
         if found_image_url:
-            videos.append((found_image_url, found_image_url.replace(CFG_SITE_URL, CFG_SITE_SECURE_URL)))
+            videos.append((found_image_url, found_image_url.replace(cfg['CFG_SITE_URL'], cfg['CFG_SITE_SECURE_URL'])))
 
-    if CFG_CERN_SITE:
+    if cfg['CFG_CERN_SITE']:
         mp4_urls = [url.replace('http://mediaarchive.cern.ch', 'https://mediastream.cern.ch') \
                     for url in bfo.fields('8567_u') if url.endswith('.mp4')]
         img_urls = [url.replace('http://mediaarchive.cern.ch', 'https://mediastream.cern.ch') \

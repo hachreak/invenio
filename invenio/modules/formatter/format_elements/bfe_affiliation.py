@@ -21,13 +21,11 @@
 __revision__ = "$Id$"
 
 import cgi
-from invenio.config import \
-    CFG_SITE_URL, CFG_SITE_NAME
-from invenio.legacy.bibauthority.config import \
-    CFG_BIBAUTHORITY_AUTHORITY_COLLECTION_NAME
-    
+
+from invenio.base.globals import cfg
 from invenio.legacy.bibauthority.engine import \
     get_low_level_recIDs_from_control_no
+
 
 def format_element(bfo):
     """
@@ -44,16 +42,16 @@ def format_element(bfo):
                 recIDs.extend(get_low_level_recIDs_from_control_no(control_no))
             affiliation = cgi.escape(affiliation)
             if len(recIDs) == 1:
-                affiliation = '<a href="' + CFG_SITE_URL + \
+                affiliation = '<a href="' + cfg['CFG_SITE_URL'] + \
                               '/record/' + str(recIDs[0]) + \
                               '?ln=' + bfo.lang + \
                               '">' + affiliation + '</a>'
             elif len(recIDs) > 1:
-                affiliation = '<a href="' + CFG_SITE_URL + \
+                affiliation = '<a href="' + cfg['CFG_SITE_URL'] + \
                               '/search?' + \
                               'p=recid:' +  " or recid:".join([str(_id) for _id in recIDs]) + \
-                              '&amp;c=' + CFG_SITE_NAME + \
-                              '&amp;c=' + CFG_BIBAUTHORITY_AUTHORITY_COLLECTION_NAME + \
+                              '&amp;c=' + cfg['CFG_SITE_NAME'] + \
+                              '&amp;c=' + cfg['CFG_BIBAUTHORITY_AUTHORITY_COLLECTION_NAME'] + \
                               '&amp;ln=' + bfo.lang + \
                               '">' + affiliation + '</a>'
 

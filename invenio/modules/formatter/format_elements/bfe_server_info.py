@@ -19,9 +19,8 @@
 
 import urllib
 import re
-from invenio.config import CFG_SITE_URL, CFG_BASE_URL, CFG_SITE_ADMIN_EMAIL, \
-        CFG_SITE_LANG, CFG_SITE_NAME, CFG_VERSION, CFG_SITE_NAME_INTL, \
-        CFG_SITE_SUPPORT_EMAIL, CFG_SITE_RECORD, CFG_BIBUPLOAD_INTERNAL_DOI_PATTERN
+
+from invenio.base.globals import cfg
 from invenio.legacy.bibrecord import record_extract_dois
 
 
@@ -44,57 +43,57 @@ def format_element(bfo, var=''):
     if var == 'recinternaldoiurl_or_recurl':
         # Prepare list of internal DOIs of that record
         dois = [doi for doi in record_extract_dois(bfo.get_record()) if \
-                re.compile(CFG_BIBUPLOAD_INTERNAL_DOI_PATTERN).match(doi)]
+                re.compile(cfg['CFG_BIBUPLOAD_INTERNAL_DOI_PATTERN']).match(doi)]
 
     recID = bfo.recID
     if var == '':
         out = ''
     elif var in ['name', 'CFG_SITE_NAME']:
-        out = CFG_SITE_NAME
+        out = cfg['CFG_SITE_NAME']
     elif var in ['i18n_name', 'CFG_SITE_NAME_INTL']:
-        out = CFG_SITE_NAME_INTL.get(bfo.lang, CFG_SITE_NAME)
+        out = cfg['CFG_SITE_NAME_INTL'].get(bfo.lang, cfg['CFG_SITE_NAME'])
     elif var in ['lang', 'CFG_SITE_LANG']:
-        out = CFG_SITE_LANG
+        out = cfg['CFG_SITE_LANG']
     elif var == 'CFG_VERSION':
-        out = 'Invenio v' + str(CFG_VERSION)
+        out = 'Invenio v' + str(cfg['CFG_VERSION'])
     elif var in ['email', 'admin_email', 'CFG_SITE_ADMIN_EMAIL']:
-        out = CFG_SITE_ADMIN_EMAIL
+        out = cfg['CFG_SITE_ADMIN_EMAIL']
     elif var in ['support_email', 'CFG_SITE_SUPPORT_EMAIL']:
-        out = CFG_SITE_SUPPORT_EMAIL
+        out = cfg['CFG_SITE_SUPPORT_EMAIL']
     elif var in ['CFG_SITE_RECORD']:
-        out = CFG_SITE_RECORD
+        out = cfg['CFG_SITE_RECORD']
     elif var in ['weburl', 'CFG_SITE_URL']:
-        out = CFG_SITE_URL
+        out = cfg['CFG_SITE_URL']
         if not out.endswith('/'):
             out += '/'
     elif var in ['CFG_BASE_URL']:
-        out = CFG_BASE_URL
+        out = cfg['CFG_BASE_URL']
         if not out.endswith('/'):
             out += '/'
     elif var == 'searchurl':
-        out = CFG_BASE_URL + '/search'
+        out = cfg['CFG_BASE_URL'] + '/search'
         if not out.endswith('/'):
             out += '/'
     elif var == 'absolutesearchurl':
-        out = CFG_SITE_URL + '/search'
+        out = cfg['CFG_SITE_URL'] + '/search'
         if not out.endswith('/'):
             out += '/'
     elif var == 'absoluterecurl':
-        out = CFG_SITE_URL
+        out = cfg['CFG_SITE_URL']
         if not out.endswith('/'):
             out += '/'
-        out += CFG_SITE_RECORD + '/' + str(recID)
+        out += cfg['CFG_SITE_RECORD'] + '/' + str(recID)
     elif var == 'recinternaldoiurl_or_recurl' and \
              dois:
-        out = CFG_SITE_URL
+        out = cfg['CFG_SITE_URL']
         if not out.endswith('/'):
             out += '/'
         out += 'doi/' + urllib.quote(dois[0])
     elif var in ('recurl', 'recinternaldoiurl_or_recurl'):
-        out = CFG_SITE_URL
+        out = cfg['CFG_SITE_URL']
         if not out.endswith('/'):
             out += '/'
-        out += CFG_SITE_RECORD +'/' + str(recID)
+        out += cfg['CFG_SITE_RECORD'] +'/' + str(recID)
     else:
         out = 'Unknown variable: %s' % (var)
     return out

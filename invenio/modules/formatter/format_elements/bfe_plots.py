@@ -21,16 +21,10 @@
 """BibFormat element - Display image of the plot if we are in selected plots collection
 """
 
+from invenio.base.globals import cfg
+from invenio.base.i18n import gettext_set_language
 from invenio.legacy.bibdocfile.api import BibRecDocs
 from invenio.utils.url import create_html_link
-from invenio.config import CFG_SITE_RECORD
-from invenio.base.i18n import gettext_set_language
-
-try:
-    from invenio.config import CFG_BASE_URL
-except ImportError:
-    from invenio.config import CFG_SITE_URL
-    CFG_BASE_URL = CFG_SITE_URL
 
 
 def format_element(bfo, width="", caption="yes", max_plots="3"):
@@ -72,8 +66,8 @@ def format_element(bfo, width="", caption="yes", max_plots="3"):
                   (img_location, caption_text, width)
 
             plotlink = create_html_link(urlbase='%s/%s/%s/plots#%d' %
-                                        (CFG_BASE_URL,
-                                         CFG_SITE_RECORD,
+                                        (cfg['CFG_BASE_URL'],
+                                         cfg['CFG_SITE_RECORD'],
                                          bfo.recID,
                                          index),
                                         urlargd={},
@@ -87,7 +81,7 @@ def format_element(bfo, width="", caption="yes", max_plots="3"):
 
     if len(img_files) >= max_plots:
         link = "<a href='/%s/%s/plots'>%s</a>" % \
-               (CFG_SITE_RECORD, bfo.recID, _("Show more plots"))
+               (cfg['CFG_SITE_RECORD'], bfo.recID, _("Show more plots"))
 
     for index in range(len(img_files)):
         img_files[index] = img_files[index][1]

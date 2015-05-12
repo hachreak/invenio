@@ -21,17 +21,21 @@
 __revision__ = "$Id$"
 
 import re
-from invenio.legacy.bibdocfile.api import BibRecDocs, file_strip_ext, normalize_format, compose_format
+import urllib
+
+from cgi import escape, parse_qs
+from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language
-from invenio.config import CFG_SITE_URL, CFG_BASE_URL, CFG_CERN_SITE, CFG_SITE_RECORD, \
-    CFG_BIBFORMAT_HIDDEN_FILE_FORMATS
+# FIXME deprecate invenio.config
+from invenio.config import CFG_BIBFORMAT_HIDDEN_FILE_FORMATS, CFG_CERN_SITE
+from invenio.legacy.bibdocfile.api import BibRecDocs, compose_format, \
+    file_strip_ext, normalize_format
 from invenio.legacy.bibdocfile.config import CFG_BIBDOCFILE_ICON_SUBFORMAT_RE
 from invenio.utils.url import get_relative_url
 
-from cgi import escape, parse_qs
-from six.moves.urllib.parse import urlparse
 from os.path import basename
-import urllib
+
+from six.moves.urllib.parse import urlparse
 
 _CFG_NORMALIZED_BIBFORMAT_HIDDEN_FILE_FORMATS = set(normalize_format(fmt) for fmt in CFG_BIBFORMAT_HIDDEN_FILE_FORMATS)
 
@@ -85,7 +89,7 @@ def format_element(bfo, style, separator='; ', show_icons='no', focus_on_main_fi
         style = 'class="'+style+'"'
 
     if show_icons.lower() == 'yes':
-        file_icon = '<img style="border:none" src="%s/img/file-icon-text-12x16.gif" alt="%s"/>' % (CFG_BASE_URL, _("Download fulltext"))
+        file_icon = '<img style="border:none" src="%s/img/file-icon-text-12x16.gif" alt="%s"/>' % (cfg['CFG_BASE_URL'], _("Download fulltext"))
     else:
         file_icon = ''
 
@@ -94,7 +98,7 @@ def format_element(bfo, style, separator='; ', show_icons='no', focus_on_main_fi
 
     additional_str = ''
     if additionals:
-        additional_str = ' <small>(<a '+style+' href="'+CFG_BASE_URL+'/%s/' % CFG_SITE_RECORD + str(bfo.recID)+'/files/">%s</a>)</small>' % _("additional files")
+        additional_str = ' <small>(<a '+style+' href="'+cfg['CFG_BASE_URL']+'/%s/' % cfg['CFG_SITE_RECORD'] + str(bfo.recID)+'/files/">%s</a>)</small>' % _("additional files")
 
     versions_str = ''
     #if old_versions:
@@ -294,7 +298,7 @@ def get_files(bfo, distinguish_main_and_additional_files=True, include_subformat
                 descr = complete_url['y']
                 if descr == 'Fulltext':
                     descr = _("Fulltext")
-            if not url.startswith(CFG_SITE_URL): # Not a bibdoc?
+            if not url.startswith(cfg['CFG_SITE_URL']): # Not a bibdoc?
                 if not descr: # For not bibdoc let's have a description
                     # Display the URL in full:
                     descr = url

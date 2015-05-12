@@ -19,9 +19,10 @@
 
 """BibFormat element - return the files of a record"""
 
-from invenio.config import CFG_WEBSEARCH_ENABLE_GOOGLESCHOLAR
-from invenio.modules.formatter.format_elements.bfe_fulltext import get_files
+from invenio.base.globals import cfg
 from invenio.legacy.bibdocfile.api import BibRecDocs, decompose_bibdocfile_url
+from invenio.modules.formatter.format_elements.bfe_fulltext import get_files
+
 
 def format_element(bfo, file_format='pdf'):
     """Return the files attached to this record, in order to be
@@ -29,7 +30,7 @@ def format_element(bfo, file_format='pdf'):
 
     @param file_format: the format to include in this output
     """
-    if not CFG_WEBSEARCH_ENABLE_GOOGLESCHOLAR:
+    if not cfg['CFG_WEBSEARCH_ENABLE_GOOGLESCHOLAR']:
         return ""
 
     bibarchive = BibRecDocs(bfo.recID)

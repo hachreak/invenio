@@ -20,8 +20,7 @@
 """
 __revision__ = "$Id$"
 
-from invenio.config import CFG_SITE_URL
-
+from invenio.base.globals import cfg
 from invenio.legacy.bibauthority.engine import get_low_level_recIDs_from_control_no
 
 def format_element(bfo):
@@ -38,7 +37,7 @@ def format_element(bfo):
         if control_no:
             recIDs = get_low_level_recIDs_from_control_no(control_no)
             if len(recIDs):
-                publisher = '<a href="' + CFG_SITE_URL + '/record/' + \
+                publisher = '<a href="' + cfg['CFG_SITE_URL'] + '/record/' + \
                             str(recIDs[0]) + \
                             '?ln=' + bfo.lang + \
                             '">' + publisher + '</a>'

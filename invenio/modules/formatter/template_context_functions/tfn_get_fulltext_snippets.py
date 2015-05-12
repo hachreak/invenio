@@ -19,7 +19,7 @@
 
 """Template context function to get fulltext snippets via Solr."""
 
-from invenio.config import CFG_WEBSEARCH_FULLTEXT_SNIPPETS
+from invenio.base.globals import cfg
 from invenio.ext.cache import cache
 from invenio.ext.logging import register_exception
 from invenio.modules.formatter.utils import get_pdf_snippets
@@ -42,13 +42,12 @@ def template_context_function(id_bibrec, pattern, qid, current_user):
     :param qid: query id
     :return: HTML containing snippet
     """
-
     if not pattern:
         pattern = get_pattern_from_cache(qid)
 
     if id_bibrec and pattern and current_user:
         # Requires search in fulltext field
-        if CFG_WEBSEARCH_FULLTEXT_SNIPPETS and 'fulltext:' in pattern:
+        if cfg['CFG_WEBSEARCH_FULLTEXT_SNIPPETS'] and 'fulltext:' in pattern:
             terms = get_fulltext_terms_from_search_pattern(pattern)
             if terms:
                 snippets = ''

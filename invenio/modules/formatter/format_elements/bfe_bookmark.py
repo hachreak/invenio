@@ -22,15 +22,13 @@
 See <http://keith-wood.name/bookmark.html>.
 """
 
-from invenio.config import CFG_SITE_URL, CFG_BASE_URL, CFG_SITE_RECORD, CFG_CERN_SITE
+from invenio.base.globals import cfg
 from invenio.legacy.search_engine import get_all_restricted_recids
+from invenio.legacy.webjournal.utils import get_journals_ids_and_names, \
+    make_journal_url, parse_url_string
+from invenio.modules.formatter.format_elements.bfe_sciencewise import \
+    create_sciencewise_url, get_arxiv_reportnumber
 from invenio.utils.html import escape_javascript_string
-from invenio.modules.formatter.format_elements.bfe_sciencewise import create_sciencewise_url, \
-    get_arxiv_reportnumber
-from invenio.legacy.webjournal.utils import \
-    parse_url_string, \
-    make_journal_url, \
-    get_journals_ids_and_names
 
 
 def format_element(
@@ -74,21 +72,21 @@ def format_element(
         sciencewise_url = ""
         if reportnumber:
             sciencewise_url = create_sciencewise_url(reportnumber)
-        if not sciencewise_url and CFG_CERN_SITE:
+        if not sciencewise_url and cfg['CFG_CERN_SITE']:
             sciencewise_url = create_sciencewise_url(bfo.recID, cds=True)
         if sciencewise_url:
             sciencewise_script = """\
 $.bookmark.addSite('sciencewise', 'ScienceWise.info', '%(siteurl)s/img/sciencewise.png', 'en', 'bookmark', '%(url)s');
 $('#bookmark_sciencewise').bookmark({sites: ['sciencewise']});
 """ % {
-                'siteurl': CFG_SITE_URL,
+                'siteurl': cfg['CFG_SITE_URL'],
                 'url': sciencewise_url.replace("'", r"\'"),
             }
 
     url = '%(siteurl)s/%(record)s/%(recid)s' % \
           {'recid': bfo.recID,
-           'record': CFG_SITE_RECORD,
-           'siteurl': CFG_BASE_URL}
+           'record': cfg['CFG_SITE_RECORD'],
+           'siteurl': cfg['CFG_BASE_URL']}
 
     args = parse_url_string(bfo.user_info['uri'])
     journal_name = args["journal_name"]
@@ -121,7 +119,7 @@ $('#bookmark_sciencewise').bookmark({sites: ['sciencewise']});
 </script>
 <!-- JQuery Bookmark Button END -->
 """ % {
-        'siteurl': CFG_BASE_URL,
+        'siteurl': cfg['CFG_BASE_URL'],
         'sciencewise': sciencewise_script,
         'title': escape_javascript_string(title,
                                           escape_for_html=False,
@@ -137,3 +135,4 @@ $('#bookmark_sciencewise').bookmark({sites: ['sciencewise']});
 def escape_values(bfo):
     """Check if output of this element should be escaped."""
     return 0
+

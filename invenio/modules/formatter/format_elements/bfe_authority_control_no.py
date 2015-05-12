@@ -16,11 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""BibFormat element - Prints the control number of an Authority Record.
-"""
 
-from invenio.config import CFG_SITE_URL, CFG_SITE_NAME
+"""BibFormat element - Prints the control number of an Authority Record."""
 
+from invenio.base.globals import cfg
 from invenio.legacy.bibauthority.config import \
     CFG_BIBAUTHORITY_AUTHORITY_COLLECTION_NAME, \
     CFG_BIBAUTHORITY_RECORD_CONTROL_NUMBER_FIELD, \
@@ -60,7 +59,7 @@ def format_element(bfo):
         from urllib import quote
         # if we have dependent records, provide a link to them
         if count:
-            prefix_pattern = "<a href='" + CFG_SITE_URL + "%s" + "'>"
+            prefix_pattern = "<a href='" + cfg['CFG_SITE_URL'] + "%s" + "'>"
             postfix = "</a>"
             url_str = ''
             # we have multiple dependent records
@@ -76,7 +75,7 @@ def format_element(bfo):
                 url_str = \
                     "/search" + \
                     "?p=" + p_val + \
-                    "&c=" + quote(CFG_SITE_NAME) + \
+                    "&c=" + quote(cfg['CFG_SITE_NAME']) + \
                     "&c=" + CFG_BIBAUTHORITY_AUTHORITY_COLLECTION_NAME + \
                     "&sc=1" + \
                     "&ln=" + bfo.lang
@@ -97,7 +96,7 @@ def format_element(bfo):
             url_str = \
                     "/search" + \
                     "?p=" + CFG_BIBAUTHORITY_RECORD_CONTROL_NUMBER_FIELD + ":" + control_no + \
-                    "&c=" + quote(CFG_SITE_NAME) + \
+                    "&c=" + quote(cfg['CFG_SITE_NAME']) + \
                     "&c=" + CFG_BIBAUTHORITY_AUTHORITY_COLLECTION_NAME + \
                     "&sc=1" + \
                     "&ln=" + bfo.lang

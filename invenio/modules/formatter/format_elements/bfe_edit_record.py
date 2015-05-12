@@ -19,8 +19,8 @@
 
 """BibFormat element to print a link to BibEdit."""
 
+from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language
-from invenio.config import CFG_BASE_URL, CFG_SITE_RECORD
 from invenio.legacy.bibedit.utils import user_can_edit_record_collection
 from invenio.utils.url import create_html_link
 
@@ -45,8 +45,9 @@ def format_element(bfo, style, html_class='', link_label=None):
         if html_class != '':
             linkattrd['class'] = html_class
         out += create_html_link(
-            CFG_BASE_URL +
-            '/%s/edit/?ln=%s#state=edit&recid=%s' % (CFG_SITE_RECORD, bfo.lang,
+            cfg['CFG_BASE_URL'] +
+            '/%s/edit/?ln=%s#state=edit&recid=%s' % (cfg['CFG_SITE_RECORD'],
+                                                     bfo.lang,
                                                      str(bfo.recID)),
             {},
             link_label=link_label or _('Edit This Record'),

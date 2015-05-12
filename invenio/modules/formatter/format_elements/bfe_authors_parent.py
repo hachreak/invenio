@@ -65,8 +65,8 @@ def format_element(bfo, limit, separator='; ',
     from urllib import quote
     from cgi import escape
     import re
+    from invenio.base.globals import cfg
     from invenio.base.i18n import gettext_set_language
-    from invenio.config import CFG_BASE_URL, CFG_SITE_RECORD
     from invenio.modules.formatter.engine import BibFormatObject
 
     _ = gettext_set_language(bfo.lang)    # load the right message language
@@ -160,7 +160,7 @@ def format_element(bfo, limit, separator='; ',
                 if id_links == "yes" and author.has_key('i'):
                     author['i'] = author['i'][0]  #possible to have more IDs?
                     id_link = '<a class="authoridlink" href="' + \
-                              CFG_BASE_URL + \
+                              cfg['CFG_BASE_URL'] + \
                               '/search?' + \
                               'ln='+ bfo.lang + \
                               '&amp;p=100__i' + escape(':' + author['i']) + \
@@ -169,7 +169,7 @@ def format_element(bfo, limit, separator='; ',
 
 
                 author['display'] = '<a class="authorlink" href="' + \
-                                    CFG_BASE_URL + \
+                                    cfg['CFG_BASE_URL'] + \
                                     '/author/'+ quote(author['a']) + \
                                     '?recid=' + bibrec_id + \
                                     '&amp;ln='+ bfo.lang + \
@@ -186,7 +186,7 @@ def format_element(bfo, limit, separator='; ',
 
             if author.has_key('u'):
                 author['ilink'] = ['<a class="afflink" href="' + \
-                                   CFG_BASE_URL + '/search?cc=Institutions&amp;p=institution:'+ \
+                                   cfg['CFG_BASE_URL'] + '/search?cc=Institutions&amp;p=institution:'+ \
                                    quote('"' + string + '"') + \
                                    '&amp;ln=' + bfo.lang + \
                                    '">' + \
@@ -230,7 +230,7 @@ def format_element(bfo, limit, separator='; ',
     # link the extension to detailed record
     if link_extension == 'yes' and interactive != 'yes':
         extension = '<a class="authorlink" href="' +  \
-                    CFG_BASE_URL + '/' + CFG_SITE_RECORD + '/' + str(bfo.recID) + '">' + \
+                    cfg['CFG_BASE_URL'] + '/' + cfg['CFG_SITE_RECORD'] + '/' + str(bfo.recID) + '">' + \
                     extension + '</a>'
 
     # Detect Collaborations:
@@ -246,7 +246,7 @@ def format_element(bfo, limit, separator='; ',
         colls = [re_coll.sub('', coll) for coll in colls]
         if print_links.lower() == "yes":
             colls = ['<a class="authorlink" href="' +
-                     CFG_BASE_URL + '/search' +
+                     cfg['CFG_BASE_URL'] + '/search' +
                      '?p=collaboration:' + quote("'" + coll + "'") +
                      '&amp;ln=' + bfo.lang +
                      '">'+escape(coll)+'</a>' for coll in colls]

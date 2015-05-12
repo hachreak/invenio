@@ -16,10 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""BibFormat element - Prints record OAI identifier
-"""
+
+"""BibFormat element - Prints record OAI identifier."""
+
 import cgi
-from invenio.config import CFG_OAI_ID_FIELD
+
+from invenio.base.globals import cfg
+
 
 def format_element(bfo, instance_prefix="", separator=", ", instance_suffix=""):
     """
@@ -30,7 +33,7 @@ def format_element(bfo, instance_prefix="", separator=", ", instance_suffix=""):
     @param instance_suffix: some value printed after each identifier. Must be already escaped
     """
     return separator.join([instance_prefix + cgi.escape(value) + instance_suffix \
-                           for value in bfo.fields(CFG_OAI_ID_FIELD) if value])
+                           for value in bfo.fields(cfg['CFG_OAI_ID_FIELD']) if value])
 
 def escape_values(bfo):
     """

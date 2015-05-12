@@ -26,7 +26,7 @@ def format_element(bfo, reference_prefix, reference_suffix):
     :param reference_prefix: a prefix displayed before each reference
     :param reference_suffix: a suffix displayed after each reference
     """
-    from invenio.config import CFG_BASE_URL
+    from invenio.base.globals import cfg
 
     references = bfo.fields("999C5", escape=1)
     out = ""
@@ -43,10 +43,11 @@ def format_element(bfo, reference_prefix, reference_suffix):
             ref_out += "<small>"+ reference['m']+ "</small> "
 
         if 'r' in reference:
-            ref_out += '<small> [<a href="'+CFG_BASE_URL+'/search?f=reportnumber&amp;p='+ \
-                   reference['r']+ \
-                   '&amp;ln=' + bfo.lang + \
-                   '">'+ reference['r']+ "</a>] </small> <br />"
+            ref_out += '<small> [<a href="'+cfg['CFG_BASE_URL'] + \
+                '/search?f=reportnumber&amp;p='+ \
+                reference['r']+ \
+                '&amp;ln=' + bfo.lang + \
+                '">'+ reference['r']+ "</a>] </small> <br />"
 
         if 't' in reference:
             ejournal = bfo.kb("ejournals", reference.get('t', ""))
