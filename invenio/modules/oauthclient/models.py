@@ -22,9 +22,11 @@
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy_utils.types.encrypted import EncryptedType
 
+# FIXME deprecate invenio.config
 from invenio.config import SECRET_KEY as secret_key
 from invenio.ext.sqlalchemy import db
 from invenio.modules.accounts.models import User
+
 
 class TextEncryptedType(EncryptedType):
 
