@@ -21,19 +21,17 @@
 WebJournal Element - Creates an overview of all the articles of a
 certain category in one specific issue.
 """
-
-from invenio.base.globals import cfg
+from invenio.modules.formatter.engine import BibFormatObject
 from invenio.base.i18n import gettext_set_language
+from invenio.config import CFG_ACCESS_CONTROL_LEVEL_SITE
 from invenio.legacy.webjournal.utils import \
-     cache_index_page, \
-     get_current_issue, \
-     get_index_page_from_cache, \
+     parse_url_string, \
      get_journal_articles, \
+     cache_index_page, \
+     get_index_page_from_cache, \
      get_journal_categories, \
      issue_is_later_than, \
-     parse_url_string
-from invenio.modules.formatter.engine import BibFormatObject
-
+     get_current_issue
 
 def format_element(bfo, new_articles_first='yes',
            subject_to_css_class_kb="WebJournalSubject2CSSClass",
@@ -161,7 +159,7 @@ def format_element(bfo, new_articles_first='yes',
                                'css_classes': ' '.join(css_classes)}
         out += '</table>'
 
-    if verbose == 0 and not cfg['CFG_ACCESS_CONTROL_LEVEL_SITE'] == 2 :
+    if verbose == 0 and not CFG_ACCESS_CONTROL_LEVEL_SITE == 2 :
         cache_index_page(out, journal_name, category_name,
                          this_issue_number, ln)
 

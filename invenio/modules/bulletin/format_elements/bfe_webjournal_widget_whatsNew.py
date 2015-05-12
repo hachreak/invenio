@@ -21,20 +21,24 @@
 WebJournal widget - Display the index of the lastest articles,
 including 'breaking news'.
 """
-
+import time
 import os
 
-import time
-
-from invenio.base.globals import cfg
+from invenio.legacy.search_engine import search_pattern, record_exists
+from invenio.modules.formatter.engine import BibFormatObject
+from invenio.config import \
+     CFG_SITE_URL, \
+     CFG_CACHEDIR, \
+     CFG_ACCESS_CONTROL_LEVEL_SITE
+from invenio.legacy.webjournal.utils import \
+     parse_url_string, \
+     make_journal_url, \
+     get_journal_info_path, \
+     get_journal_categories, \
+     get_journal_articles, \
+     get_current_issue
 from invenio.base.i18n import gettext_set_language
 from invenio.ext.logging import register_exception
-from invenio.legacy.search_engine import record_exists, search_pattern
-from invenio.legacy.webjournal.utils import get_current_issue, \
-    get_journal_articles, get_journal_categories, get_journal_info_path, \
-    make_journal_url, parse_url_string
-from invenio.modules.formatter.engine import BibFormatObject
-
 
 def format_element(bfo, latest_issue_only='yes', newest_articles_only='yes',
            link_category_headers='yes', display_categories='', hide_when_only_new_records="no"):
@@ -209,7 +213,7 @@ def _get_breaking_news(lang, journal_name):
         <a href="%s/journal/popup?name=%s&amp;type=breaking_news&amp;record=%s&amp;ln=%s" target="_blank">%s</a>
     </strong>
 </h2>
-''' % ("", publish_date, cfg['CFG_SITE_URL'], journal_name, recid, lang, title)
+''' % ("", publish_date, CFG_SITE_URL, journal_name, recid, lang, title)
     if breaking_news:
         breaking_news = '<li>%s</li>' % breaking_news
 
@@ -222,11 +226,11 @@ def _get_whatsNew_from_cache(journal_name, issue, ln):
     issue = issue.replace("/", "_")
     issue_number, year = issue.split("_", 1)
     cache_path = os.path.abspath('%s/webjournal/%s/%s/%s/whatsNew_%s.html' % \
-                                  (cfg['CFG_CACHEDIR'],
+                                  (CFG_CACHEDIR,
                                    journal_name,
                                    year, issue_number,
                                    ln))
-    if not cache_path.startswith(cfg['CFG_CACHEDIR'] + '/webjournal'):
+    if not cache_path.startswith(CFG_CACHEDIR + '/webjournal'):
         # Make sure we are reading from correct directory (you
         # know, in case there are '../../' inside journal name..)
         return False
@@ -260,15 +264,15 @@ def cache_whatsNew(html, journal_name, issue, ln):
     """
     caches the whats new box for 30 minutes.
     """
-    if not cfg['CFG_ACCESS_CONTROL_LEVEL_SITE'] == 2:
+    if not CFG_ACCESS_CONTROL_LEVEL_SITE == 2:
         issue = issue.replace("/", "_")
         issue_number, year = issue.split("_", 1)
         cache_path = os.path.abspath('%s/webjournal/%s/%s/%s/whatsNew_%s.html' % \
-                                      (cfg['CFG_CACHEDIR'],
+                                      (CFG_CACHEDIR,
                                        journal_name,
                                        year, issue_number,
                                        ln))
-        if cache_path.startswith(cfg['CFG_CACHEDIR'] + '/webjournal'):
+        if cache_path.startswith(CFG_CACHEDIR + '/webjournal'):
             # Do not try to cache if the journal name led us to some
             # other directory ('../../' inside journal name for
             # example)
@@ -293,4 +297,3 @@ def escape_values(bfo):
 
 _ = gettext_set_language('en')
 dummy = _("What's new")
-

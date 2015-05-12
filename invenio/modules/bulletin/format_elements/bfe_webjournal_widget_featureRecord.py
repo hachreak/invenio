@@ -17,15 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-
-"""WebJournal widget - List the featured records."""
-
-from invenio.base.globals import cfg
-from invenio.legacy.webjournal.utils import \
-    get_featured_records, \
-    parse_url_string
+"""
+WebJournal widget - List the featured records
+"""
 from invenio.modules.formatter.engine import BibFormatObject
-
+from invenio.config import CFG_SITE_URL, CFG_SITE_RECORD
+from invenio.legacy.webjournal.utils import \
+     parse_url_string, \
+     get_featured_records
 
 def format_element(bfo):
     """
@@ -50,7 +49,7 @@ def format_element(bfo):
             <img src="%s" alt="" width="100" class="phr" />
             %s
         </a>
-        ''' % (cfg['CFG_SITE_URL'], cfg['CFG_SITE_RECORD'], recid, bfo.lang, img_url, title))
+        ''' % (CFG_SITE_URL, CFG_SITE_RECORD, recid, bfo.lang, img_url, title))
 
     return  '<br/><br/>'.join(lines)
 
