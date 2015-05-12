@@ -21,15 +21,17 @@
 WebJournal widget - Display the index of the lastest articles,
 including 'breaking news'.
 """
-from invenio.legacy.webjournal.utils import \
-     parse_url_string, \
-     get_journal_categories, \
-     get_category_query
+from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language
-from invenio.config import CFG_SITE_URL
 from invenio.utils.url import create_html_link
 from invenio.legacy.dbquery import run_sql
+from invenio.legacy.webjournal.utils import \
+    get_category_query, \
+    get_journal_categories, \
+    parse_url_string
+
 from urllib import quote
+
 
 def format_element(bfo, categories, label="Subscribe by RSS",
                    rss_icon_url="/img/rss.png", cc='', css_class="rssLink",
@@ -108,7 +110,7 @@ def format_element(bfo, categories, label="Subscribe by RSS",
     if rss_icon_url:
         if rss_icon_url.startswith('/'):
             # Build an absolute URL
-            rss_icon_url = CFG_SITE_URL + rss_icon_url
+            rss_icon_url = cfg['CFG_SITE_URL'] + rss_icon_url
         link_label += '<img src="%s" alt="RSS" border="0"%s%s/> ' % \
                       (rss_icon_url, rss_icon_width and ' width="%s"' % rss_icon_width or '',
                        rss_icon_height and ' height="%s"' % rss_icon_height or '')
@@ -116,7 +118,7 @@ def format_element(bfo, categories, label="Subscribe by RSS",
         link_label += _(label)
 
     # Build link
-    rss_url = CFG_SITE_URL + '/rss'
+    rss_url = cfg['CFG_SITE_URL'] + '/rss'
     if cc:
         rss_url += '?cc=' + quote(cc)
     elif must_use_pattern:

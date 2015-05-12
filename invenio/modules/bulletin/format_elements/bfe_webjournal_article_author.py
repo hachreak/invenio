@@ -19,16 +19,15 @@
 
 """WebJournal Element - display article author(s)."""
 
-from invenio.config import (CFG_SITE_URL,
-                            CFG_WEBSTYLE_EMAIL_ADDRESSES_OBFUSCATION_MODE)
-
+from invenio.base.globals import cfg
 from invenio.utils.url import create_html_mailto
 from invenio.base.i18n import gettext_set_language
 
 
 def format_element(
-        bfo, separator, display_email='yes',
-        email_obfuscation_mode=CFG_WEBSTYLE_EMAIL_ADDRESSES_OBFUSCATION_MODE):
+    bfo, separator, display_email='yes',
+    email_obfuscation_mode=cfg['CFG_WEBSTYLE_EMAIL_ADDRESSES_OBFUSCATION_MODE']
+):
     """Display article author(s).
 
     @param separator: separator between authors
@@ -44,11 +43,11 @@ def format_element(
         email_obfuscation_mode_int = int(str(email_obfuscation_mode))
     except:
         email_obfuscation_mode_int = (
-            CFG_WEBSTYLE_EMAIL_ADDRESSES_OBFUSCATION_MODE
+            cfg['CFG_WEBSTYLE_EMAIL_ADDRESSES_OBFUSCATION_MODE']
         )
 
     email_subject = _("About your article at %(x_url)s",
-                      x_url=CFG_SITE_URL + bfo.user_info['uri'])
+                      x_url=cfg['CFG_SITE_URL'] + bfo.user_info['uri'])
 
     authors = bfo.fields('100__a', escape=1)
     emails = bfo.fields('859__a', escape=1)

@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""
-WebJournal widget - Display weather forecast
-"""
+
+"""WebJournal widget - Display weather forecast."""
+
 import os
 import time
 import re
@@ -34,9 +34,7 @@ try:
 except ImportError:
     feedparser_available = 0
 
-from invenio.config import \
-     CFG_CACHEDIR, \
-     CFG_ACCESS_CONTROL_LEVEL_SITE
+from invenio.base.globals import cfg
 from invenio.ext.logging import register_exception
 from invenio.legacy.webjournal.utils import \
      parse_url_string, WEBJOURNAL_OPENER
@@ -112,7 +110,7 @@ def get_widget_html(yahoo_weather_rss, cached_filename, expire_time_filename, jo
     # No HTML cache? Then read locally saved feed data, and even
     # refresh it from Yahoo if it has expired.
     try:
-        cached_rss_path = os.path.join(CFG_CACHEDIR, cached_filename)
+        cached_rss_path = os.path.join(cfg['CFG_CACHEDIR'], cached_filename)
         assert(os.path.exists(cached_rss_path))
         weather_feed = feedparser.parse(cached_rss_path)
         assert(not weather_feed.bozo_exception)
@@ -120,7 +118,7 @@ def get_widget_html(yahoo_weather_rss, cached_filename, expire_time_filename, jo
         try:
             _update_feed(yahoo_weather_rss, cached_filename, expire_time_filename)
             weather_feed = feedparser.parse('%s/%s' % \
-                                            (CFG_CACHEDIR, cached_filename))
+                                            (cfg['CFG_CACHEDIR'], cached_filename))
         except:
             return "<ul><li><i>" + _("No information available") + "</i></li></ul>"
 
@@ -135,7 +133,7 @@ def get_widget_html(yahoo_weather_rss, cached_filename, expire_time_filename, jo
         try:
             _update_feed(yahoo_weather_rss, cached_filename, expire_time_filename)
             weather_feed = feedparser.parse('%s/%s' % \
-                                            (CFG_CACHEDIR, cached_filename))
+                                            (cfg['CFG_CACHEDIR'], cached_filename))
         except:
             return "<ul><li><i>" + _("No information available") + "</i></li></ul>"
 
@@ -153,9 +151,9 @@ def _get_weather_from_cache(journal_name):
     cache does not exist
     """
     cache_path = os.path.abspath('%s/webjournal/%s/weather.html' % \
-                                  (CFG_CACHEDIR,
+                                  (cfg['CFG_CACHEDIR'],
                                    journal_name))
-    if not cache_path.startswith(CFG_CACHEDIR + '/webjournal'):
+    if not cache_path.startswith(cfg['CFG_CACHEDIR'] + '/webjournal'):
         # Make sure we are reading from correct directory (you
         # know, in case there are '../../' inside journal name..)
         return False
@@ -179,15 +177,15 @@ def cache_weather(html, journal_name):
     """
     Caches the weather box for 30 minutes.
     """
-    if not CFG_ACCESS_CONTROL_LEVEL_SITE == 2:
+    if not cfg['CFG_ACCESS_CONTROL_LEVEL_SITE'] == 2:
         cache_path = os.path.abspath('%s/webjournal/%s/weather.html' % \
-                                      (CFG_CACHEDIR,
+                                      (cfg['CFG_CACHEDIR'],
                                        journal_name))
-        if cache_path.startswith(CFG_CACHEDIR + '/webjournal'):
+        if cache_path.startswith(cfg['CFG_CACHEDIR'] + '/webjournal'):
             # Do not try to cache if the journal name led us to some
             # other directory ('../../' inside journal name for
             # example)
-            cache_dir = CFG_CACHEDIR + '/webjournal/' + journal_name
+            cache_dir = cfg['CFG_CACHEDIR'] + '/webjournal/' + journal_name
             if not os.path.isdir(cache_dir):
                 os.makedirs(cache_dir)
             cache_file = file(cache_path, "w")
@@ -210,13 +208,13 @@ def _update_feed(yahoo_weather_rss, cached_filename, expire_time_filename):
     finally:
         socket.setdefaulttimeout(default_timeout)
 
-    cached_file = open('%s/%s' % (CFG_CACHEDIR, cached_filename), 'w')
+    cached_file = open('%s/%s' % (cfg['CFG_CACHEDIR'], cached_filename), 'w')
     cached_file.write(feed.read())
     cached_file.close()
 
     feed_data = feedparser.parse(yahoo_weather_rss)
     expire_time = feed_data.headers['expires']
-    expire_file = open('%s/%s' % (CFG_CACHEDIR, expire_time_filename), 'w')
+    expire_file = open('%s/%s' % (cfg['CFG_CACHEDIR'], expire_time_filename), 'w')
     expire_file.write(expire_time)
     expire_file.close()
 

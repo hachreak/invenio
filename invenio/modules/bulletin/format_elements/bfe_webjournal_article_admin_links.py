@@ -16,14 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""
-WebJournal Element - Display admin links
-"""
-from invenio.config import \
-     CFG_SITE_URL, \
-     CFG_SITE_NAME, \
-     CFG_SITE_NAME_INTL, \
-     CFG_SITE_RECORD
+
+"""WebJournal Element - Display admin links."""
+
+from invenio.base.globals import cfg
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.legacy.webjournal.utils import \
      parse_url_string, \
@@ -62,7 +58,7 @@ def format_element(bfo):
                 <p>
                     <a href="%(CFG_SITE_URL)s/stats/customevent?ids=journals&amp;cols0=articleid&col_value0=%(recid)s&amp;timespan=last+month"> &raquo; statistics</a>
                 </p>
-                ''' % {'CFG_SITE_URL': CFG_SITE_URL,
+                ''' % {'CFG_SITE_URL': cfg['CFG_SITE_URL'],
                        'recid': recid}
 
             out += '''
@@ -77,16 +73,16 @@ def format_element(bfo):
     <a href="%(CFG_SITE_URL)s/admin/webjournal/webjournaladmin.py/regenerate?journal_name=%(journal_name)s&amp;issue=%(issue_number)s"> &raquo; publish changes</a>
   </p>
   %(stats_admin_link)s
-</div>''' % {'CFG_SITE_URL': CFG_SITE_URL,
-             'CFG_SITE_RECORD': CFG_SITE_RECORD,
+</div>''' % {'CFG_SITE_URL': cfg['CFG_SITE_URL'],
+             'CFG_SITE_RECORD': cfg['CFG_SITE_RECORD'],
              'identifier': identifier,
              'recid': recid,
              'journal_name': journal_name,
              'issue_number': issue_number,
              'doctype': doctype,
              'identifier_element': identifier_element,
-             'CFG_SITE_NAME_INTL': CFG_SITE_NAME_INTL.get(bfo.lang,
-                                                          CFG_SITE_NAME),
+             'CFG_SITE_NAME_INTL': cfg['CFG_SITE_NAME_INTL'].get(bfo.lang,
+                                                          cfg['CFG_SITE_NAME']),
              'stats_admin_link': stats_admin_link}
 
     return out

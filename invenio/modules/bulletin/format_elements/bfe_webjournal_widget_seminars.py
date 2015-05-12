@@ -16,19 +16,20 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""
-WebJournal widget - Display Indico seminars
-"""
-from invenio.config import CFG_CACHEDIR, CFG_SITE_LANG
-from xml.dom import minidom
-from invenio.utils.url import create_Indico_request_url, make_invenio_opener
-import time
+
+"""WebJournal widget - Display Indico seminars."""
+
 import base64
 import socket
+import time
 
-from invenio.legacy.webjournal.utils import \
-     parse_url_string, WEBJOURNAL_OPENER
+from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language
+from invenio.legacy.webjournal.utils import parse_url_string, WEBJOURNAL_OPENER
+from invenio.utils.url import create_Indico_request_url, make_invenio_opener
+
+from xml.dom import minidom
+
 
 update_frequency = 3600 # in seconds
 
@@ -71,7 +72,7 @@ def escape_values(bfo):
 def get_widget_html(bfo, indico_baseurl, indico_what, indico_loc, indico_id,
                     indico_onlypublic, indico_from, indico_to, indico_key,
                     indico_sig, indico_credential_path,
-                    cached_filename, ln=CFG_SITE_LANG):
+                    cached_filename, ln=cfg['CFG_SITE_LANG']):
     """
     Indico seminars of the day service
     Gets seminars of the day from CERN Indico every 60 minutes and displays
@@ -81,13 +82,13 @@ def get_widget_html(bfo, indico_baseurl, indico_what, indico_loc, indico_id,
     _ = gettext_set_language(ln)
 
     try:
-        seminar_xml = minidom.parse('%s/%s' % (CFG_CACHEDIR, cached_filename))
+        seminar_xml = minidom.parse('%s/%s' % (cfg['CFG_CACHEDIR'], cached_filename))
     except:
         try:
             _update_seminars(indico_baseurl, indico_what, indico_loc, indico_id,
                              indico_onlypublic, indico_from, indico_to, indico_key,
                              indico_sig, indico_credential_path, cached_filename)
-            seminar_xml = minidom.parse('%s/%s' % (CFG_CACHEDIR, cached_filename))
+            seminar_xml = minidom.parse('%s/%s' % (cfg['CFG_CACHEDIR'], cached_filename))
         except:
             return "<ul><li><i>" + _("No information available") + "</i></li></ul>"
 
@@ -105,7 +106,7 @@ def get_widget_html(bfo, indico_baseurl, indico_what, indico_loc, indico_id,
             _update_seminars(indico_baseurl, indico_what, indico_loc, indico_id,
                              indico_onlypublic, indico_from, indico_to, indico_key,
                              indico_sig, indico_credential_path, cached_filename)
-            seminar_xml = minidom.parse('%s/%s' % (CFG_CACHEDIR, cached_filename))
+            seminar_xml = minidom.parse('%s/%s' % (cfg['CFG_CACHEDIR'], cached_filename))
         except:
             return "<ul><li><i>" + _("No information available") + "</i></li></ul>"
 
@@ -307,7 +308,7 @@ def _update_seminars(indico_baseurl, indico_what, indico_loc, indico_id,
         seminar_xml.extend(["</seminar>", ])
     seminar_xml.extend(["</Indico_Seminars>", ])
     # write the created file to cache
-    fptr = open("%s/%s" % (CFG_CACHEDIR, cached_filename), "w")
+    fptr = open("%s/%s" % (cfg['CFG_CACHEDIR'], cached_filename), "w")
     fptr.write("\n".join(seminar_xml))
     fptr.close()
 
