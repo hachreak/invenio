@@ -16,20 +16,24 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""
-JournalHint service to display
+
+"""JournalHint service to display.
+
 "Were you looking for a journal reference? Try: <link>"
 when the request is a journal reference
 """
-from invenio.modules.search.services import SearchService
-from invenio.config import (CFG_SITE_URL,
-                            CFG_SITE_LANG)
+
+import re
+
+from cgi import escape
+
+from urllib import urlencode
+
+from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language
 from invenio.legacy.search_engine import perform_request_search, print_record
 from invenio.legacy.webuser import collect_user_info
-from urllib import urlencode
-import re
-from cgi import escape
+from invenio.modules.search.services import SearchService
 
 __plugin_version__ = "Search Service Plugin API 1.0"
 
@@ -58,7 +62,7 @@ class JournalHintService(SearchService):
             return False
         return True
 
-    def get_description(self, ln=CFG_SITE_LANG):
+    def get_description(self, ln=cfg['CFG_SITE_LANG']):
         """Return service description."""
         return "Give hints on how to search the journal reference"
 
@@ -100,7 +104,7 @@ class JournalHintService(SearchService):
              print_record(recid, ln=ln, user_info=user_info)))
 
         query = "find rawref \"" + p + "\""
-        query_link = CFG_SITE_URL + '/search?' + urlencode({'p': query})
+        query_link = cfg['CFG_SITE_URL'] + '/search?' + urlencode({'p': query})
         return (80, '<span class="journalhint">%s</span>' % (
                 _("Were you looking for a journal reference? Try: %(x_href)s") %
                 {"x_href": '<a href="{0}">{1}</a>'.format(
