@@ -21,6 +21,7 @@
 
 from six import iteritems
 
+from invenio.base.globals import cfg
 from invenio.legacy.bibsched.bibtask import (
                              write_message,
                              task_update_progress,
@@ -43,7 +44,6 @@ from invenio.modules.encoder.metadata import (
                                         ffprobe_metadata,
                                         mediainfo_metadata
                                         )
-from invenio.config import CFG_PATH_FFMPEG
 import time
 import os
 import subprocess
@@ -371,14 +371,14 @@ def encode_video(input_file, output_file,
         ## Determine base command arguments from the pass to run
         base_args = None
         if passes == 1:
-            base_args = [CFG_PATH_FFMPEG, '-y', '-i', input_file, output_file]
+            base_args = [cfg['CFG_PATH_FFMPEG'], '-y', '-i', input_file, output_file]
         elif passes == 2:
             if nofpass == 1:
-                base_args = [CFG_PATH_FFMPEG, '-y', '-i', input_file,
+                base_args = [cfg['CFG_PATH_FFMPEG'], '-y', '-i', input_file,
                              '-pass', '1', '-passlogfile', pass_log_file,
                              '-an', '-f', 'rawvideo', '/dev/null']
             elif nofpass == 2:
-                base_args = [CFG_PATH_FFMPEG, '-y', '-i', input_file,
+                base_args = [cfg['CFG_PATH_FFMPEG'], '-y', '-i', input_file,
                              '-pass', '2', '-passlogfile',
                              pass_log_file, output_file]
         ## Insert additional arguments

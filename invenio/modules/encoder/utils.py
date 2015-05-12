@@ -43,7 +43,7 @@ from .config import (
                     CFG_BIBENCODE_FFMPEG_CONFIGURATION_REQUIRED,
                     CFG_BIBENCODE_MEDIAINFO_COMMAND
                     )
-from invenio.config import CFG_PATH_FFPROBE
+from invenio.base.globals import cfg
 
 # The timestamp for the process. Used to identify Logfiles.
 def generate_timestamp():
@@ -242,7 +242,7 @@ def check_ffmpeg_configuration():
     """
     ## Use ffprobe to get the current ffmpeg configuration
     try:
-        process = subprocess.Popen(CFG_PATH_FFPROBE, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        process = subprocess.Popen(cfg['CFG_PATH_FFPROBE'], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     except OSError:
         return ["FFMPEG/FFPROBE does not seem to be installed!"]
     returncode = process.wait()
