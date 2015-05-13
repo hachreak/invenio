@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2012, 2013, 2014 CERN.
+# Copyright (C) 2012, 2013, 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -16,19 +16,20 @@
 # You should have received a copy of the GNU General Public License
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
-"""
-Main API for the workflows.
+
+"""Main API for the workflows.
 
 If you want to run a workflow using the workflows module,
 this is the high level API you will want to use.
 """
 
-from werkzeug.utils import import_string, cached_property
 from invenio.base.globals import cfg
-from invenio.base.config import CFG_BIBWORKFLOW_WORKER
-from .utils import BibWorkflowObjectIdContainer
-from .models import BibWorkflowObject
+
+from werkzeug.utils import cached_property, import_string
+
 from .errors import WorkflowWorkerError
+from .models import BibWorkflowObject
+from .utils import BibWorkflowObjectIdContainer
 
 
 class WorkerBackend(object):
@@ -53,9 +54,9 @@ class WorkerBackend(object):
         try:
             return import_string('invenio.modules.workflows.workers.%s:%s' % (
                 cfg['CFG_BIBWORKFLOW_WORKER'], cfg['CFG_BIBWORKFLOW_WORKER']))
-        except:
+        except Exception:
             from invenio.ext.logging import register_exception
-            ## Let's report about broken plugins
+            # Let's report about broken plugins
             register_exception(alert_admin=True)
 
     def __call__(self, *args, **kwargs):
@@ -120,7 +121,7 @@ def start_delayed(workflow_name, data, **kwargs):
 
     :return: AsynchronousResultWrapper
     """
-    if not CFG_BIBWORKFLOW_WORKER:
+    if not cfg['CFG_BIBWORKFLOW_WORKER']:
         raise WorkflowWorkerError('No worker configured')
 
     # The goal of this part is to avoid a SQLalchemy decoherence in case
@@ -208,7 +209,10 @@ def start_by_oids(workflow_name, oids, **kwargs):
 
 
 def start_by_oids_delayed(workflow_name, oids, **kwargs):
-    """Start asynchronously workflow by name with :py:class:`.models.BibWorkflowObject` ids.
+    """Start asynchronously workflow.
+
+    Start asynchronously workflow by name with
+    :py:class:`.models.BibWorkflowObject` ids.
 
     Similar behavior as :py:func:`.start_by_oids`, except it calls
     :py:func:`.start_delayed`.
