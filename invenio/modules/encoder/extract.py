@@ -17,35 +17,23 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-"""BibEncode frame extraction module.
-"""
+"""BibEncode frame extraction module."""
+
+import os
+
+import subprocess
+
+from invenio.base.globals import cfg
+from invenio.legacy.bibsched.bibtask import task_update_progress, write_message
+from invenio.modules.encoder.encode import \
+    determine_resolution_preserving_aspect
+from invenio.modules.encoder.metadata import ffprobe_metadata
+from invenio.modules.encoder.profiles import get_extract_profile
+from invenio.modules.encoder.utils import chose, is_seconds, is_timecode, \
+    seconds_to_timecode, timecode_to_seconds
 
 __revision__ = "$Id$"
 
-from invenio.modules.encoder.config import (
-                            CFG_BIBENCODE_FFMPEG_EXTRACT_COMMAND,
-                            )
-from invenio.legacy.bibsched.bibtask import (
-                             task_update_progress,
-                             write_message
-                             )
-from invenio.modules.encoder.utils import (
-                            timecode_to_seconds,
-                            seconds_to_timecode,
-                            is_timecode,
-                            is_seconds,
-                            normalize_string,
-                            getval,
-                            chose
-                            )
-from invenio.modules.encoder.metadata import (
-                        ffprobe_metadata
-                        )
-import subprocess
-import os
-from invenio.modules.encoder.profiles import get_extract_profile
-from invenio.modules.encoder.encode import determine_resolution_preserving_aspect
-import re
 
 # rename size to resolution
 def extract_frames(input_file, output_file=None, size=None, positions=None,
@@ -220,7 +208,7 @@ def extract_frames(input_file, output_file=None, size=None, positions=None,
         #-------------#
 
         ## Build the command for ffmpeg
-        command = (CFG_BIBENCODE_FFMPEG_EXTRACT_COMMAND % (
+        command = (cfg['CFG_BIBENCODE_FFMPEG_EXTRACT_COMMAND'] % (
             position, input_file, size, output_filename
             )).split()
         ## Start subprocess and poll the output until it finishes
@@ -247,3 +235,4 @@ def extract_frames(input_file, output_file=None, size=None, positions=None,
     ## Everything should be fine if this position is reached
     message_fnc("Extraction of frames was successful")
     return 1
+

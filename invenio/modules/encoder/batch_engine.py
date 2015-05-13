@@ -17,42 +17,34 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-"""Bibencode batch processing submodule"""
+"""Bibencode batch processing submodule."""
+
+import os
+
+import shutil
+
+import uuid
+
+from pprint import pformat, pprint
+from invenio.base.globals import cfg
+from invenio.base.i18n import gettext_set_language
+from invenio.ext.email import send_email
+from invenio.legacy.bibdocfile.api import BibRecDocs, compose_file, \
+    compose_format, decompose_file
+from invenio.legacy.bibsched.bibtask import task_low_level_submission, \
+    task_update_progress, write_message
+from invenio.legacy.webuser import emailUnique, get_user_preferences
+from invenio.legacy.bibrecord import get_fieldvalues
+from invenio.modules.encoder.encode import assure_quality, encode_video
+from invenio.modules.encoder.extract import extract_frames
+from invenio.modules.encoder.metadata import pbcore_metadata
+from invenio.modules.encoder.profiles import get_encoding_profile, \
+    get_extract_profile
+from invenio.modules.encoder.utils import chose2, generate_timestamp, getval
+from invenio.utils.json import json, json_decode_file
 
 from string import Template
-from pprint import pprint
-import os
-import shutil
-import uuid
-from pprint import pformat
 
-from invenio.base.globals import cfg
-from invenio.legacy.bibsched.bibtask import (
-                             task_update_progress,
-                             write_message,
-                             task_low_level_submission
-                             )
-from invenio.legacy.bibdocfile.api import BibRecDocs, compose_file, compose_format, decompose_file
-from invenio.modules.encoder.encode import encode_video, assure_quality
-from invenio.modules.encoder.extract import extract_frames
-from invenio.modules.encoder.profiles import (
-                                        get_encoding_profile,
-                                        get_extract_profile
-                                        )
-from invenio.modules.encoder.utils import chose2
-from invenio.modules.encoder.metadata import (
-                                        pbcore_metadata
-                                        )
-from invenio.modules.encoder.utils import getval, chose2, generate_timestamp
-from invenio.modules.encoder.config import (
-                                      CFG_BIBENCODE_DAEMON_DIR_NEWJOBS,
-                                      CFG_BIBENCODE_PBCORE_MARC_XSLT,
-                                      CFG_BIBENCODE_ASPECT_RATIO_MARC_FIELD
-                                      )
-from invenio.ext.email import send_email
-from invenio.base.i18n import gettext_set_language
-from invenio.legacy.webuser import emailUnique, get_user_preferences
-from invenio.utils.json import json, json_decode_file
 
 # Stored messages for email notifications
 global _BATCH_STEP, _BATCH_STEPS
@@ -61,6 +53,7 @@ _BATCH_STEPS = 1
 global _MSG_HISTORY, _UPD_HISTORY
 _MSG_HISTORY = []
 _UPD_HISTORY = []
+
 
 def _notify_error_admin(batch_job,
                         email_admin=cfg['CFG_SITE_ADMIN_EMAIL']):
@@ -238,7 +231,7 @@ def clean_job_for_quality(batch_job_dict, fallback=True):
 def create_update_jobs_by_collection(
                             batch_template_file,
                             collection,
-                            job_directory=CFG_BIBENCODE_DAEMON_DIR_NEWJOBS):
+                            job_directory=cfg['CFG_BIBENCODE_DAEMON_DIR_NEWJOBS']):
     """ Creates the job description files to update a whole collection
     @param batch_template_file: fullpath to the template for the update
     @type batch_tempalte_file: string
@@ -254,7 +247,7 @@ def create_update_jobs_by_collection(
 
 def create_update_jobs_by_search(pattern,
                                  batch_template_file,
-                                 job_directory=CFG_BIBENCODE_DAEMON_DIR_NEWJOBS
+                                 job_directory=cfg['CFG_BIBENCODE_DAEMON_DIR_NEWJOBS']
                                  ):
     """ Creates the job description files to update all records that fit a
         search pattern. Be aware of the search limitations!
@@ -272,7 +265,7 @@ def create_update_jobs_by_search(pattern,
 
 def create_update_jobs_by_recids(recids,
                                  batch_template_file,
-                                 job_directory=CFG_BIBENCODE_DAEMON_DIR_NEWJOBS
+                                 job_directory=cfg['CFG_BIBENCODE_DAEMON_DIR_NEWJOBS']
                                  ):
     """ Creates the job description files to update all given recids
     @param recids: Iterable set of recids
@@ -296,7 +289,7 @@ def create_update_jobs_by_recids(recids,
 def create_job_from_dictionary(
                     job_dict,
                     job_filename=None,
-                    job_directory=CFG_BIBENCODE_DAEMON_DIR_NEWJOBS
+                    job_directory=cfg['CFG_BIBENCODE_DAEMON_DIR_NEWJOBS']
                     ):
     """ Creates a job from a given dictionary
     @param job_dict: Dictionary that contains the job description
@@ -433,7 +426,9 @@ def process_batch_job(batch_job_file):
                     ## Get the aspect of the from the record
                     try:
                         ## Assumes pbcore metadata mapping
-                        batch_job['aspect'] = get_fieldvalues(124, CFG_BIBENCODE_ASPECT_RATIO_MARC_FIELD)[0]
+                        batch_job['aspect'] = get_fieldvalues(
+                            124,
+                            cfg['CFG_BIBENCODE_ASPECT_RATIO_MARC_FIELD'])[0]
                     except IndexError:
                         pass
                     break
@@ -698,7 +693,7 @@ def process_batch_job(batch_job_file):
                                  pbcoreIdentifier = batch_job['recid'],
                                  aspect_override = getval(batch_job, 'aspect'))
         from invenio.modules.formatter.engines.xslt import format
-        marcxml = format(pbcore, CFG_BIBENCODE_PBCORE_MARC_XSLT)
+        marcxml = format(pbcore, cfg['CFG_BIBENCODE_PBCORE_MARC_XSLT'])
         upload_marcxml_file(marcxml)
 
     #------------------#

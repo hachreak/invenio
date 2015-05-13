@@ -19,35 +19,24 @@
 
 """BibEncode encoding submodule"""
 
-from six import iteritems
+import os
+
+import subprocess
+
+import time
+
+import uuid
 
 from invenio.base.globals import cfg
-from invenio.legacy.bibsched.bibtask import (
-                             write_message,
-                             task_update_progress,
-                             )
-from invenio.modules.encoder.config import (
-                                     CFG_BIBENCODE_FFMPEG_ENCODING_LOG,
-                                     CFG_BIBENCODE_FFMPEG_PASSLOGFILE_PREFIX,
-                                     CFG_BIBENCODE_FFMPEG_METADATA_ARGUMENT,
-                                     CFG_BIBENCODE_FFMPEG_ENCODE_TIME
-                                     )
-from invenio.modules.encoder.utils import (
-                                     timecode_to_seconds,
-                                     generate_timestamp,
-                                     chose,
-                                     getval,
-                                     aspect_string_to_float
-                                     )
+from invenio.legacy.bibsched.bibtask import task_update_progress, write_message
+from invenio.modules.encoder.metadata import ffprobe_metadata, \
+    mediainfo_metadata
 from invenio.modules.encoder.profiles import get_encoding_profile
-from invenio.modules.encoder.metadata import (
-                                        ffprobe_metadata,
-                                        mediainfo_metadata
-                                        )
-import time
-import os
-import subprocess
-import uuid
+from invenio.modules.encoder.utils import aspect_string_to_float, chose, \
+    generate_timestamp, getval, timecode_to_seconds
+
+from six import iteritems
+
 
 def _filename_log(output_filename, nofpass=1):
     """ Constructs the filename including path for the encoding err file
@@ -60,8 +49,8 @@ def _filename_log(output_filename, nofpass=1):
     """
     fname = os.path.split(output_filename)[1]
     fname = os.path.splitext(fname)[0]
-    return CFG_BIBENCODE_FFMPEG_ENCODING_LOG % (generate_timestamp() +
-                                                "_" + fname + "_%d" % nofpass)
+    return cfg['CFG_BIBENCODE_FFMPEG_ENCODING_LOG'] % \
+        (generate_timestamp() + "_" + fname + "_%d" % nofpass)
 
 def determine_aspect(input_file):
     """ Checks video metadata to find the display aspect ratio.
@@ -408,8 +397,8 @@ def encode_video(input_file, output_file,
             for key, value in iteritems(metadata):
                 if value is not None:
                     meta_arg = (
-                        CFG_BIBENCODE_FFMPEG_METADATA_ARGUMENT % (key, value)
-                        )
+                        cfg['CFG_BIBENCODE_FFMPEG_METADATA_ARGUMENT'] % \
+                        (key, value))
                     insert("-metadata", meta_arg)
         ## Special argument additions
         if passes == 1:
@@ -469,9 +458,10 @@ def encode_video(input_file, output_file,
 
         ## try to parse the status
         for line in reversed(lines):
-            if CFG_BIBENCODE_FFMPEG_ENCODE_TIME.match(line):
+            if cfg['CFG_BIBENCODE_FFMPEG_ENCODE_TIME'].match(line):
                 time_string = (
-                    CFG_BIBENCODE_FFMPEG_ENCODE_TIME.match(line).groups()
+                    cfg['CFG_BIBENCODE_FFMPEG_ENCODE_TIME'].match(
+                        line).groups()
                     )[0]
                 break
         filehandle.close()
@@ -521,9 +511,9 @@ def encode_video(input_file, output_file,
 
 
     ## Run the encoding
-    pass_log_file = CFG_BIBENCODE_FFMPEG_PASSLOGFILE_PREFIX % (
-                    os.path.splitext(os.path.split(input_file)[1])[0],
-                    str(uuid.uuid4()))
+    pass_log_file = cfg['CFG_BIBENCODE_FFMPEG_PASSLOGFILE_PREFIX'] % (
+        os.path.splitext(os.path.split(input_file)[1])[0],
+        str(uuid.uuid4()))
     no_error = True
     ## For every encoding pass to do
     for apass in range(0, passes):
@@ -614,3 +604,4 @@ def propose_resolutions(video_file, display_aspect=None, res_16_9=['1920x1080', 
         return [str(width) + 'x' + str(height)]
     else:
         return possible_res
+

@@ -17,32 +17,29 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-"""Bibencode daemon submodule"""
+"""Bibencode daemon submodule."""
 
 import os
+
 import re
+
 import shutil
-from invenio.utils.json import json_decode_file
+
+from invenio.base.globals import cfg
+from invenio.legacy.bibsched.bibtask import task_get_task_param, \
+    task_low_level_submission, task_update_progress, write_message
 from invenio.modules.encoder.utils import generate_timestamp, getval
-from invenio.legacy.bibsched.bibtask import (
-                             task_low_level_submission,
-                             task_get_task_param,
-                             write_message,
-                             task_update_progress
-                             )
-from invenio.modules.encoder.config import (
-                        CFG_BIBENCODE_DAEMON_DIR_NEWJOBS,
-                        CFG_BIBENCODE_DAEMON_DIR_OLDJOBS
-                        )
+from invenio.utils.json import json_decode_file
+
 
 # Globals used to generate a unique task name
 _TASKID = None
 _TIMESTAMP = generate_timestamp()
 _NUMBER = 0
 
+
 def has_signature(string_to_check):
-    """ Checks if the given string has the signature of a job file
-    """
+    """Check if the given string has the signature of a job file."""
     sig_re = re.compile("^.*\.job$")
     if sig_re.match(string_to_check):
         return True
@@ -125,8 +122,8 @@ def process_batch(jobfile_path):
     args.append(jobfile_path)
     return launch_task(args)
 
-def watch_directory(new_job_dir=CFG_BIBENCODE_DAEMON_DIR_NEWJOBS,
-                    old_job_dir=CFG_BIBENCODE_DAEMON_DIR_OLDJOBS):
+def watch_directory(new_job_dir=cfg['CFG_BIBENCODE_DAEMON_DIR_NEWJOBS'],
+                    old_job_dir=cfg['CFG_BIBENCODE_DAEMON_DIR_OLDJOBS']):
     """ Checks a folder job files, parses and executes them
     @param new_job_dir: path to the directory with new jobs
     @type new_job_dir: string
@@ -156,3 +153,4 @@ def watch_directory(new_job_dir=CFG_BIBENCODE_DAEMON_DIR_NEWJOBS,
             ## Update number for next job
             _NUMBER += 1
     return 1
+

@@ -31,14 +31,13 @@ Requirements:
             js/swfobject.js
 
 """
+
 import os
+
 import pkg_resources
 
 from invenio.base.globals import cfg
-from invenio.modules.encoder.config import (
-                    CFG_BIBENCODE_WEBSUBMIT_ASPECT_SAMPLE_DIR,
-                    CFG_BIBENCODE_WEBSUBMIT_ASPECT_SAMPLE_FNAME
-                    )
+
 
 def gcd(a,b):
     """ the euclidean algorithm """
@@ -103,7 +102,7 @@ def websubmit_singlepage(curdir, doctype, uid, access, session_id):
                'indir': indir,
                'doctype': doctype,
                'access': access,
-               'key': CFG_BIBENCODE_WEBSUBMIT_ASPECT_SAMPLE_DIR,
+               'key': cfg['CFG_BIBENCODE_WEBSUBMIT_ASPECT_SAMPLE_DIR'],
                'uid': uid,
                'session_id': session_id,
                'resume': resume,

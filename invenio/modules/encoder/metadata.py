@@ -23,24 +23,23 @@ Metadata insertion, extraction and processing for video files.
 
 __revision__ = "$Id$"
 
-import subprocess
 import re
-from six import iteritems
+import subprocess
+from invenio.base.globals import cfg
+from invenio.legacy.bibsched.bibtask import write_message
+from invenio.modules.encoder.utils import getval, mediainfo, probe
+from invenio.utils.json import json, json_decode_file
+
 from xml.dom import minidom
 
-from invenio.utils.json import json, json_decode_file
-from invenio.legacy.bibsched.bibtask import write_message
-from invenio.modules.encoder.config import (
-                        CFG_BIBENCODE_FFMPEG_METADATA_ARGUMENT,
-                        CFG_BIBENCODE_FFMPEG_METADATA_SET_COMMAND,
-                        CFG_BIBENCODE_PBCORE_MAPPINGS
-                        )
-from invenio.modules.encoder.utils import probe, getval, mediainfo, seconds_to_timecode
+from six import iteritems
+
 
 # Stores metadata for the process. Many different functions in BibEncode
 # need access to video metadata regularly. Because we dont pass objects arount
 # we need to call the functions of this submodule again and again. To not
-# call ffprobe and mediainfo all the time, the metadata is stored in this cache.
+# call ffprobe and mediainfo all the time, the metadata is stored in this
+# cache.
 _FFPROBE_METADATA_CACHE = {}
 _MEDIAINFO_METADATA_CACHE = {}
 
@@ -57,12 +56,15 @@ def write_metadata(input_file, output_file, metadata):
         ## build metadata arguments for ffmpeg
         for key, value in iteritems(metadata):
             if value is not None:
-                meta_args.append(CFG_BIBENCODE_FFMPEG_METADATA_ARGUMENT % (key, value))
+                meta_args.append(
+                    cfg['CFG_BIBENCODE_FFMPEG_METADATA_ARGUMENT'] % \
+                    (key, value))
     else:
         write_message("metadata arg no dict")
         return 0
     ## build the command
-    command = (CFG_BIBENCODE_FFMPEG_METADATA_SET_COMMAND % (input_file, output_file)).split()
+    command = (cfg['CFG_BIBENCODE_FFMPEG_METADATA_SET_COMMAND'] % \
+               (input_file, output_file)).split()
     for meta_arg in meta_args:
         command.insert(-1, '-metadata')
         command.insert(-1, meta_arg)
@@ -317,7 +319,7 @@ def pbcore_metadata(input_file, pbcoreIdentifier=None, pbcoreTitle=None,
     probe_dict = ffprobe_metadata(input_file)
 
     # parse the mappings
-    pbcore_mappings = json_decode_file(CFG_BIBENCODE_PBCORE_MAPPINGS)
+    pbcore_mappings = json_decode_file(cfg['CFG_BIBENCODE_PBCORE_MAPPINGS'])
 
     ## INSTANTIATION ##
     # According to the PBcore standard, this strict order MUST be followed
@@ -371,4 +373,3 @@ def pbcore_metadata(input_file, pbcoreIdentifier=None, pbcoreTitle=None,
         joined = joined % {"xmlns" : ""}
 
     return joined
-

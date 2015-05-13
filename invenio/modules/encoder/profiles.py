@@ -20,17 +20,14 @@
 """ BibEncode profile submodule """
 
 import os
+
 import shutil
 
-from invenio.utils.json import json_decode_file
-from invenio.modules.encoder.config import (
-                                      CFG_BIBENCODE_PROFILES_ENCODING,
-                                      CFG_BIBENCODE_PROFILES_EXTRACT,
-                                      CFG_BIBENCODE_PROFILES_ENCODING_LOCAL,
-                                      CFG_BIBENCODE_PROFILES_EXTRACT_LOCAL
-                                      )
-from invenio.modules.encoder.utils import getval
+from invenio.base.globals import cfg
 from invenio.ext.logging import register_exception
+from invenio.modules.encoder.utils import getval
+from invenio.utils.json import json_decode_file
+
 
 #-------------------#
 # Encoding profiles #
@@ -39,10 +36,10 @@ from invenio.ext.logging import register_exception
 def get_encoding_profiles():
     """ Returns a dictionary representation of the encoding profiles
     """
-    if not os.path.exists(CFG_BIBENCODE_PROFILES_ENCODING_LOCAL):
-        shutil.copy(CFG_BIBENCODE_PROFILES_ENCODING, CFG_BIBENCODE_PROFILES_ENCODING_LOCAL)
-    default_profiles = json_decode_file(CFG_BIBENCODE_PROFILES_ENCODING)
-    local_profiles = json_decode_file(CFG_BIBENCODE_PROFILES_ENCODING_LOCAL)
+    if not os.path.exists(cfg['CFG_BIBENCODE_PROFILES_ENCODING_LOCAL']):
+        shutil.copy(cfg['CFG_BIBENCODE_PROFILES_ENCODING'], cfg['CFG_BIBENCODE_PROFILES_ENCODING_LOCAL'])
+    default_profiles = json_decode_file(cfg['CFG_BIBENCODE_PROFILES_ENCODING'])
+    local_profiles = json_decode_file(cfg['CFG_BIBENCODE_PROFILES_ENCODING_LOCAL'])
     default_profiles.update(local_profiles)
     return default_profiles
 
@@ -84,10 +81,10 @@ def get_encoding_profile(key):
 def get_extract_profiles():
     """ Returns a dictionary representation of the frame extraction profiles
     """
-    if not os.path.exists(CFG_BIBENCODE_PROFILES_EXTRACT_LOCAL):
-        shutil.copy(CFG_BIBENCODE_PROFILES_EXTRACT, CFG_BIBENCODE_PROFILES_EXTRACT_LOCAL)
-    default_profiles = json_decode_file(CFG_BIBENCODE_PROFILES_EXTRACT)
-    local_profiles = json_decode_file(CFG_BIBENCODE_PROFILES_EXTRACT_LOCAL)
+    if not os.path.exists(cfg['CFG_BIBENCODE_PROFILES_EXTRACT_LOCAL']):
+        shutil.copy(cfg['CFG_BIBENCODE_PROFILES_EXTRACT'], cfg['CFG_BIBENCODE_PROFILES_EXTRACT_LOCAL'])
+    default_profiles = json_decode_file(cfg['CFG_BIBENCODE_PROFILES_EXTRACT'])
+    local_profiles = json_decode_file(cfg['CFG_BIBENCODE_PROFILES_EXTRACT_LOCAL'])
     default_profiles.update(local_profiles)
     return default_profiles
 
@@ -95,4 +92,3 @@ def get_extract_profile(key):
     """ Returns a dictionary representation of an extrtaction profile by key
     """
     return get_extract_profiles()[key]
-
