@@ -815,16 +815,16 @@ def get_current_issue(ln, journal_name):
     journal_id = get_journal_id(journal_name, ln)
     try:
         current_issue = run_sql("""SELECT issue_number
-                                     FROM jrnISSUE
+                                     FROM "jrnISSUE"
                                     WHERE date_released <= NOW()
-                                      AND id_jrnJOURNAL=%s
+                                      AND "id_jrnJOURNAL"=%s
                                  ORDER BY date_released DESC
                                     LIMIT 1""",
                                 (journal_id,))[0][0]
     except:
         # start the first journal ever
         current_issue = get_first_issue_from_config(journal_name)
-        run_sql("""INSERT INTO jrnISSUE (id_jrnJOURNAL, issue_number, issue_display)
+        run_sql("""INSERT INTO "jrnISSUE" ("id_jrnJOURNAL", issue_number, issue_display)
                         VALUES(%s, %s, %s)""",
                 (journal_id,
                  current_issue,
@@ -840,9 +840,10 @@ def get_all_released_issues(journal_name):
     have been imported in the system but not been released
     """
     journal_id = get_journal_id(journal_name)
+    # FIXME compatibility with postgresql
     res = run_sql("""SELECT issue_number
-                     FROM jrnISSUE
-                     WHERE id_jrnJOURNAL = %s
+                     FROM "jrnISSUE"
+                     WHERE "id_jrnJOURNAL" = %s
                        AND UNIX_TIMESTAMP(date_released) != 0
                      ORDER BY date_released DESC""",
                   (journal_id,))
@@ -876,8 +877,8 @@ def get_grouped_issues(journal_name, issue_number):
     journal_id = get_journal_id(journal_name, CFG_SITE_LANG)
     issue_display = get_issue_number_display(issue_number, journal_name)
     res = run_sql("""SELECT issue_number
-                     FROM jrnISSUE
-                     WHERE id_jrnJOURNAL=%s AND issue_display=%s""",
+                     FROM "jrnISSUE"
+                     WHERE "id_jrnJOURNAL"=%s AND issue_display=%s""",
                   (journal_id,
                    issue_display))
     if res:
@@ -924,9 +925,9 @@ def get_issue_number_display(issue_number, journal_name,
     """
     journal_id = get_journal_id(journal_name, ln)
     issue_display = run_sql("""SELECT issue_display
-                                 FROM jrnISSUE
+                                 FROM "jrnISSUE"
                                 WHERE issue_number=%s
-                                  AND id_jrnJOURNAL=%s""",
+                                  AND "id_jrnJOURNAL"=%s""",
                             (issue_number, journal_id))
     if issue_display:
         return issue_display[0][0]
@@ -963,9 +964,9 @@ def get_release_datetime(issue, journal_name, ln=CFG_SITE_LANG):
     journal_id = get_journal_id(journal_name, ln)
     try:
         release_date = run_sql("""SELECT date_released
-                                    FROM jrnISSUE
+                                    FROM "jrnISSUE"
                                    WHERE issue_number=%s
-                                     AND id_jrnJOURNAL=%s""",
+                                     AND "id_jrnJOURNAL"=%s""",
                                (issue, journal_id))[0][0]
     except:
         return None
@@ -982,9 +983,9 @@ def get_announcement_datetime(issue, journal_name, ln=CFG_SITE_LANG):
     journal_id = get_journal_id(journal_name, ln)
     try:
         announce_date = run_sql("""SELECT date_announced
-                                     FROM jrnISSUE
+                                     FROM "jrnISSUE"
                                     WHERE issue_number=%s
-                                      AND id_jrnJOURNAL=%s""",
+                                      AND "id_jrnJOURNAL"=%s""",
                             (issue, journal_id))[0][0]
     except:
         return None
@@ -1023,9 +1024,9 @@ def datetime_to_issue(issue_datetime, journal_name):
     issue_day_lifetime = math.ceil(float(this_year_number_of_days)/nb_issues_per_year)
 
     res = run_sql("""SELECT issue_number, date_released
-                       FROM jrnISSUE
+                       FROM "jrnISSUE"
                       WHERE date_released < %s
-                        AND id_jrnJOURNAL = %s
+                        AND "id_jrnJOURNAL" = %s
                    ORDER BY date_released DESC LIMIT 1""",
                   (issue_datetime, journal_id))
     if res and res[0][1]:
@@ -1222,7 +1223,7 @@ def get_journal_id(journal_name, ln=CFG_SITE_LANG):
             journal_id = None
     else:
         try:
-            res = run_sql("SELECT id FROM jrnJOURNAL WHERE name=%s",
+            res = run_sql("""SELECT id FROM "jrnJOURNAL" WHERE name=%s""",
                           (journal_name,))
             if len(res) > 0:
                 journal_id = res[0][0]
@@ -1310,7 +1311,7 @@ def get_journals_ids_and_names():
                 continue
     else:
         try:
-            res = run_sql("SELECT id, name FROM jrnJOURNAL ORDER BY id")
+            res = run_sql("""SELECT id, name FROM "jrnJOURNAL" ORDER BY id""")
             for journal_id, journal_name in res:
                 journals.append({'journal_id': journal_id,
                                  'journal_name': journal_name})

@@ -59,7 +59,7 @@ def index(req, c=CFG_SITE_NAME, ln=CFG_SITE_LANG, order="", doctype="", deletedI
         return page_not_authorized(req, "../", \
                                     text = _("You are not authorized to use approval system."))
 
-    res = run_sql("SELECT sdocname,ldocname FROM sbmDOCTYPE ORDER BY ldocname")
+    res = run_sql("""SELECT sdocname,ldocname FROM "sbmDOCTYPE" ORDER BY ldocname""")
     referees = []
     for row in res:
         doctype = row[0]
@@ -70,7 +70,7 @@ def index(req, c=CFG_SITE_NAME, ln=CFG_SITE_LANG, order="", doctype="", deletedI
                               'docname': docname,
                               'categories': None})
         else:
-            res2 = run_sql("select sname,lname from sbmCATEGORIES where doctype=%s", (doctype,))
+            res2 = run_sql("""select sname,lname from "sbmCATEGORIES" where doctype=%s""", (doctype,))
             categories = []
             for row2 in res2:
                 category = row2[0]

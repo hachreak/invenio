@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013 CERN.
+# Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -26,6 +26,7 @@ import random
 import re
 import time
 
+from invenio.legacy.dbquery import datetime_format
 from invenio.legacy.bibrecord import get_fieldvalues
 from invenio.utils.url import make_invenio_opener
 from invenio.legacy.search_engine import get_field_tags
@@ -926,8 +927,10 @@ def check_database():
                         CFG_BIBCIRCULATION_LOAN_STATUS_EXPIRED))
 
     r3 = run_sql(""" SELECT l1.barcode, l1.id,
-                            DATE_FORMAT(l1.loaned_on,'%%Y-%%m-%%d %%H:%%i:%%s'),
-                            DATE_FORMAT(l2.loaned_on,'%%Y-%%m-%%d %%H:%%i:%%s')
+                 """ + \
+                 datetime_format('l1.loaned_on') + "," + \
+                 datetime_format('l2.loaned_on,') + \
+                 """
                        FROM crcLOAN l1,
                             crcLOAN l2
                       WHERE l1.id!=l2.id

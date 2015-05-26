@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2010, 2011, 2012, 2013, 2014 CERN.
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -624,7 +624,11 @@ class Template:
         header = [_("ID"), _("Name"), _("Time"), _("Status"), _("Progress")]
         actions = []
         body_content += """<br /><b>%s</b><br />""" % _("Last BibSched tasks:")
-        res = run_sql("select id, proc, host, user, runtime, sleeptime, arguments, status, progress from schTASK where proc='batchuploader' and runtime< now() ORDER by runtime")
+        res = run_sql("""select id, proc, host, "user", runtime, sleeptime,
+                                arguments, status, progress
+                         from "schTASK"
+                         where proc='batchuploader' and runtime< now()
+                         ORDER by runtime""")
         if len(res) > 0:
             (tsk_id, proc, host, user, runtime, sleeptime, arguments, status, progress) = res[len(res) - 1]
             actions.append([tsk_id, proc, runtime, (status !="" and status or ''), (progress !="" and progress or '')])
@@ -634,7 +638,10 @@ class Template:
         body_content += tupletotable(header=header, tuple=actions)
         body_content += """<br /><b>%s</b><br />""" % _("Next scheduled BibSched run:")
         actions = []
-        res = run_sql("select id, proc, host, user, runtime, sleeptime, arguments, status, progress from schTASK where proc='batchuploader' and runtime > now() ORDER by runtime")
+        res = run_sql("""select id, proc, host, "user", runtime, sleeptime,
+                         arguments, status, progress from "schTASK"
+                         where proc='batchuploader' and runtime > now()
+                         ORDER by runtime""")
         if len(res) > 0:
             (tskid, proc, host, user, runtime, sleeptime, arguments, status, progress) = res[0]
             actions.append([tskid, proc, runtime, (status !="" and status or ''), (progress !="" and progress or '')])

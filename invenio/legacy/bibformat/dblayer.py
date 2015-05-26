@@ -22,7 +22,7 @@
 import time
 import zlib
 
-from invenio.legacy.dbquery import run_sql
+from invenio.legacy.dbquery import run_sql, datetime_format
 from invenio.utils.date import localtime_to_utc
 
 
@@ -35,7 +35,9 @@ def get_creation_date(sysno, fmt="%Y-%m-%dT%H:%M:%SZ"):
     @rtype: string
     """
     out = ""
-    res = run_sql("SELECT DATE_FORMAT(creation_date, '%%Y-%%m-%%d %%H:%%i:%%s') FROM bibrec WHERE id=%s", (sysno,), 1)
+    res = run_sql("SELECT " + \
+                  datetime_format('creation_date') + \
+                  " FROM bibrec WHERE id=%s", (sysno,), 1)
     if res[0][0]:
         out = localtime_to_utc(res[0][0], fmt)
     return out
@@ -50,7 +52,7 @@ def get_modification_date(sysno, fmt="%Y-%m-%dT%H:%M:%SZ"):
     @rtype: string
     """
     out = ""
-    res = run_sql("SELECT DATE_FORMAT(modification_date,'%%Y-%%m-%%d %%H:%%i:%%s') FROM bibrec WHERE id=%s", (sysno,), 1)
+    res = run_sql("SELECT " + datetime_format('modification_date') + " FROM bibrec WHERE id=%s", (sysno,), 1)
     if res and res[0][0]:
         out = localtime_to_utc(res[0][0], fmt)
     return out
@@ -376,8 +378,7 @@ def save_preformatted_record(recID, of, res, needs_2nd_pass=False,
     start_date = time.strftime('%Y-%m-%d %H:%M:%S')
     formatted_record = compress(res)
     sql_str = ""
-    if low_priority:
-        sql_str = " LOW_PRIORITY"
+    # NOTE: low_priority removed for PostgreSQL compatibility
     run_sql("""INSERT%s INTO bibfmt
                (id_bibrec, format, last_updated, value, needs_2nd_pass)
                VALUES (%%s, %%s, %%s, %%s, %%s)

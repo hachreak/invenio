@@ -687,7 +687,7 @@ class WebInterfaceSubmitPages(WebInterfaceDirectory):
             return warning_page(_("Sorry, invalid arguments"), req=req, ln=ln)
         user_info = collect_user_info(req)
         email = user_info['email']
-        res = run_sql("SELECT action, status FROM sbmSUBMISSIONS WHERE id=%s AND email=%s and doctype=%s", (access, email, doctype))
+        res = run_sql("""SELECT action, status FROM "sbmSUBMISSIONS" WHERE id=%s AND email=%s and doctype=%s""", (access, email, doctype))
         if res:
             action, status = res[0]
             if status == 'finished':
@@ -718,7 +718,7 @@ class WebInterfaceSubmitPages(WebInterfaceDirectory):
         myQuery = req.args
         if not sub:
             return warning_page(_("Sorry, 'sub' parameter missing..."), req, ln=ln)
-        res = run_sql("SELECT docname,actname FROM sbmIMPLEMENT WHERE subname=%s", (sub,))
+        res = run_sql("""SELECT docname,actname FROM "sbmIMPLEMENT" WHERE subname=%s""", (sub,))
         if not res:
             return warning_page(_("Sorry. Cannot analyse parameter"), req, ln=ln)
         else:
@@ -756,7 +756,7 @@ class WebInterfaceSubmitPages(WebInterfaceDirectory):
             now = time.time()
             access = "%i_%s" % (now, pid)
         # retrieve 'dir' value
-        res = run_sql ("SELECT dir FROM sbmACTION WHERE sactname=%s", (action,))
+        res = run_sql ("""SELECT dir FROM "sbmACTION" WHERE sactname=%s""", (action,))
         dir = res[0][0]
 
         mainmenu = req.headers_in.get('referer')
@@ -829,7 +829,7 @@ class WebInterfaceSubmitPages(WebInterfaceDirectory):
 
         subname = "%s%s" % (args['act'], args['doctype'])
 
-        res = run_sql("select sdesc,fidesc,pagenb,level from sbmFIELD where subname=%s "
+        res = run_sql("""select sdesc,fidesc,pagenb,level from "sbmFIELD" where subname=%s """
                       "order by pagenb,fieldnb", (subname,))
         nbFields = 0
 

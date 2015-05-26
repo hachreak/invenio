@@ -47,7 +47,7 @@ from invenio.config import \
      CFG_SITE_SUPPORT_EMAIL, \
      CFG_SITE_SECURE_URL, \
      CFG_SITE_RECORD
-from invenio.legacy.dbquery import run_sql
+from invenio.legacy.dbquery import run_sql, rlike
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.modules.access.control import acc_get_role_users, acc_get_role_id
 from invenio.legacy.webpage import page, error_page
@@ -169,10 +169,10 @@ def index(req, c=CFG_SITE_NAME, ln=CFG_SITE_LANG, doctype="", categ="", RN="", s
                     navmenuid='yourapprovals')
 
 def selectDoctype(ln = CFG_SITE_LANG):
-    res = run_sql("select DISTINCT doctype from sbmAPPROVAL")
+    res = run_sql("""select DISTINCT doctype from "sbmAPPROVAL" """)
     docs = []
     for row in res:
-        res2 = run_sql("select ldocname from sbmDOCTYPE where sdocname=%s", (row[0],))
+        res2 = run_sql("""select ldocname from "sbmDOCTYPE" where sdocname=%s""", (row[0],))
         docs.append({
                      'doctype': row[0],
                      'docname': res2[0][0],
@@ -184,10 +184,10 @@ def selectDoctype(ln = CFG_SITE_LANG):
     return t
 
 def selectCplxDoctype(ln = CFG_SITE_LANG):
-    res = run_sql("select DISTINCT doctype from sbmCPLXAPPROVAL")
+    res = run_sql("""select DISTINCT doctype from "sbmCPLXAPPROVAL" """)
     docs = []
     for row in res:
-        res2 = run_sql("select ldocname from sbmDOCTYPE where sdocname=%s", (row[0],))
+        res2 = run_sql("""select ldocname from "sbmDOCTYPE" where sdocname=%s""", (row[0],))
         docs.append({
                      'doctype': row[0],
                      'docname': res2[0][0],
@@ -200,9 +200,9 @@ def selectCplxDoctype(ln = CFG_SITE_LANG):
 
 def selectCateg(doctype, ln = CFG_SITE_LANG):
     t = ""
-    res = run_sql("select ldocname from sbmDOCTYPE where sdocname=%s",(doctype,))
+    res = run_sql("""select ldocname from "sbmDOCTYPE" where sdocname=%s""",(doctype,))
     title = res[0][0]
-    sth = run_sql("select * from sbmCATEGORIES where doctype=%s order by lname",(doctype,))
+    sth = run_sql("""select * from "sbmCATEGORIES" where doctype=%s order by lname""",(doctype,))
     if len(sth) == 0:
         categ = "unknown"
         return selectDocument(doctype, categ, ln=ln)
@@ -212,11 +212,11 @@ def selectCateg(doctype, ln = CFG_SITE_LANG):
         waiting = 0
         rejected = 0
         approved = 0
-        sth2 = run_sql("select COUNT(*) from sbmAPPROVAL where doctype=%s and categ=%s and status='waiting'", (doctype, arr[1],))
+        sth2 = run_sql("""select COUNT(*) from "sbmAPPROVAL" where doctype=%s and categ=%s and status='waiting' """, (doctype, arr[1],))
         waiting = sth2[0][0]
-        sth2 = run_sql("select COUNT(*) from sbmAPPROVAL where doctype=%s and categ=%s and status='approved'", (doctype, arr[1],))
+        sth2 = run_sql("""select COUNT(*) from "sbmAPPROVAL" where doctype=%s and categ=%s and status='approved' """, (doctype, arr[1],))
         approved = sth2[0][0]
-        sth2 = run_sql("select COUNT(*) from sbmAPPROVAL where doctype=%s and categ=%s and status='rejected'", (doctype, arr[1],))
+        sth2 = run_sql("""select COUNT(*) from "sbmAPPROVAL" where doctype=%s and categ=%s and status='rejected' """, (doctype, arr[1],))
         rejected = sth2[0][0]
         categories.append({
                             'waiting': waiting,
@@ -235,9 +235,9 @@ def selectCateg(doctype, ln = CFG_SITE_LANG):
 
 def selectCplxCateg(doctype, ln=CFG_SITE_LANG):
     t = ""
-    res = run_sql("SELECT ldocname FROM sbmDOCTYPE WHERE sdocname=%s", (doctype,))
+    res = run_sql("""SELECT ldocname FROM "sbmDOCTYPE" WHERE sdocname=%s""", (doctype,))
     title = res[0][0]
-    sth = run_sql("SELECT * FROM sbmCATEGORIES WHERE doctype=%s ORDER BY lname", (doctype,))
+    sth = run_sql("""SELECT * FROM "sbmCATEGORIES" WHERE doctype=%s ORDER BY lname""", (doctype,))
     if len(sth) == 0:
         categ = "unknown"
         return selectCplxDocument(doctype, categ, "", ln=ln)
@@ -261,13 +261,13 @@ def selectCplxCateg(doctype, ln=CFG_SITE_LANG):
 
 def selectDocument(doctype, categ, ln=CFG_SITE_LANG):
     t = ""
-    res = run_sql("select ldocname from sbmDOCTYPE where sdocname=%s", (doctype,))
+    res = run_sql("""select ldocname from "sbmDOCTYPE" where sdocname=%s""", (doctype,))
     title = res[0][0]
     if categ == "":
         categ == "unknown"
 
     docs = []
-    sth = run_sql("select rn,status from sbmAPPROVAL where doctype=%s and categ=%s order by status DESC,rn DESC", (doctype, categ))
+    sth = run_sql("""select rn,status from "sbmAPPROVAL" where doctype=%s and categ=%s order by status DESC,rn DESC""", (doctype, categ))
     for arr in sth:
         docs.append({
                      'RN': arr[0],
@@ -285,17 +285,17 @@ def selectDocument(doctype, categ, ln=CFG_SITE_LANG):
 
 def selectCplxDocument(doctype, categ, apptype, ln=CFG_SITE_LANG):
     t = ""
-    res = run_sql("select ldocname from sbmDOCTYPE where sdocname=%s", (doctype,))
+    res = run_sql("""select ldocname from "sbmDOCTYPE" where sdocname=%s""", (doctype,))
     title = res[0][0]
 
-    sth = run_sql("select lname from sbmCATEGORIES where doctype=%s and sname=%s order by lname",(doctype, categ,))
+    sth = run_sql("""select lname from "sbmCATEGORIES" where doctype=%s and sname=%s order by lname""",(doctype, categ,))
     if len(sth) != 0:
         categname = sth[0][0]
     else:
         categname = "Unknown"
 
     docs = []
-    sth = run_sql("select rn,status from sbmCPLXAPPROVAL where doctype=%s and categ=%s and type=%s order by status DESC,rn DESC",(doctype, categ, apptype))
+    sth = run_sql("""select rn,status from "sbmCPLXAPPROVAL" where doctype=%s and categ=%s and type=%s order by status DESC,rn DESC""",(doctype, categ, apptype))
     for arr in sth:
         docs.append({
                      'RN': arr[0],
@@ -319,11 +319,11 @@ def __displayDocument(req, doctype, categ, RN, send, ln = CFG_SITE_LANG):
     _ = gettext_set_language(ln)
 
     t = ""
-    res = run_sql("select ldocname from sbmDOCTYPE where sdocname=%s", (doctype,))
+    res = run_sql("""select ldocname from "sbmDOCTYPE" where sdocname=%s""", (doctype,))
     docname = res[0][0]
     if categ == "":
         categ = "unknown"
-    sth = run_sql("select rn,status,dFirstReq,dLastReq,dAction,access,note from sbmAPPROVAL where rn=%s",(RN,))
+    sth = run_sql("""select rn,status,"dFirstReq","dLastReq","dAction",access,note from "sbmAPPROVAL" where rn=%s""",(RN,))
     if len(sth) > 0:
         arr = sth[0]
         rn = arr[0]
@@ -374,7 +374,7 @@ def __displayDocument(req, doctype, categ, RN, send, ln = CFG_SITE_LANG):
             # @todo - send in different languages
             #SendEnglish(doctype, categ, RN, title, authors, access, sysno)
             send_approval(doctype, categ, RN, title, authors, access, sysno)
-            run_sql("update sbmAPPROVAL set dLastReq=NOW() where rn=%s",(RN,))
+            run_sql("""update "sbmAPPROVAL" set "dLastReq"=NOW() where rn=%s""",(RN,))
             confirm_send = 1
 
     if status == "waiting":
@@ -414,7 +414,7 @@ def __displayCplxDocument(req, doctype, categ, RN, apptype, reply, commentId, ln
 
     t = ""
     uid = getUid(req)
-    res = run_sql("select ldocname from sbmDOCTYPE where sdocname=%s", (doctype,))
+    res = run_sql("""select ldocname from "sbmDOCTYPE" where sdocname=%s""", (doctype,))
     docname = res[0][0]
     if categ == "":
         categ = "unknown"
@@ -557,7 +557,7 @@ def __is_EdBoard (uid, id_EdBoardGroup):
     isEdBoard = None
     if id_EdBoardGroup > 0:
         edBoard = run_sql("""SELECT u.id
-                             FROM user u LEFT JOIN user_usergroup ug ON u.id = ug.id_user
+                             FROM "user" u LEFT JOIN user_usergroup ug ON u.id = ug.id_user
                              WHERE ug.id_usergroup = '%s' and user_status != 'A' AND user_status != 'P'""" % (id_EdBoardGroup, ))
         for uid_scan in edBoard:
             if uid == uid_scan[0]:
@@ -586,36 +586,36 @@ def __is_Author (uid, sysno):
     return isAuthor
 
 def __db_count_doc (doctype, categ, status, apptype):
-    return run_sql("SELECT COUNT(*) FROM sbmCPLXAPPROVAL WHERE doctype=%s AND categ=%s AND status=%s AND type=%s",(doctype, categ, status, apptype,))[0][0]
+    return run_sql("""SELECT COUNT(*) FROM "sbmCPLXAPPROVAL" WHERE doctype=%s AND categ=%s AND status=%s AND type=%s""",(doctype, categ, status, apptype,))[0][0]
 
 def __db_get_infos (key):
-    return run_sql("SELECT status,id_group,id_bskBASKET,id_EdBoardGroup,dFirstReq,dLastReq,dEdBoardSel,dRefereeSel,dRefereeRecom,dEdBoardRecom,dPubComRecom,dProjectLeaderAction FROM sbmCPLXAPPROVAL WHERE rn=%s and type=%s", key)
+    return run_sql("""SELECT status,id_group,"id_bskBASKET","id_EdBoardGroup","dFirstReq","dLastReq","dEdBoardSel","dRefereeSel","dRefereeRecom","dEdBoardRecom","dPubComRecom","dProjectLeaderAction" FROM "sbmCPLXAPPROVAL" WHERE rn=%s and type=%s""", key)
 
 def __db_set_EdBoardSel_time (key):
-    run_sql("UPDATE sbmCPLXAPPROVAL SET dEdBoardSel=NOW() WHERE  rn=%s and type=%s", key)
+    run_sql("""UPDATE "sbmCPLXAPPROVAL" SET "dEdBoardSel"=NOW() WHERE  rn=%s and type=%s""", key)
 
 def __db_check_EdBoardGroup ((RN, apptype), id_EdBoardGroup, uid, group_descr):
     res = get_group_infos (id_EdBoardGroup)
     if len(res) == 0:
         id_EdBoardGroup = insert_new_group (uid, RN, group_descr % RN, "VM")
-        run_sql("UPDATE sbmCPLXAPPROVAL SET id_EdBoardGroup=%s WHERE  rn=%s and type=%s", (id_EdBoardGroup, RN, apptype,))
+        run_sql("""UPDATE "sbmCPLXAPPROVAL" SET "id_EdBoardGroup"=%s WHERE  rn=%s and type=%s""", (id_EdBoardGroup, RN, apptype,))
 
     return id_EdBoardGroup
 
 def __db_set_basket ((RN, apptype), id_bsk):
-    run_sql("UPDATE sbmCPLXAPPROVAL SET id_bskBASKET=%s, dRefereeSel=NOW() WHERE  rn=%s and type=%s", (id_bsk, RN, apptype,))
+    run_sql("""UPDATE "sbmCPLXAPPROVAL" SET "id_bskBASKET"=%s, "dRefereeSel"=NOW() WHERE  rn=%s and type=%s""", (id_bsk, RN, apptype,))
 
 def __db_set_RefereeRecom_time (key):
-    run_sql("UPDATE sbmCPLXAPPROVAL SET dRefereeRecom=NOW() WHERE  rn=%s and type=%s", key)
+    run_sql("""UPDATE "sbmCPLXAPPROVAL" SET "dRefereeRecom"=NOW() WHERE  rn=%s and type=%s""", key)
 
 def __db_set_EdBoardRecom_time (key):
-    run_sql("UPDATE sbmCPLXAPPROVAL SET dEdBoardRecom=NOW() WHERE  rn=%s and type=%s", key)
+    run_sql("""UPDATE "sbmCPLXAPPROVAL" SET "dEdBoardRecom"=NOW() WHERE  rn=%s and type=%s""", key)
 
 def __db_set_PubComRecom_time (key):
-    run_sql("UPDATE sbmCPLXAPPROVAL SET dPubComRecom=NOW() WHERE  rn=%s and type=%s", key)
+    run_sql("""UPDATE "sbmCPLXAPPROVAL" SET "dPubComRecom"=NOW() WHERE  rn=%s and type=%s""", key)
 
 def __db_set_status ((RN, apptype), status):
-    run_sql("UPDATE sbmCPLXAPPROVAL SET status=%s, dProjectLeaderAction=NOW() WHERE  rn=%s and type=%s", (status, RN, apptype,))
+    run_sql("""UPDATE "sbmCPLXAPPROVAL" SET status=%s, "dProjectLeaderAction"=NOW() WHERE  rn=%s and type=%s""", (status, RN, apptype,))
 
 def __doCplxAction(req, doctype, categ, RN, apptype, action, email_user_pattern, id_user, id_user_remove, validate, id_user_val, msg_subject, msg_body, reply, commentId, ln=CFG_SITE_LANG):
     """
@@ -713,19 +713,25 @@ def __doCplxAction(req, doctype, categ, RN, apptype, action, email_user_pattern,
         stopon3 = ""
         users = []
         extrausers = []
+        rlike_op = rlike()
         # pattern is entered
         if email_user_pattern:
             # users with matching email-address
             try:
-                users1 = run_sql("""SELECT id, email FROM user WHERE email<>'' AND email RLIKE %s ORDER BY email """, (email_user_pattern, ))
+                users1 = run_sql(
+                    """SELECT id, email FROM "user"
+                       WHERE email<>'' AND email %s %s ORDER BY email """,
+                    (rlike_op, email_user_pattern, ))
             except OperationalError:
                 users1 = ()
             # users that are connected
             try:
-                users2 = run_sql("""SELECT DISTINCT u.id, u.email
-                FROM user u LEFT JOIN user_usergroup ug ON u.id = ug.id_user
-                WHERE u.email<>'' AND ug.id_usergroup = %s AND u.email RLIKE %s
-                ORDER BY u.email """, (id_EdBoardGroup, email_user_pattern))
+                users2 = run_sql(
+                    """SELECT DISTINCT u.id, u.email
+                FROM "user" u LEFT JOIN user_usergroup ug ON u.id = ug.id_user
+                WHERE u.email<>'' AND ug.id_usergroup = %s AND u.email %s %s
+                ORDER BY u.email """,
+                    (id_EdBoardGroup, rlike_op, email_user_pattern))
             except OperationalError:
                 users2 = ()
 
@@ -758,7 +764,7 @@ def __doCplxAction(req, doctype, categ, RN, apptype, action, email_user_pattern,
         subtitle2 = _('Removing users from the editorial board')
 
         usersremove = run_sql("""SELECT DISTINCT u.id, u.email
-                            FROM user u LEFT JOIN user_usergroup ug ON u.id = ug.id_user
+                            FROM "user" u LEFT JOIN user_usergroup ug ON u.id = ug.id_user
                             WHERE u.email <> "" AND ug.id_usergroup = %s and user_status != 'A' AND user_status != 'P'
                             ORDER BY u.email """, (id_EdBoardGroup, ))
 
@@ -827,7 +833,7 @@ def __doCplxAction(req, doctype, categ, RN, apptype, action, email_user_pattern,
 
                 __db_set_basket (key, id_bsk)
 
-                email_address = run_sql("""SELECT email FROM user WHERE id = %s """, (id_user_val, ))[0][0]
+                email_address = run_sql("""SELECT email FROM "user" WHERE id = %s """, (id_user_val, ))[0][0]
                 perform_request_send (uid, email_address, "", TEXT_RefereeSel_MSG_REFEREE_SUBJECT, TEXT_RefereeSel_MSG_REFEREE_BODY, 0, 0, 0, ln, 1)
                 sendMailToReferee(doctype, categ, RN, email_address, authors)
 
@@ -845,11 +851,12 @@ def __doCplxAction(req, doctype, categ, RN, apptype, action, email_user_pattern,
         stopon2 = ""
         users = []
         extrausers = []
+        rlike_op = rlike()
         # pattern is entered
         if email_user_pattern:
             # users with matching email-address
             try:
-                users1 = run_sql("""SELECT id, email FROM user WHERE email <> "" AND email RLIKE %s ORDER BY email """, (email_user_pattern, ))
+                users1 = run_sql("""SELECT id, email FROM "user" WHERE email <> "" AND email %s %s ORDER BY email """, (rlike_op, email_user_pattern, ))
             except OperationalError:
                 users1 = ()
             # no users that match the pattern
@@ -939,10 +946,10 @@ def __doCplxAction(req, doctype, categ, RN, apptype, action, email_user_pattern,
             user_addr = ""
             # Try to retrieve the publication committee chair's email from the role database
             for user in acc_get_role_users(acc_get_role_id("pubcomchair_%s_%s" % (doctype, categ))):
-                user_addr += run_sql("""SELECT email FROM user WHERE id = %s """, (user[0], ))[0][0] + ","
+                user_addr += run_sql("""SELECT email FROM "user" WHERE id = %s """, (user[0], ))[0][0] + ","
             # And if there are general publication committee chair's
             for user in acc_get_role_users(acc_get_role_id("pubcomchair_%s_*" % doctype)):
-                user_addr += run_sql("""SELECT email FROM user WHERE id = %s """, (user[0], ))[0][0] + ","
+                user_addr += run_sql("""SELECT email FROM "user" WHERE id = %s """, (user[0], ))[0][0] + ","
             user_addr = re.sub(",$", "", user_addr)
             group_addr = ""
             TEXT_RefereeRecom_MSG_SUBJECT = TEXT_RSN_RefereeRecom_MSG_PUBCOM_SUBJECT
@@ -1002,10 +1009,10 @@ def __doCplxAction(req, doctype, categ, RN, apptype, action, email_user_pattern,
         user_addr = ""
         # Try to retrieve the publication committee chair's email from the role database
         for user in acc_get_role_users(acc_get_role_id("pubcomchair_%s_%s" % (doctype, categ))):
-            user_addr += run_sql("""SELECT nickname FROM user WHERE id = %s """, (user[0], ))[0][0] + ","
+            user_addr += run_sql("""SELECT nickname FROM "user" WHERE id = %s """, (user[0], ))[0][0] + ","
         # And if there are general publication committee chair's
         for user in acc_get_role_users(acc_get_role_id("pubcomchair_%s_*" % doctype)):
-            user_addr += run_sql("""SELECT nickname FROM user WHERE id = %s """, (user[0], ))[0][0] + ","
+            user_addr += run_sql("""SELECT nickname FROM "user" WHERE id = %s """, (user[0], ))[0][0] + ","
         user_addr = re.sub(",$", "", user_addr)
 
         if validate == "go":
@@ -1043,10 +1050,10 @@ def __doCplxAction(req, doctype, categ, RN, apptype, action, email_user_pattern,
         user_addr = ""
         # Try to retrieve the project leader's email from the role database
         for user in acc_get_role_users(acc_get_role_id("projectleader_%s_%s" % (doctype, categ))):
-            user_addr += run_sql("""SELECT email FROM user WHERE id = %s """, (user[0], ))[0][0] + ","
+            user_addr += run_sql("""SELECT email FROM "user" WHERE id = %s """, (user[0], ))[0][0] + ","
         # And if there are general project leader's
         for user in acc_get_role_users(acc_get_role_id("projectleader_%s_*" % doctype)):
-            user_addr += run_sql("""SELECT email FROM user WHERE id = %s """, (user[0], ))[0][0] + ","
+            user_addr += run_sql("""SELECT email FROM "user" WHERE id = %s """, (user[0], ))[0][0] + ","
         user_addr = re.sub(",$", "", user_addr)
 
         if apptype == "RRP":
@@ -1580,7 +1587,7 @@ def getInAlice(doctype, categ, RN):
 def SendEnglish(doctype, categ, RN, title, authors, access, sysno):
     FROMADDR = '%s Submission Engine <%s>' % (CFG_SITE_NAME, CFG_SITE_SUPPORT_EMAIL)
     # retrieve useful information from webSubmit configuration
-    res = run_sql("select value from sbmPARAMETERS where name='categformatDAM' and doctype=%s", (doctype,))
+    res = run_sql("""select value from "sbmPARAMETERS" where name='categformatDAM' and doctype=%s""", (doctype,))
     categformat = res[0][0]
     categformat = re.sub("<CATEG>", "([^-]*)", categformat)
     categs = re.match(categformat, RN)
@@ -1588,7 +1595,7 @@ def SendEnglish(doctype, categ, RN, title, authors, access, sysno):
         categ = categs.group(1)
     else:
         categ = "unknown"
-    res = run_sql("select value from sbmPARAMETERS where name='addressesDAM' and doctype=%s",(doctype,))
+    res = run_sql("""select value from "sbmPARAMETERS" where name='addressesDAM' and doctype=%s""",(doctype,))
     if len(res) > 0:
         otheraddresses = res[0][0]
         otheraddresses = otheraddresses.replace("<CATEG>", categ)
@@ -1616,7 +1623,7 @@ def SendEnglish(doctype, categ, RN, title, authors, access, sysno):
         return 0
     if authors == "":
         authors = "-"
-    res = run_sql("select value from sbmPARAMETERS where name='directory' and doctype=%s", (doctype,))
+    res = run_sql("""select value from "sbmPARAMETERS" where name='directory' and doctype=%s""", (doctype,))
     directory = res[0][0]
     message = """
     The document %s has been published as a Communication.
@@ -1767,7 +1774,7 @@ def sendMailToGroup(doctype, categ, RN, group_id, authors):
     # send mails to all members of the ATLAS group
     group_member_ids = run_sql("SELECT id_user FROM user_usergroup WHERE id_usergroup = '%s'" % (group_id))
     for member_id in group_member_ids:
-        member_email = run_sql("SELECT email FROM user WHERE id = '%s'" % (member_id))
+        member_email = run_sql("""SELECT email FROM "user" WHERE id = '%s'""" % (member_id))
         if not member_email[0][0] == "info@invenio-software.org":
             send_email(FROMADDR, member_email[0][0],"Request for comment on document %s" % (RN), message)
     return ""

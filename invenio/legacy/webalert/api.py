@@ -23,7 +23,7 @@ import cgi
 import time
 
 from invenio.config import CFG_SITE_LANG
-from invenio.legacy.dbquery import run_sql
+from invenio.legacy.dbquery import run_sql, datetime_format, date_format_dby
 from invenio.legacy.webuser import isGuestUser
 from invenio.ext.logging import register_exception
 from invenio.legacy.websession.webaccount import warning_guest_user
@@ -103,7 +103,10 @@ def perform_display(permanent, uid, ln=CFG_SITE_LANG):
     if len(query_result) > 0:
         for row in query_result :
             if permanent == "n":
-                res = run_sql("SELECT DATE_FORMAT(MAX(date),'%%Y-%%m-%%d %%H:%%i:%%s') FROM user_query WHERE id_user=%s and id_query=%s",
+                res = run_sql("SELECT " + \
+                              datetime_format('MAX(date)') + \
+                              """
+                              FROM user_query WHERE id_user=%s and id_query=%s""",
                               (uid, row[0]))
                 try:
                     lastrun = res[0][0]
@@ -248,10 +251,12 @@ def perform_list_alerts(uid, ln=CFG_SITE_LANG):
     query = """ SELECT q.id, q.urlargs,
                        a.id_basket, b.name,
                        a.alert_name, a.frequency,a.notification,
-                       DATE_FORMAT(a.date_creation,'%%Y-%%m-%%d %%H:%%i:%%s'),
-                       DATE_FORMAT(a.date_lastrun,'%%Y-%%m-%%d %%H:%%i:%%s')
+                       """ + \
+                        datetime_format('a.date_creation') + ', ' + \
+                        datetime_format('a.date_lastrun') + \
+                       """
                 FROM user_query_basket a LEFT JOIN query q ON a.id_query=q.id
-                                         LEFT JOIN bskBASKET b ON a.id_basket=b.id
+                                         LEFT JOIN "bskBASKET" b ON a.id_basket=b.id
                 WHERE a.id_user=%s
                 ORDER BY a.alert_name ASC """
     res = run_sql(query, (uid,))
@@ -392,8 +397,10 @@ def account_list_alerts(uid, ln=CFG_SITE_LANG):
     query = """ SELECT q.id, q.urlargs, a.id_user, a.id_query,
                        a.id_basket, a.alert_name, a.frequency,
                        a.notification,
-                       DATE_FORMAT(a.date_creation,'%%d %%b %%Y'),
-                       DATE_FORMAT(a.date_lastrun,'%%d %%b %%Y'),
+                       """ + \
+                        date_format_dby('a.date_creation') + ', ' + \
+                        date_format_dby('a.date_lastrun') + ', ' + \
+                       """
                        a.id_basket
                 FROM query q, user_query_basket a
                 WHERE a.id_user=%s AND a.id_query=q.id

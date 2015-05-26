@@ -3,7 +3,7 @@
 # $Id: webmessage_dblayer.py,v 1.28 2008/08/08 13:28:15 cparker Exp $
 #
 # This file is part of Invenio.
-# Copyright (C) 2009, 2010, 2011 CERN.
+# Copyright (C) 2009, 2010, 2011, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -31,7 +31,7 @@ import tempfile
 import shutil
 from time import localtime
 
-from invenio.legacy.dbquery import run_sql
+from invenio.legacy.dbquery import run_sql, datetime_format
 from invenio.utils.date import convert_datestruct_to_datetext, \
                               convert_datetext_to_datestruct
 from invenio.legacy import bibrecord as bibrecord
@@ -575,7 +575,9 @@ def get_job(job_id):
                         jobname,
                         jobfreq,
                         output_format,
-                        DATE_FORMAT(lastrun,'%%Y-%%m-%%d %%H:%%i:%%s'),
+                        """ + \
+                            datetime_format('lastrun') + ',' + \
+                        """
                         output_directory
                 FROM expJOB WHERE id=%s"""
     query_result = run_sql(query, (job_id,))
@@ -603,7 +605,9 @@ def get_job_by_name(job_name):
                         jobname,
                         jobfreq,
                         output_format,
-                        DATE_FORMAT(lastrun,'%%Y-%%m-%%d %%H:%%i:%%s'),
+                        """ + \
+                            datetime_format('lastrun') + ',' + \
+                        """
                         output_directory
                 FROM expJOB WHERE jobname=%s"""
     query_result = run_sql(query, (job_name,))
@@ -634,7 +638,9 @@ def get_all_jobs(user_id):
                         expJOB.jobname,
                         expJOB.jobfreq,
                         expJOB.output_format,
-                        DATE_FORMAT(expJOB.lastrun,'%%Y-%%m-%%d %%H:%%i:%%s'),
+                        """ + \
+                            datetime_format('expJOB.lastrun') + ',' + \
+                        """
                         expJOB.output_directory
                 FROM expJOB
                 INNER JOIN user_expJOB
@@ -1097,7 +1103,9 @@ def get_job_result(job_result_id):
 
     query = """SELECT id,
                         id_expJOB,
-                        DATE_FORMAT(execution_time,'%%Y-%%m-%%d %%H:%%i:%%s'),
+                        """ + \
+                            datetime_format('execution_time') + ',' + \
+                        """
                         status,
                         status_message
                         FROM expJOBRESULT WHERE id=%s"""

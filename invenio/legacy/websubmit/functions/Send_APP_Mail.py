@@ -191,7 +191,7 @@ def Send_APP_Mail (parameters, curdir, form, user_info=None):
     else:
         newrn = ""
     # Document name
-    res = run_sql("SELECT ldocname FROM sbmDOCTYPE WHERE sdocname=%s", (doctype,))
+    res = run_sql("""SELECT ldocname FROM "sbmDOCTYPE" WHERE sdocname=%s""", (doctype,))
     docname = res[0][0]
     # retrieve category
     categformat = categformat.replace("<CATEG>", "([^-]*)")
@@ -248,7 +248,7 @@ def Send_APP_Mail (parameters, curdir, form, user_info=None):
                               for email in record_owners_list]
     else:
         #if the record owner can not be retrieved from the metadata
-        #(in case the record has not been inserted yet), 
+        #(in case the record has not been inserted yet),
         #try to use the global variable emailvalue
         try:
             record_owners_list = [emailvalue]

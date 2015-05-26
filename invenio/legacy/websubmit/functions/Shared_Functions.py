@@ -1,5 +1,5 @@
 # This file is part of Invenio.
-# Copyright (C) 2007, 2008, 2009, 2010, 2011, 2014 CERN.
+# Copyright (C) 2007, 2008, 2009, 2010, 2011, 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -199,7 +199,7 @@ def get_nice_bibsched_related_message(curdir, ln=CFG_SITE_LANG):
     ## Our bibupload might be somewhere in it, but it's not really so important
     ## WRT informing the user.
     _ = gettext_set_language(ln)
-    res = run_sql("SELECT id,proc,runtime,status,priority FROM schTASK WHERE (status='WAITING' AND runtime<=NOW()) OR status='SLEEPING'")
+    res = run_sql("""SELECT id,proc,runtime,status,priority FROM "schTASK" WHERE (status='WAITING' AND runtime<=NOW()) OR status='SLEEPING'""")
     pre = _("Note that your submission has been inserted into the bibliographic task queue and is waiting for execution.\n")
     if server_pid():
         ## BibSched is up and running

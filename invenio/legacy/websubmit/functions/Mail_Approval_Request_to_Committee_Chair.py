@@ -125,7 +125,7 @@ def Mail_Approval_Request_to_Committee_Chair(parameters, curdir, form, user_info
     FROMADDR = '%s Submission Engine <%s>' % (CFG_SITE_NAME,CFG_SITE_SUPPORT_EMAIL)
 
     # retrieve useful information from webSubmit configuration
-    res = run_sql("select * from sbmCPLXAPPROVAL where rn=%s", (rn, ))
+    res = run_sql("""select * from "sbmCPLXAPPROVAL" where rn=%s""", (rn, ))
     categ = res[0][1]
 
     pubcomchair_address = ""

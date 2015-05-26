@@ -62,7 +62,7 @@ def index(req, c=CFG_SITE_NAME, ln=CFG_SITE_LANG, order="", doctype="", deletedI
         t += deleteSubmission(deletedId, deletedAction, deletedDoctype, u_email)
 
     # doctypes
-    res = run_sql("select ldocname,sdocname from sbmDOCTYPE order by ldocname")
+    res = run_sql("""select ldocname,sdocname from "sbmDOCTYPE" order by ldocname""")
     doctypes = []
     for row in res:
         doctypes.append({
@@ -73,34 +73,34 @@ def index(req, c=CFG_SITE_NAME, ln=CFG_SITE_LANG, order="", doctype="", deletedI
 
     # submissions
     # request order default value
-    reqorder = "sbmSUBMISSIONS.md DESC, lactname"
+    reqorder = """ "sbmSUBMISSIONS".md DESC, lactname"""
     # requested value
     if order == "actiondown":
-        reqorder = "lactname ASC, sbmSUBMISSIONS.md DESC"
+        reqorder = """lactname ASC, "sbmSUBMISSIONS".md DESC"""
     elif order == "actionup":
-        reqorder = "lactname DESC, sbmSUBMISSIONS.md DESC"
+        reqorder = """lactname DESC, "sbmSUBMISSIONS".md DESC"""
     elif order == "refdown":
-        reqorder = "reference ASC, sbmSUBMISSIONS.md DESC, lactname DESC"
+        reqorder = """reference ASC, "sbmSUBMISSIONS".md DESC, lactname DESC"""
     elif order == "refup":
-        reqorder = "reference DESC, sbmSUBMISSIONS.md DESC, lactname DESC"
+        reqorder = """reference DESC,  "sbmSUBMISSIONS".md DESC, lactname DESC"""
     elif order == "cddown":
-        reqorder = "sbmSUBMISSIONS.cd DESC, lactname"
+        reqorder = """ "sbmSUBMISSIONS".cd DESC, lactname"""
     elif order == "cdup":
-        reqorder = "sbmSUBMISSIONS.cd ASC, lactname"
+        reqorder = """ "sbmSUBMISSIONS".cd ASC, lactname"""
     elif order == "mddown":
-        reqorder = "sbmSUBMISSIONS.md DESC, lactname"
+        reqorder = """ "sbmSUBMISSIONS".md DESC, lactname"""
     elif order == "mdup":
-        reqorder = "sbmSUBMISSIONS.md ASC, lactname"
+        reqorder = """ "sbmSUBMISSIONS".md ASC, lactname"""
     elif order == "statusdown":
-        reqorder = "sbmSUBMISSIONS.status DESC, lactname"
+        reqorder = """ "sbmSUBMISSIONS".status DESC, lactname"""
     elif order == "statusup":
-        reqorder = "sbmSUBMISSIONS.status ASC, lactname"
+        reqorder = """ "sbmSUBMISSIONS".status ASC, lactname"""
     if doctype != "":
         docselect = " and doctype='%s' " % doctype
     else:
         docselect = ""
 
-    res = run_sql("SELECT sbmSUBMISSIONS.* FROM sbmSUBMISSIONS,sbmACTION WHERE sactname=action and email=%s and id!='' "+docselect+" ORDER BY doctype,"+reqorder,(u_email,))
+    res = run_sql("""SELECT "sbmSUBMISSIONS".* FROM "sbmSUBMISSIONS","sbmACTION" WHERE sactname=action and email=%s and id!='' """+docselect+" ORDER BY doctype,"+reqorder,(u_email,))
     currentdoctype = ""
     currentaction = ""
     currentstatus = ""
@@ -111,7 +111,7 @@ def index(req, c=CFG_SITE_NAME, ln=CFG_SITE_LANG, order="", doctype="", deletedI
             currentdoctype = row[1]
             currentaction = ""
             currentstatus = ""
-            res2 = run_sql("SELECT ldocname FROM sbmDOCTYPE WHERE  sdocname=%s",(currentdoctype,))
+            res2 = run_sql("""SELECT ldocname FROM "sbmDOCTYPE" WHERE  sdocname=%s""",(currentdoctype,))
             if res2:
                 ldocname = res2[0][0]
             else:
@@ -119,7 +119,7 @@ def index(req, c=CFG_SITE_NAME, ln=CFG_SITE_LANG, order="", doctype="", deletedI
 
         if currentaction != row[2]:
             currentaction = row[2]
-            res2 = run_sql("SELECT lactname FROM sbmACTION WHERE  sactname=%s",(currentaction,))
+            res2 = run_sql("""SELECT lactname FROM "sbmACTION" WHERE  sactname=%s""",(currentaction,))
             if res2:
                 lactname = res2[0][0]
             else:
@@ -168,8 +168,8 @@ def index(req, c=CFG_SITE_NAME, ln=CFG_SITE_LANG, order="", doctype="", deletedI
 
 def deleteSubmission(id, action, doctype, u_email):
     global CFG_WEBSUBMIT_STORAGEDIR
-    run_sql("delete from sbmSUBMISSIONS WHERE doctype=%s and action=%s and email=%s and status='pending' and id=%s", (doctype, action, u_email, id,))
-    res = run_sql("select dir from sbmACTION where sactname=%s", (action,))
+    run_sql("""delete from "sbmSUBMISSIONS" WHERE doctype=%s and action=%s and email=%s and status='pending' and id=%s""", (doctype, action, u_email, id,))
+    res = run_sql("""select dir from "sbmACTION" where sactname=%s""", (action,))
     dir = res[0][0]
     if not ('..' in doctype or '..' in id) and id != "":
         full = os.path.join(CFG_WEBSUBMIT_STORAGEDIR, dir, doctype, id)

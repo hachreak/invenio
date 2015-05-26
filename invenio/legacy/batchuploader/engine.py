@@ -29,7 +29,7 @@ import time
 import tempfile
 import re
 
-from invenio.legacy.dbquery import run_sql
+from invenio.legacy.dbquery import run_sql, datetime_format
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.legacy.webuser import collect_user_info, page_not_authorized
 from invenio.config import CFG_BINDIR, CFG_TMPSHAREDDIR, CFG_LOGDIR, \
@@ -231,8 +231,8 @@ def metadata_upload(req, metafile=None, filetype=None, mode=None, exec_date=None
     jobid = task_low_level_submission(*task_arguments)
 
     # write batch upload history
-    run_sql("""INSERT INTO hstBATCHUPLOAD (user, submitdate,
-            filename, execdate, id_schTASK, batch_mode)
+    run_sql("""INSERT INTO "hstBATCHUPLOAD" ("user", submitdate,
+            filename, execdate, "id_schTASK", batch_mode)
             VALUES (%s, NOW(), %s, %s, %s, "metadata")""",
             (user_info['nickname'], metafilename,
             exec_date != "" and (exec_date + ' ' + exec_time)
@@ -356,9 +356,9 @@ def document_upload(req=None, folder="", matching="", mode="", exec_date="", exe
             jobid = task_low_level_submission(*task_arguments)
 
             # write batch upload history
-            run_sql("""INSERT INTO hstBATCHUPLOAD (user, submitdate,
-                    filename, execdate, id_schTASK, batch_mode)
-                    VALUES (%s, NOW(), %s, %s, %s, "document")""",
+            run_sql("""INSERT INTO "hstBATCHUPLOAD" ("user", submitdate,
+                    filename, execdate, "id_schTASK", batch_mode)
+                    VALUES (%s, NOW(), %s, %s, %s, 'document')""",
                     (user_info['nickname'], docfile,
                     exec_date != "" and (exec_date + ' ' + exec_time)
                     or time.strftime("%Y-%m-%d %H:%M:%S"), str(jobid)))
@@ -374,24 +374,24 @@ def document_upload(req=None, folder="", matching="", mode="", exec_date="", exe
 def get_user_metadata_uploads(req):
     """Retrieve all metadata upload history information for a given user"""
     user_info = collect_user_info(req)
-    upload_list = run_sql("""SELECT DATE_FORMAT(h.submitdate, '%%Y-%%m-%%d %%H:%%i:%%S'), \
-                            h.filename, DATE_FORMAT(h.execdate, '%%Y-%%m-%%d %%H:%%i:%%S'), \
-                            s.status \
-                            FROM hstBATCHUPLOAD h INNER JOIN schTASK s \
-                            ON h.id_schTASK = s.id \
-                            WHERE h.user=%s and h.batch_mode='metadata'
+    upload_list = run_sql("""SELECT """ + datetime_format('h.submitdate') + \
+                            """, h.filename, """ + datetime_format('h.execdate') + \
+                            """, s.status \
+                            FROM "hstBATCHUPLOAD" h INNER JOIN "schTASK" s \
+                            ON h."id_schTASK" = s.id \
+                            WHERE h."user"=%s and h.batch_mode='metadata'
                             ORDER BY h.submitdate DESC""", (user_info['nickname'],))
     return upload_list
 
 def get_user_document_uploads(req):
     """Retrieve all document upload history information for a given user"""
     user_info = collect_user_info(req)
-    upload_list = run_sql("""SELECT DATE_FORMAT(h.submitdate, '%%Y-%%m-%%d %%H:%%i:%%S'), \
-                          h.filename, DATE_FORMAT(h.execdate, '%%Y-%%m-%%d %%H:%%i:%%S'), \
-                          s.status \
-                          FROM hstBATCHUPLOAD h INNER JOIN schTASK s \
-                          ON h.id_schTASK = s.id \
-                          WHERE h.user=%s and h.batch_mode='document'
+    upload_list = run_sql("""SELECT """ + datetime_format('h.submitdate') + \
+                            """, h.filename, """ + datetime_format('h.execdate') + \
+                            """, s.status \
+                          FROM "hstBATCHUPLOAD" h INNER JOIN "schTASK" s \
+                          ON h."id_schTASK" = s.id \
+                          WHERE h."user"=%s and h.batch_mode='document'
                           ORDER BY h.submitdate DESC""", (user_info['nickname'],))
     return upload_list
 

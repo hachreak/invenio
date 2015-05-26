@@ -74,7 +74,7 @@ def Send_Approval_Request (parameters, curdir, form, user_info=None):
        * directory: parameter used to create the URL to access the
                     files.
     """
-    global rn,sysno
+    global rn, sysno
     # variables declaration
     doctype = re.search(".*/([^/]*)/([^/]*)/[^/]*$",curdir).group(2)
     FROMADDR = '%s Submission Engine <%s>' % (CFG_SITE_NAME,CFG_SITE_SUPPORT_EMAIL)
@@ -115,7 +115,7 @@ def Send_Approval_Request (parameters, curdir, form, user_info=None):
     else:
         author = ""
     # we get the referee password
-    sth = run_sql("SELECT access FROM sbmAPPROVAL WHERE rn=%s", (rn,))
+    sth = run_sql("""SELECT access FROM "sbmAPPROVAL" WHERE rn=%s""", (rn,))
     if len(sth) >0:
         access = sth[0][0]
     # Build referee's email address

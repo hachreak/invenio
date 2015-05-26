@@ -53,7 +53,8 @@ from invenio.legacy.bibauthority.engine import get_index_strings_by_control_no,\
 from invenio.legacy.search_engine import perform_request_search, \
      get_synonym_terms, \
      search_pattern
-from invenio.legacy.dbquery import run_sql, wash_table_column_name
+from invenio.legacy.dbquery import run_sql, wash_table_column_name, \
+    truncate_table
 from invenio.legacy.bibindex.engine_washer import wash_index_term
 from invenio.legacy.bibsched.bibtask import task_init, write_message, get_datetime, \
     task_set_option, task_get_option, task_get_task_param, \
@@ -448,10 +449,10 @@ def truncate_index_table(index_name):
                       index_name, verbose=2)
         run_sql("""UPDATE "idxINDEX" SET last_updated='1900-01-01 00:00:00'
                    WHERE id=%s""", (index_id, ))
-        run_sql("TRUNCATE idxWORD%02dF" % index_id) # kwalitee: disable=sql
-        run_sql("TRUNCATE idxWORD%02dR" % index_id) # kwalitee: disable=sql
-        run_sql("TRUNCATE idxPHRASE%02dF" % index_id) # kwalitee: disable=sql
-        run_sql("TRUNCATE idxPHRASE%02dR" % index_id) # kwalitee: disable=sql
+        truncate_table("idxWORD%02dF" % index_id)
+        truncate_table("idxWORD%02dR" % index_id)
+        truncate_table("idxPHRASE%02dF" % index_id)
+        truncate_table("idxPHRASE%02dR" % index_id)
 
 
 def update_index_last_updated(indexes, starting_time=None):

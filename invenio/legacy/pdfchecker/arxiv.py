@@ -135,13 +135,13 @@ def store_arxiv_pdf_status(recid, status, version):
     if status not in valid_status:
         raise ValueError('invalid status %s' % status)
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    run_sql("""REPLACE INTO bibARXIVPDF (id_bibrec, status, date_harvested, version)
+    run_sql("""REPLACE INTO "bibARXIVPDF" (id_bibrec, status, date_harvested, version)
             VALUES (%s, %s, %s, %s)""", (recid, status, now, version))
 
 
 def fetch_arxiv_pdf_status(recid):
     """Fetch from the database the harvest status of given recid"""
-    ret = run_sql("""SELECT status, version FROM bibARXIVPDF
+    ret = run_sql("""SELECT status, version FROM "bibARXIVPDF"
                      WHERE id_bibrec = %s""", [recid])
     return ret and ret[0] or (None, None)
 
@@ -371,9 +371,9 @@ def fetch_updated_arxiv_records(date):
         return False
 
     # Fetch all records inserted since last run
-    sql = "SELECT `id`, `modification_date` FROM `bibrec` " \
-          "WHERE `modification_date` >= %s " \
-          "ORDER BY `modification_date`"
+    sql = """SELECT "id", "modification_date" FROM "bibrec"
+          WHERE "modification_date" >= %s
+          ORDER BY "modification_date" """
     records = run_sql(sql, [date.isoformat()])
     records = [(r, mod_date) for r, mod_date in records if check_arxiv(r)]
 

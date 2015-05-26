@@ -616,7 +616,7 @@ def add_journal(journal_name, xml_config):
         get_journal_id(journal_name)
     except InvenioWebJournalJournalIdNotFoundDBError:
         # Perfect, journal does not exist
-        res = run_sql("INSERT INTO jrnJOURNAL (name) VALUES(%s)", (journal_name,))
+        res = run_sql("""INSERT INTO "jrnJOURNAL" (name) VALUES(%s)""", (journal_name,))
         # Also save xml_config
         config_dir = '%s/webjournal/%s/' % (CFG_ETCDIR, journal_name)
         try:
@@ -657,7 +657,7 @@ def remove_journal(journal_name):
          -1 if could not be removed because journal name does not exist or
          -2 if could not be removed for other reasons
     """
-    run_sql("DELETE FROM jrnJOURNAL WHERE name=%s", (journal_name,))
+    run_sql("""DELETE FROM "jrnJOURNAL" WHERE name=%s""", (journal_name,))
 
 ######################## TIME / ISSUE FUNCTIONS ###############################
 
@@ -689,8 +689,8 @@ def release_journal_issue(publish_issues, journal_name, ln=CFG_SITE_LANG):
     # produce the DB lines
     for publish_issue in publish_issues:
         move_drafts_articles_to_ready(journal_name, publish_issue)
-        run_sql("INSERT INTO jrnISSUE (id_jrnJOURNAL, issue_number, issue_display) \
-                VALUES(%s, %s, %s)", (journal_id,
+        run_sql("""INSERT INTO "jrnISSUE" ("id_jrnJOURNAL", issue_number, issue_display)
+                VALUES(%s, %s, %s)""", (journal_id,
                                       publish_issue,
                                       issue_display))
     # set first issue to published
@@ -710,8 +710,8 @@ def delete_journal_issue(issue, journal_name, ln=CFG_SITE_LANG):
     (Not currently used)
     """
     journal_id = get_journal_id(journal_name, ln)
-    run_sql("DELETE FROM jrnISSUE WHERE issue_number=%s \
-            AND id_jrnJOURNAL=%s",(issue, journal_id))
+    run_sql("""DELETE FROM "jrnISSUE" WHERE issue_number=%s
+            AND "id_jrnJOURNAL"=%s""",(issue, journal_id))
 
     # update information in file (in case DB is down)
     journal_info_path = get_journal_info_path(journal_name)
@@ -734,9 +734,9 @@ def was_alert_sent_for_issue(issue, journal_name, ln):
          time tuple or False. Eg: (2008, 4, 25, 7, 58, 37, 4, 116, -1)
     """
     journal_id = get_journal_id(journal_name, ln)
-    date_announced = run_sql("SELECT date_announced FROM jrnISSUE \
-                                WHERE issue_number=%s \
-                                AND id_jrnJOURNAL=%s", (issue, journal_id))[0][0]
+    date_announced = run_sql("""SELECT date_announced FROM "jrnISSUE"
+                                WHERE issue_number=%s
+                                AND "id_jrnJOURNAL"=%s""", (issue, journal_id))[0][0]
     if date_announced == None:
         return False
     else:
@@ -755,9 +755,9 @@ def update_DB_for_alert(issue, journal_name, ln):
                    ln  -  language
     """
     journal_id = get_journal_id(journal_name, ln)
-    run_sql("UPDATE jrnISSUE set date_announced=NOW() \
-                WHERE issue_number=%s \
-                AND id_jrnJOURNAL=%s", (issue,
+    run_sql("""UPDATE "jrnISSUE" set date_announced=NOW()
+                WHERE issue_number=%s
+                AND "id_jrnJOURNAL"=%s""", (issue,
                                         journal_id))
 
 def release_journal_update(update_issue, journal_name, ln=CFG_SITE_LANG):
@@ -766,9 +766,9 @@ def release_journal_update(update_issue, journal_name, ln=CFG_SITE_LANG):
     """
     move_drafts_articles_to_ready(journal_name, update_issue)
     journal_id = get_journal_id(journal_name, ln)
-    run_sql("UPDATE jrnISSUE set date_released=NOW() \
-                WHERE issue_number=%s \
-                AND id_jrnJOURNAL=%s", (update_issue,
+    run_sql("""UPDATE "jrnISSUE" set date_released=NOW()
+                WHERE issue_number=%s
+                AND "id_jrnJOURNAL"=%s""", (update_issue,
                                         journal_id))
 
 def move_drafts_articles_to_ready(journal_name, issue):

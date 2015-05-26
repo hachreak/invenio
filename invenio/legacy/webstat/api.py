@@ -41,7 +41,7 @@ from invenio.legacy.bibindex.engine_utils import get_all_indexes
 from invenio.modules.indexer.tokenizers.BibIndexJournalTokenizer import CFG_JOURNAL_TAG
 from invenio.legacy.search_engine import get_coll_i18nname, \
     wash_index_term
-from invenio.legacy.dbquery import run_sql, wash_table_column_name
+from invenio.legacy.dbquery import run_sql, wash_table_column_name, check_table_exists
 from invenio.legacy.bibsched.cli import is_task_scheduled, \
     get_task_ids_by_descending_date, \
     get_task_options
@@ -540,7 +540,7 @@ def create_customevent(event_id=None, name=None, cols=[]):
                   "written without any non-standard characters."
 
     # Make sure the chosen id is not already taken
-    if len(run_sql("SELECT NULL FROM staEVENT WHERE id = %s",
+    if len(run_sql("""SELECT NULL FROM "staEVENT" WHERE id = %s""",
                    (event_id, ))) != 0:
         return "Event id [%s] already exists! Aborted." % event_id
 
@@ -561,14 +561,14 @@ def create_customevent(event_id=None, name=None, cols=[]):
         sql_param.append(cPickle.dumps(cols))
     else:
         sql_cols = "NULL"
-    run_sql("INSERT INTO staEVENT (id, name, cols) VALUES (%s, " + \
+    run_sql("""INSERT INTO "staEVENT" (id, name, cols) VALUES (%s, """ + \
                 sql_name + ", " + sql_cols + ")", tuple(sql_param))
 
     tbl_name = get_customevent_table(event_id)
 
     # Create a table for the new event
     sql_query = ["CREATE TABLE %s (" % wash_table_column_name(tbl_name)]
-    sql_query.append("id MEDIUMINT unsigned NOT NULL auto_increment,")
+    sql_query.append("id INT unsigned NOT NULL auto_increment,")
     sql_query.append("creation_time TIMESTAMP DEFAULT NOW(),")
     for argument in cols:
         arg = wash_table_column_name(argument)
@@ -615,11 +615,11 @@ def modify_customevent(event_id=None, name=None, cols=[]):
             return "Invalid column title: %s! Aborted." % argument
 
     res = run_sql("SELECT CONCAT('staEVENT', number), cols " + \
-                      "FROM staEVENT WHERE id = %s", (event_id, ))
+                      """FROM "staEVENT" WHERE id = %s""", (event_id, ))
     if not res:
         return "Invalid event id: %s! Aborted" % event_id
-    if not run_sql("SHOW TABLES LIKE %s", res[0][0]):
-        run_sql("DELETE FROM staEVENT WHERE id=%s", (event_id, ))
+    if not check_table_exists(res[0][0]):
+        run_sql("""DELETE FROM "staEVENT" WHERE id=%s""", (event_id, ))
         create_customevent(event_id, event_id, cols)
         return
     cols_orig = cPickle.loads(res[0][1])
@@ -666,7 +666,7 @@ def modify_customevent(event_id=None, name=None, cols=[]):
         run_sql("".join(sql_query))
 
     #modify event definition
-    sql_query = ["UPDATE staEVENT SET"]
+    sql_query = ["""UPDATE "staEVENT" SET"""]
     sql_param = []
     if cols_del or cols_add:
         sql_query.append("cols = %s")
@@ -701,13 +701,13 @@ def destroy_customevent(event_id=None):
         return "Please specify an existing event id."
 
     # Check if the specified id exists
-    if len(run_sql("SELECT NULL FROM staEVENT WHERE id = %s",
+    if len(run_sql("""SELECT NULL FROM "staEVENT" WHERE id = %s""",
                    (event_id, ))) == 0:
         return "Custom event ID '%s' doesn't exist! Aborted." % event_id
     else:
         tbl_name = get_customevent_table(event_id)
-        run_sql("DROP TABLE %s" % wash_table_column_name(tbl_name)) # kwalitee: disable=sql
-        run_sql("DELETE FROM staEVENT WHERE id = %s", (event_id, ))
+        run_sql("""DROP TABLE "%s" """ % wash_table_column_name(tbl_name)) # kwalitee: disable=sql
+        run_sql("""DELETE FROM "staEVENT" WHERE id = %s""", (event_id, ))
         return ("Custom event ID '%s' table '%s' was successfully destroyed.\n") \
                 % (event_id, tbl_name)
 
@@ -721,7 +721,7 @@ def destroy_customevents():
     """
     msg = ''
     try:
-        res = run_sql("SELECT id FROM staEVENT")
+        res = run_sql("""SELECT id FROM "staEVENT" """)
     except ProgrammingError:
         return msg
     for event in res:
@@ -744,7 +744,7 @@ def register_customevent(event_id, *arguments):
     @type *arguments: [params]
     """
     res = run_sql("SELECT CONCAT('staEVENT', number),cols " + \
-                      "FROM staEVENT WHERE id = %s", (event_id, ))
+                      """FROM "staEVENT" WHERE id = %s""", (event_id, ))
     if not res:
         return # the id does not exist
     tbl_name = res[0][0]
@@ -758,7 +758,7 @@ def register_customevent(event_id, *arguments):
     # Make sql query
     if len(arguments[0]) != 0:
         sql_param = []
-        sql_query = ["INSERT INTO %s (" % wash_table_column_name(tbl_name)]
+        sql_query = ["""INSERT INTO "%s" (""" % wash_table_column_name(tbl_name)]
         for title in col_titles:
             sql_query.append("`%s`" % title)
             sql_query.append(",")
@@ -773,7 +773,7 @@ def register_customevent(event_id, *arguments):
         sql_str = ''.join(sql_query)
         run_sql(sql_str, tuple(sql_param))
     else:
-        run_sql("INSERT INTO %s () VALUES ()" % wash_table_column_name(tbl_name)) # kwalitee: disable=sql
+        run_sql("""INSERT INTO "%s" () VALUES ()""" % wash_table_column_name(tbl_name)) # kwalitee: disable=sql
 
 
 def cache_keyevent_trend(ids=[]):
@@ -884,7 +884,7 @@ def basket_display():
         # custom event baskets not defined, so return empty output:
         return []
     try:
-        res = run_sql("SELECT creation_time FROM %s ORDER BY creation_time" % wash_table_column_name(tbl_name)) # kwalitee: disable=sql
+        res = run_sql("""SELECT creation_time FROM "%s" ORDER BY creation_time""" % wash_table_column_name(tbl_name)) # kwalitee: disable=sql
         days = (res[-1][0] - res[0][0]).days + 1
         public = run_sql("SELECT COUNT(*) FROM %s " % wash_table_column_name(tbl_name) + " WHERE action = 'display_public'")[0][0] # kwalitee: disable=sql
         users = run_sql("SELECT COUNT(DISTINCT user) FROM %s" % wash_table_column_name(tbl_name))[0][0] # kwalitee: disable=sql
@@ -913,15 +913,15 @@ def alert_display():
         # custom event alerts not defined, so return empty output:
         return []
     try:
-        res = run_sql("SELECT creation_time FROM %s ORDER BY creation_time"
+        res = run_sql("""SELECT creation_time FROM "%s" ORDER BY creation_time"""
                       % wash_table_column_name(tbl_name))
         days = (res[-1][0] - res[0][0]).days + 1
-        res = run_sql("SELECT COUNT(DISTINCT user),COUNT(*) FROM %s" % wash_table_column_name(tbl_name)) # kwalitee: disable=sql
+        res = run_sql("""SELECT COUNT(DISTINCT "user"),COUNT(*) FROM %s""" % wash_table_column_name(tbl_name)) # kwalitee: disable=sql
         users = res[0][0]
         hits = res[0][1]
-        displays = run_sql("SELECT COUNT(*) FROM %s WHERE action = 'list'"
+        displays = run_sql("""SELECT COUNT(*) FROM "%s" WHERE action = 'list'"""
                            % wash_table_column_name(tbl_name))[0][0]
-        search = run_sql("SELECT COUNT(*) FROM %s WHERE action = 'display'"
+        search = run_sql("""SELECT COUNT(*) FROM "%s" WHERE action = 'display'"""
                          % wash_table_column_name(tbl_name))[0][0]
         average = hits / days
 
@@ -1680,7 +1680,7 @@ def _get_customevents():
     @return: [(internal name, readable name)]
     @type: [(str, str)]
     """
-    return [(x[0], x[1]) for x in run_sql("SELECT id, name FROM staEVENT")]
+    return [(x[0], x[1]) for x in run_sql("""SELECT id, name FROM "staEVENT" """)]
 
 
 def _get_timespans(dttime=None, bibcirculation_stat=False):
@@ -1871,7 +1871,7 @@ def _get_customevent_cols(event_id=""):
     @return: {id: [(internal name, readable name)]}
     @type: {str: [(str, str)]}
     """
-    sql_str = "SELECT id,cols FROM staEVENT"
+    sql_str = """SELECT id,cols FROM "staEVENT" """
     sql_param = []
     if event_id:
         sql_str += "WHERE id = %s"

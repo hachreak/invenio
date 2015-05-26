@@ -338,11 +338,11 @@ class Test_swrCLIENTDATA_table(InvenioTestCase):
                                'https://arxiv.org/sword-app/edit/12340097.atom',
                                'http://arxiv.org/resolve/app/12340097'))
 
-        rows = run_sql('''SELECT id, id_swrREMOTESERVER, id_record, report_no,
+        rows = run_sql('''SELECT id, "id_swrREMOTESERVER", id_record, report_no,
                        id_remote, id_user, user_name, user_email, xml_media_deposit,
                        xml_metadata_submit, submission_date, publication_date, removal_date,
                        link_medias, link_metadata, link_status, status, last_update
-                       FROM swrCLIENTDATA''')
+                       FROM "swrCLIENTDATA"''')
 
         for row in rows:
             self.assertEqual(row[0] in self.id_tests, True)
@@ -384,11 +384,11 @@ class Test_swrCLIENTDATA_table(InvenioTestCase):
         update_submission_status(self.id_tests[1], CFG_SUBMISSION_STATUS_PUBLISHED, '1007.0221')
         update_submission_status(self.id_tests[2], CFG_SUBMISSION_STATUS_REMOVED)
 
-        rows = run_sql('''SELECT id, id_swrREMOTESERVER, id_record, report_no,
+        rows = run_sql('''SELECT id, "id_swrREMOTESERVER", id_record, report_no,
                        id_remote, id_user, user_name, user_email, xml_media_deposit,
                        xml_metadata_submit, submission_date, publication_date, removal_date,
                        link_medias, link_metadata, link_status, status, last_update
-                       FROM swrCLIENTDATA''')
+                       FROM "swrCLIENTDATA"''')
         for row in rows:
             self.assertEqual(row[0] in self.id_tests, True)
             if row[0] == self.id_tests[0]:
@@ -430,7 +430,7 @@ class Test_swrCLIENTDATA_table(InvenioTestCase):
 
         results = select_submitted_record_infos()
 
-        self.assertEqual(len(results), run_sql('''SELECT COUNT(*) FROM swrCLIENTDATA''')[0][0])
+        self.assertEqual(len(results), run_sql('''SELECT COUNT(*) FROM "swrCLIENTDATA"''')[0][0])
         for result in results:
             self.assertEqual(result['id'] in self.id_tests, True)
             if result['id'] == self.id_tests[0]:
@@ -448,7 +448,7 @@ class Test_swrCLIENTDATA_table(InvenioTestCase):
 
         results = select_submitted_record_infos(4)
 
-        self.assertEqual(len(results), run_sql('''SELECT COUNT(*) FROM swrCLIENTDATA WHERE id_swrREMOTESERVER=4''')[0][0])
+        self.assertEqual(len(results), run_sql('''SELECT COUNT(*) FROM "swrCLIENTDATA" WHERE "id_swrREMOTESERVER"=4''')[0][0])
 
         for result in results:
             self.assertEqual(result['id'] in self.id_tests, True)
@@ -488,12 +488,12 @@ class Test_swrCLIENTDATA_table(InvenioTestCase):
     def test_zdelete_submission(self):
         '''test_delete_submission - check delete submission rows in swrCLIENTDATA'''
 
-        nb_rows_before = run_sql('''SELECT COUNT(*) FROM swrCLIENTDATA''')[0][0]
+        nb_rows_before = run_sql('''SELECT COUNT(*) FROM "swrCLIENTDATA"''')[0][0]
 
         for id_test in self.id_tests:
             delete_from_swr_clientdata(id_test)
 
-        nb_rows_after = run_sql('''SELECT COUNT(*) FROM swrCLIENTDATA''')[0][0]
+        nb_rows_after = run_sql('''SELECT COUNT(*) FROM "swrCLIENTDATA"''')[0][0]
 
         nb_rows = nb_rows_before - nb_rows_after
 
