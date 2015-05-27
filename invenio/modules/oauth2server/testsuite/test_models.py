@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2014 CERN.
+# Copyright (C) 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -19,9 +19,9 @@
 
 from __future__ import absolute_import, print_function
 
+from invenio.ext.sqlalchemy import db
 from invenio.testsuite import InvenioTestCase, make_test_suite, \
     run_test_suite
-from invenio.ext.sqlalchemy import db
 
 
 class OAuth2ModelsTestCase(InvenioTestCase):
@@ -61,6 +61,7 @@ class OAuth2ModelsTestCase(InvenioTestCase):
             _redirect_uris='',
             _default_scopes=""
         )
+        self.create_objects([c])
         self.assertIsNone(c.default_redirect_uri)
         self.assertEqual(c.redirect_uris, [])
         self.assertEqual(c.default_scopes, [])
@@ -70,15 +71,16 @@ class OAuth2ModelsTestCase(InvenioTestCase):
         self.assertEqual(c.default_scopes, ['test:scope1', 'test:scope2'])
         self.assertRaises(ScopeDoesNotExists,
                           c.__setattr__, 'default_scopes', ['invalid', ])
+        self.delete_objects([c])
 
     def test_token_scopes(self):
         from ..models import Client, Token
         from ..errors import ScopeDoesNotExists
 
         c = Client(
-            client_id='dev',
-            client_secret='dev',
-            name='dev',
+            client_id='dev2',
+            client_secret='dev2',
+            name='dev2',
             description='',
             is_confidential=False,
             user=self.objects[0],
@@ -97,11 +99,13 @@ class OAuth2ModelsTestCase(InvenioTestCase):
             _scopes='',
         )
         t.scopes = ['test:scope1', 'test:scope2', 'test:scope2']
+        self.create_objects([c, t])
         self.assertEqual(t.scopes, ['test:scope1', 'test:scope2'])
         self.assertRaises(ScopeDoesNotExists,
                           t.__setattr__, 'scopes', ['invalid'])
         self.assertEqual(t.get_visible_scopes(),
                          ['test:scope1'])
+        self.delete_objects([c])
 
     def test_registering_invalid_scope(self):
         from ..registry import scopes as registry
