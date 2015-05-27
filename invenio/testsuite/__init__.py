@@ -48,6 +48,9 @@ from urllib import urlencode
 from itertools import chain, repeat
 from xml.dom.minidom import parseString
 
+from invenio.ext.sqlalchemy import db
+from invenio.ext.sqlalchemy.utils import session_manager
+
 try:
     from selenium import webdriver
     from selenium.webdriver.support.ui import WebDriverWait
@@ -210,6 +213,24 @@ class InvenioTestCase(TestCase):
     def shortDescription(self):
         """Return a short description of the test case."""
         return
+
+    @session_manager
+    def delete_objects(self, list_of_objects):
+        """Delete a list of objects from the database.
+
+        :param list_of_objects: list of objects to delete
+        """
+        for obj in list_of_objects:
+            db.session.delete(obj)
+
+    @session_manager
+    def create_objects(self, list_of_objects):
+        """Create a list of new objects into the database.
+
+        :param list_of_objects: list of objects to create
+        """
+        for obj in list_of_objects:
+            db.session.add(obj)
 
 
 class InvenioXmlTestCase(InvenioTestCase):
