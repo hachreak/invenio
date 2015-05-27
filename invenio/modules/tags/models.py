@@ -145,7 +145,7 @@ class WtgTAG(db.Model, Serializable):
     id_usergroup = db.Column(
         db.Integer(15, unsigned=True),
         db.ForeignKey(Usergroup.id),
-        server_default='0')
+        nullable=True)
 
     # Group access rights
     group_access_rights = db.Column(
