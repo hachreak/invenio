@@ -139,7 +139,7 @@ class SubmissionNameSearchService(ListLinksService):
         "Index" submission names
         """
         from invenio.legacy.websubmit.db_layer import get_categories_of_doctype
-        res = run_sql("SELECT sdocname, ldocname FROM sbmDOCTYPE")
+        res = run_sql("""SELECT sdocname, ldocname FROM "sbmDOCTYPE" """)
 
         # TODO: only consider submissions that are attached to the tree
 

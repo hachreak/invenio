@@ -22,11 +22,14 @@
 from __future__ import print_function
 
 import os
+
 import sys
+
 import warnings
-from itertools import count
 
 import pkg_resources
+
+from itertools import count
 
 from invenio.base.utils import run_py_func
 from invenio.ext.script import Manager
@@ -35,8 +38,6 @@ from invenio.ext.script import Manager
 warnings.warn("Use of `inveniomanage demosite populate` is being deprecated. "
               "Please use `uploader` module to insert demo records.",
               PendingDeprecationWarning)
-
-
 
 
 manager = Manager(usage=__doc__)
@@ -76,12 +77,13 @@ def populate(packages=[], default_data=True, files=None,
     from invenio.legacy.bibupload.engine import main as bibupload
     from invenio.legacy.bibindex.engine import main as bibindex
     from invenio.legacy.bibformat.bibreformat import main as bibreformat
-    from invenio.legacy.oairepository.updater import main as oairepositoryupdater
+    from invenio.legacy.oairepository.updater import \
+        main as oairepositoryupdater
     from invenio.legacy.bibsort.daemon import main as bibsort
     from invenio.legacy.bibdocfile.cli import main as bibdocfile
     from invenio.legacy.bibrank.cli import main as bibrank
 
-    ## Step 0: confirm deletion
+    # Step 0: confirm deletion
     wait_for_user(wrap_text_in_a_box(
         "WARNING: You are going to override data in tables!"
     ))
@@ -97,7 +99,7 @@ def populate(packages=[], default_data=True, files=None,
 
     from invenio.ext.sqlalchemy import db
     print(">>> Going to load demo records...")
-    db.session.execute("TRUNCATE schTASK")
+    db.session.execute("""TRUNCATE "schTASK" """)
     db.session.commit()
     if files is None:
         files = [pkg_resources.resource_filename(

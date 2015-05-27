@@ -28,19 +28,19 @@ def format_element(bfo, display='day_distinct_ip_nb_views'):
     '''
 
     if display == 'total_nb_views':
-        return run_sql("""SELECT COUNT(client_host) FROM rnkPAGEVIEWS
+        return run_sql("""SELECT COUNT(client_host) FROM "rnkPAGEVIEWS"
                            WHERE id_bibrec=%s""",
                        (bfo.recID,))[0][0]
     elif display == 'day_nb_views':
-        return run_sql("""SELECT COUNT(client_host) FROM rnkPAGEVIEWS
+        return run_sql("""SELECT COUNT(client_host) FROM "rnkPAGEVIEWS"
                            WHERE id_bibrec=%s AND DATE(view_time)=CURDATE()""",
                        (bfo.recID,))[0][0]
     elif display == 'total_distinct_ip_nb_views':
-        return run_sql("""SELECT COUNT(DISTINCT client_host) FROM rnkPAGEVIEWS
+        return run_sql("""SELECT COUNT(DISTINCT client_host) FROM "rnkPAGEVIEWS"
                            WHERE id_bibrec=%s""",
                        (bfo.recID,))[0][0]
     elif display == 'day_distinct_ip_nb_views':
-        return run_sql("""SELECT COUNT(DISTINCT client_host) FROM rnkPAGEVIEWS
+        return run_sql("""SELECT COUNT(DISTINCT client_host) FROM "rnkPAGEVIEWS"
                            WHERE id_bibrec=%s AND DATE(view_time)=CURDATE()""",
                        (bfo.recID,))[0][0]
     elif display == 'total_distinct_ip_per_day_nb_views':
@@ -49,7 +49,7 @@ def format_element(bfo, display='day_distinct_ip_nb_views'):
         # that several different users can be behind a single IP
         # (which could change every day)
         res = run_sql("""SELECT COUNT(DISTINCT client_host)
-                           FROM rnkPAGEVIEWS
+                           FROM "rnkPAGEVIEWS"
                           WHERE id_bibrec=%s GROUP BY DATE(view_time)""",
                       (bfo.recID,))
         return sum([row[0] for row in res])
