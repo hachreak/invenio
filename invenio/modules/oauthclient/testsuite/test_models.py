@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2014 CERN.
+# Copyright (C) 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -19,8 +19,8 @@
 
 from __future__ import absolute_import
 
-from invenio.testsuite import InvenioTestCase, make_test_suite, run_test_suite
 from invenio.ext.sqlalchemy import db
+from invenio.testsuite import InvenioTestCase, make_test_suite, run_test_suite
 
 
 class BaseTestCase(InvenioTestCase):
@@ -51,27 +51,47 @@ class RemoteAccountTestCase(BaseTestCase):
 
 
 class RemoteTokenTestCase(BaseTestCase):
+
+    def setUp(self):
+        """Create temporary users."""
+        from invenio.modules.accounts.models import User
+        # create temporary users
+        self.user_1 = User(nickname='testremotetoken1', password='test')
+        self.user_2 = User(nickname='testremotetoken2', password='test')
+        self.user_3 = User(nickname='testremotetoken3', password='test')
+        db.session.add(self.user_1)
+        db.session.add(self.user_2)
+        db.session.add(self.user_3)
+        db.session.commit()
+
+    def tearDown(self):
+        """Remove temporary users."""
+        db.session.delete(self.user_1)
+        db.session.delete(self.user_2)
+        db.session.delete(self.user_3)
+        db.session.commit()
+
     def test_get_create(self):
         from ..models import RemoteAccount, RemoteToken
 
-        t = RemoteToken.create(2, "dev", "mytoken", "mysecret")
+        t = RemoteToken.create(self.user_1.id, "dev", "mytoken", "mysecret")
         assert t
         assert t.token() == ('mytoken', 'mysecret')
 
-        acc = RemoteAccount.get(2, "dev")
+        acc = RemoteAccount.get(self.user_1.id, "dev")
         assert acc
         assert t.remote_account.id == acc.id
         assert t.token_type == ''
 
         t2 = RemoteToken.create(
-            2, "dev", "mytoken2", "mysecret2",
+            self.user_1.id, "dev", "mytoken2", "mysecret2",
             token_type='t2'
         )
         assert t2.remote_account.id == acc.id
         assert t2.token_type == 't2'
 
-        t3 = RemoteToken.get(2, "dev")
-        t4 = RemoteToken.get(2, "dev", token_type="t2")
+        t3 = RemoteToken.get(self.user_1.id, "dev")
+        t4 = RemoteToken.get(self.user_1.id, "dev", token_type="t2")
         assert t4.token() != t3.token()
 
         assert RemoteToken.query.count() == 2
@@ -81,13 +101,15 @@ class RemoteTokenTestCase(BaseTestCase):
     def test_get_regression(self):
         from ..models import RemoteToken
 
-        t3 = RemoteToken.create(3, "dev", "mytoken", "mysecret")
-        t4 = RemoteToken.create(4, "dev", "mytoken", "mysecret")
+        t3 = RemoteToken.create(self.user_2.id, "dev", "mytoken", "mysecret")
+        t4 = RemoteToken.create(self.user_3.id, "dev", "mytoken", "mysecret")
 
-        assert RemoteToken.get(3, "dev").remote_account.user_id == \
-            t3.remote_account.user_id
-        assert RemoteToken.get(4, "dev").remote_account.user_id == \
-            t4.remote_account.user_id
+        assert RemoteToken.get(
+            self.user_2.id,
+            "dev").remote_account.user_id == t3.remote_account.user_id
+        assert RemoteToken.get(
+            self.user_3.id,
+            "dev").remote_account.user_id == t4.remote_account.user_id
 
 
 TEST_SUITE = make_test_suite(RemoteAccountTestCase, RemoteTokenTestCase)

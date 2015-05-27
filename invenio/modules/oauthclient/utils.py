@@ -125,6 +125,6 @@ def oauth_link_external_id(user, external_id=None):
 
 def oauth_unlink_external_id(external_id):
     """Unlink a user from an external id."""
-    UserEXT.query.filter_by(id=external_id['id'],
+    UserEXT.query.filter_by(id=external_id['id'].encode('utf-8'),
                             method=external_id['method']).delete()
     db.session.commit()
