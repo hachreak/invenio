@@ -110,7 +110,6 @@ install_requires = [
     "mechanize>=0.2.5",
     "mistune>=0.4.1",
     "msgpack-python>=0.3",
-    "MySQL-python>=1.2.5",
     "numpy>=1.7",
     "nydus>=0.10.8",
     # pyparsing>=2.0.2 has a new api and is not compatible yet
@@ -188,6 +187,9 @@ extras_require = {
     ],
     "postgresql": [
         "psycopg2>=2.5",
+    ],
+    "mysql": [
+        "MySQL-python>=1.2.5",
     ],
     # Alternative XML parser
     #
