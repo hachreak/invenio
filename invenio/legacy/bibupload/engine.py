@@ -813,7 +813,7 @@ def insert_record_into_holding_pen(record, oai_id, pretend=False):
             bibrec_id = 0
 
     if not pretend:
-        run_sql(query, (oai_id, compress(xml_record), bibrec_id))
+        run_sql(query, (oai_id, compress(str(xml_record)), bibrec_id))
 
     # record_id is logged as 0! ( We are not inserting into the main database)
     log_record_uploading(oai_id, task_get_task_param('task_id', 0), 0, 'H', pretend=pretend)
@@ -1296,7 +1296,7 @@ def create_new_record(rec_id=None, pretend=False):
 def insert_bibfmt(id_bibrec, marc, bibformat, modification_date='1970-01-01 00:00:00', pretend=False):
     """Insert the format in the table bibfmt"""
     # compress the marc value
-    pickled_marc =  compress(marc)
+    pickled_marc =  compress(str(marc))
     try:
         time.strptime(modification_date, "%Y-%m-%d %H:%M:%S")
     except ValueError:
@@ -2332,7 +2332,7 @@ def update_bibfmt_format(id_bibrec, format_value, format_name, modification_date
     if nb_found == 1:
         # we are going to update the format
         # compress the format_value value
-        pickled_format_value =  compress(format_value)
+        pickled_format_value =  compress(str(format_value))
         # update the format:
         query = """UPDATE bibfmt SET last_updated=%s, value=%s WHERE id_bibrec=%s AND format=%s"""
         params = (modification_date, pickled_format_value, id_bibrec, format_name)

@@ -1028,7 +1028,7 @@ def task_get_options(task_id, task_name):
     res = run_sql("""SELECT arguments FROM "schTASK" WHERE id=%s AND proc LIKE %s""",
         (task_id, task_name+'%'))
     try:
-        out = marshal.loads(res[0][0])
+        out = marshal.loads(res[0][0]) if res else ''
     except ValueError:
         write_message("Error: %s task %d does not seem to exist."
             % (task_name, task_id), sys.stderr)
