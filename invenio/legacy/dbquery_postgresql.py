@@ -431,4 +431,4 @@ def regexp():
 
 def truncate_table(table_name):
     """truncade table."""
-    return run_sql("""TRUNCATE TABLE "%s" CASCADE""" % table_name)
+    return run_sql("""TRUNCATE TABLE "%s" RESTART IDENTITY CASCADE""" % table_name)

@@ -33,6 +33,7 @@ from itertools import count
 
 from invenio.base.utils import run_py_func
 from invenio.ext.script import Manager
+from invenio.legacy.dbquery import truncate_table
 
 
 warnings.warn("Use of `inveniomanage demosite populate` is being deprecated. "
@@ -97,10 +98,8 @@ def populate(packages=[], default_data=True, files=None,
     from werkzeug.utils import import_string
     map(import_string, packages)
 
-    from invenio.ext.sqlalchemy import db
     print(">>> Going to load demo records...")
-    db.session.execute("""TRUNCATE "schTASK" """)
-    db.session.commit()
+    truncate_table("schTASK")
     if files is None:
         files = [pkg_resources.resource_filename(
             'invenio',
