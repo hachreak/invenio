@@ -201,7 +201,7 @@ def get_all_indexes(virtual=True, with_ids=False):
         query = query % (with_ids and "id," or "")
     else:
         query = """SELECT %s w.name FROM "idxINDEX"  AS w
-                   WHERE w.id NOT IN (SELECT DISTINCT id_virtual FROM idxINDEX_idxINDEX)"""
+                   WHERE w.id NOT IN (SELECT DISTINCT id_virtual FROM "idxINDEX_idxINDEX")"""
         query = query % (with_ids and "w.id," or "")
     res = run_sql(query)
     if with_ids:
@@ -213,7 +213,7 @@ def get_all_indexes(virtual=True, with_ids=False):
 
 def get_all_virtual_indexes():
     """ Returns all defined 'virtual' indexes. """
-    query = """SELECT DISTINCT v.id_virtual, w.name FROM idxINDEX_idxINDEX AS v,
+    query = """SELECT DISTINCT v.id_virtual, w.name FROM "idxINDEX_idxINDEX" AS v,
                                                          "idxINDEX"  AS w
                WHERE v.id_virtual=w.id"""
     res = run_sql(query)
@@ -223,7 +223,7 @@ def get_all_virtual_indexes():
 def get_index_virtual_indexes(index_id):
     """Returns 'virtual' indexes that should be indexed together with
        given index."""
-    query = """SELECT v.id_virtual, w.name  FROM idxINDEX_idxINDEX AS v,
+    query = """SELECT v.id_virtual, w.name  FROM "idxINDEX_idxINDEX" AS v,
                                                  "idxINDEX"  AS w
                WHERE v.id_virtual=w.id AND
                      v.id_normal=%s"""
@@ -233,7 +233,7 @@ def get_index_virtual_indexes(index_id):
 
 def is_index_virtual(index_id):
     """Checks if index is virtual"""
-    query = """SELECT id_virtual FROM idxINDEX_idxINDEX
+    query = """SELECT id_virtual FROM "idxINDEX_idxINDEX"
                WHERE id_virtual=%s"""
     res = run_sql(query, (index_id,))
     if res:
@@ -259,7 +259,7 @@ def get_virtual_index_building_blocks(index_id):
        If index_id is an id of normal index (not virtual) returns
        empty tuple.
        """
-    query = """SELECT v.id_normal, w.name FROM idxINDEX_idxINDEX AS v,
+    query = """SELECT v.id_normal, w.name FROM "idxINDEX_idxINDEX" AS v,
                                                "idxINDEX"  AS w
                WHERE v.id_normal=w.id AND
                      v.id_virtual=%s"""
@@ -333,7 +333,7 @@ def get_marc_tag_indexes(tag, virtual=True):
         if virtual:
             response = list(res)
             index_ids = map(str, zip(*res)[0])
-            query = """SELECT DISTINCT v.id_virtual,w.name FROM idxINDEX_idxINDEX AS v,
+            query = """SELECT DISTINCT v.id_virtual,w.name FROM "idxINDEX_idxINDEX" AS v,
                                                                 "idxINDEX"  as w
                        WHERE v.id_virtual=w.id AND
                              v.id_normal IN ("""
@@ -370,7 +370,7 @@ def get_nonmarc_tag_indexes(nonmarc_tag, virtual=True):
         if virtual:
             response = list(res)
             index_ids = map(str, zip(*res)[0])
-            query = """SELECT DISTINCT v.id_virtual,w.name FROM idxINDEX_idxINDEX AS v,
+            query = """SELECT DISTINCT v.id_virtual,w.name FROM "idxINDEX_idxINDEX" AS v,
                                                                 "idxINDEX"  as w
                        WHERE v.id_virtual=w.id AND
                              v.id_normal IN ("""
@@ -451,7 +451,7 @@ def get_records_range_for_index(index_id):
         Get records range for given index.
     """
     try:
-        query = """SELECT min(id_bibrec), max(id_bibrec) FROM idxWORD%02dR""" % index_id
+        query = """SELECT min(id_bibrec), max(id_bibrec) FROM "idxWORD%02dR";""" % index_id
         resp = run_sql(query)
         if resp:
             return resp[0]

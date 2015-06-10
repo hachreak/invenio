@@ -73,7 +73,7 @@ def get_set_definitions(set_spec):
     """
     set_definitions = []
 
-    query = """select "setName", "setDefinition" from "oaiREPOSITORY" where setSpec=%s"""
+    query = """select "setName", "setDefinition" from "oaiREPOSITORY" where "setSpec"=%s"""
     res = run_sql(query, (set_spec, ))
 
     for (set_name, set_definition) in res:
