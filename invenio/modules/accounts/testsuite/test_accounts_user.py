@@ -23,23 +23,43 @@ from invenio.testsuite import InvenioTestCase, make_test_suite, run_test_suite
 
 
 class UserTestCase(InvenioTestCase):
+
     """Test User class."""
 
     def test_note_is_converted_to_string(self):
+        """Note is converted to string."""
         from invenio.modules.accounts.models import User
         u = User(email="test@test.pl", password="")
         u.note = 2
         self.assertTrue(isinstance(u.note, str))
 
     def test_verify_email_works_with_numbers_and_strings(self):
+        """Verify email works with numbers and strings."""
         from invenio.modules.accounts.models import User
+        from invenio.modules.accounts.helpers import verify_email
         u = User(email="test@test.pl", password="")
         u.note = 2
-        self.assertTrue(u.verify_email())
+        self.assertTrue(verify_email(u))
 
         u2 = User(email="test2@test2.pl", password="")
         u2.note = "2"
-        self.assertTrue(u2.verify_email())
+        self.assertTrue(verify_email(u2))
+
+    def test_verify_email(self):
+        """Check email."""
+        from invenio.modules.accounts.models import User
+        self.assertRaises(
+            AssertionError,
+            lambda: User(nickname='testverifyemail', email='wrong.email',
+                         password='testverifyemail'))
+
+    def test_verify_nickname(self):
+        """Check nickname."""
+        from invenio.modules.accounts.models import User
+        self.assertFalse(User.check_nickname(''))
+        self.assertFalse(User.check_nickname('mynick '))
+        self.assertFalse(User.check_nickname(' mynick'))
+        self.assertFalse(User.check_nickname('myni@ck'))
 
 
 TEST_SUITE = make_test_suite(UserTestCase)

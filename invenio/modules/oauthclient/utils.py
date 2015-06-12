@@ -27,6 +27,7 @@ from invenio.base.globals import cfg
 from invenio.ext.login import UserInfo, authenticate
 from invenio.ext.sqlalchemy import db
 from invenio.modules.accounts.models import User, UserEXT
+from invenio.modules.accounts.helpers import verify_email
 
 from .models import RemoteAccount, RemoteToken
 
@@ -108,7 +109,7 @@ def oauth_register(account_info, form_data=None):
 
             # verify the email
             if cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT']:
-                u.verify_email()
+                verify_email(u)
 
             return UserInfo(u.id)
 

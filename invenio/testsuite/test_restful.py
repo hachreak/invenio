@@ -94,7 +94,7 @@ class DecoratorsTestCase(InvenioTestCase):
 
         # Create a user
         self.user = User(
-            email='info@invenio-software.org', nickname='tester'
+            email='test@example.com', nickname='tester'
         )
         self.user.password = "tester"
         db.session.add(self.user)
@@ -231,7 +231,7 @@ class RestfulPaginationTestCase(InvenioTestCase):
 
         # Create a user
         self.user = User(
-            email='info@invenio-software.org', nickname='tester'
+            email='test@example.com', nickname='tester'
         )
         self.user.password = "tester"
         db.session.add(self.user)
@@ -498,7 +498,7 @@ class RestfulSQLAlchemyPaginationTestCase(InvenioTestCase):
 
         # Create a user
         self.user = User(
-            email='info@invenio-software.org', nickname='tester'
+            email='test@example.com', nickname='tester'
         )
         self.user.password = "tester"
         db.session.add(self.user)

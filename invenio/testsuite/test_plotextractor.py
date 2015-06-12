@@ -25,7 +25,6 @@ __revision__ = "$Id$"
 from invenio.base.wrappers import lazy_import
 from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
 
-assemble_caption = lazy_import('invenio.utils.plotextractor.cli:assemble_caption')
 find_open_and_close_braces = lazy_import('invenio.utils.plotextractor.cli:find_open_and_close_braces')
 intelligently_find_filenames = lazy_import('invenio.utils.plotextractor.cli:intelligently_find_filenames')
 put_it_together = lazy_import('invenio.utils.plotextractor.cli:put_it_together')
@@ -271,6 +270,7 @@ class TestAssembleCaption(InvenioTestCase):
 
     def test_simple_test(self):
         """plotextractor - assemble caption simple"""
+        from invenio.utils.plotextractor.cli import assemble_caption
         lines = ['some', 'simple ', 'caption!']
 
         caption = assemble_caption(0, 0, 2, 8, lines)
@@ -279,6 +279,7 @@ class TestAssembleCaption(InvenioTestCase):
 
     def test_clean_out_label_test(self):
         """plotextractor - assemble caption clean out label"""
+        from invenio.utils.plotextractor.cli import assemble_caption
         lines = ['some', '\\label{aghhhh}simple ', 'caption!']
 
         caption = assemble_caption(0, 0, 2, 8, lines)

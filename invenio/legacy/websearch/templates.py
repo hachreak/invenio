@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+#
 # This file is part of Invenio.
 # Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
 #               2015 CERN.
@@ -22,63 +22,43 @@
 
 __revision__ = "$Id$"
 
-import time
 import cgi
-import string
-import re
 import locale
-from six import iteritems
+import re
+import string
+import time
 from urllib import quote, urlencode
 from xml.sax.saxutils import escape as xml_escape
 
-from invenio.config import \
-     CFG_WEBSEARCH_LIGHTSEARCH_PATTERN_BOX_WIDTH, \
-     CFG_WEBSEARCH_SIMPLESEARCH_PATTERN_BOX_WIDTH, \
-     CFG_WEBSEARCH_ADVANCEDSEARCH_PATTERN_BOX_WIDTH, \
-     CFG_WEBSEARCH_AUTHOR_ET_AL_THRESHOLD, \
-     CFG_WEBSEARCH_USE_ALEPH_SYSNOS, \
-     CFG_WEBSEARCH_SPLIT_BY_COLLECTION, \
-     CFG_WEBSEARCH_DEF_RECORDS_IN_GROUPS, \
-     CFG_BIBRANK_SHOW_READING_STATS, \
-     CFG_BIBRANK_SHOW_DOWNLOAD_STATS, \
-     CFG_BIBRANK_SHOW_DOWNLOAD_GRAPHS, \
-     CFG_BIBRANK_SHOW_CITATION_STATS, \
-     CFG_BIBRANK_SHOW_CITATION_GRAPHS, \
-     CFG_WEBSEARCH_RSS_TTL, \
-     CFG_SITE_LANG, \
-     CFG_SITE_NAME, \
-     CFG_SITE_NAME_INTL, \
-     CFG_VERSION, \
-     CFG_SITE_SUPPORT_EMAIL, \
-     CFG_SITE_ADMIN_EMAIL, \
-     CFG_CERN_SITE, \
-     CFG_INSPIRE_SITE, \
-     CFG_WEBSEARCH_DEFAULT_SEARCH_INTERFACE, \
-     CFG_WEBSEARCH_MAX_RECORDS_IN_GROUPS, \
-     CFG_BIBINDEX_CHARS_PUNCTUATION, \
-     CFG_WEBCOMMENT_ALLOW_COMMENTS, \
-     CFG_WEBCOMMENT_ALLOW_REVIEWS, \
-     CFG_WEBSEARCH_WILDCARD_LIMIT, \
-     CFG_WEBSEARCH_SHOW_COMMENT_COUNT, \
-     CFG_WEBSEARCH_SHOW_REVIEW_COUNT, \
-     CFG_SITE_RECORD, \
-     CFG_WEBSEARCH_PREV_NEXT_HIT_LIMIT, \
-     CFG_BASE_URL, \
-     CFG_SITE_URL, \
-     CFG_WEBSEARCH_PREV_NEXT_HIT_FOR_GUESTS, \
-     CFG_WEBSEARCH_RESULTS_OVERVIEW_MAX_COLLS_TO_PRINT
-from invenio.legacy.dbquery import run_sql
-from invenio.base.i18n import gettext_set_language
+from flask import session
+from six import iteritems
+
 from invenio.base.globals import cfg
-from invenio.utils.url import make_canonical_urlargd, drop_default_urlargd, create_html_link, create_url
-from invenio.utils.html import nmtoken_from_string
+from invenio.base.i18n import gettext_set_language
+from invenio.config import CFG_BASE_URL, CFG_BIBINDEX_CHARS_PUNCTUATION, \
+    CFG_BIBRANK_SHOW_CITATION_GRAPHS, CFG_BIBRANK_SHOW_CITATION_STATS, \
+    CFG_BIBRANK_SHOW_DOWNLOAD_GRAPHS, CFG_BIBRANK_SHOW_DOWNLOAD_STATS, \
+    CFG_BIBRANK_SHOW_READING_STATS, CFG_CERN_SITE, \
+    CFG_SITE_ADMIN_EMAIL, CFG_SITE_LANG, CFG_SITE_NAME, CFG_SITE_NAME_INTL, \
+    CFG_SITE_RECORD, CFG_SITE_SUPPORT_EMAIL, CFG_SITE_URL, CFG_VERSION, \
+    CFG_WEBSEARCH_ADVANCEDSEARCH_PATTERN_BOX_WIDTH, \
+    CFG_WEBSEARCH_AUTHOR_ET_AL_THRESHOLD, \
+    CFG_WEBSEARCH_DEFAULT_SEARCH_INTERFACE, \
+    CFG_WEBSEARCH_LIGHTSEARCH_PATTERN_BOX_WIDTH, \
+    CFG_WEBSEARCH_MAX_RECORDS_IN_GROUPS, \
+    CFG_WEBSEARCH_PREV_NEXT_HIT_FOR_GUESTS, \
+    CFG_WEBSEARCH_PREV_NEXT_HIT_LIMIT, \
+    CFG_WEBSEARCH_RSS_TTL, \
+    CFG_WEBSEARCH_SIMPLESEARCH_PATTERN_BOX_WIDTH, \
+    CFG_WEBSEARCH_SPLIT_BY_COLLECTION, \
+    CFG_WEBSEARCH_WILDCARD_LIMIT
 from invenio.ext.legacy.handler import wash_urlargd
-from invenio.legacy.webuser import session_param_get
-from invenio.modules.formatter import format_record
-
-from intbitset import intbitset
-
 from invenio.legacy.bibrecord import get_fieldvalues
+from invenio.legacy.dbquery import run_sql
+from invenio.modules.formatter import format_record
+from invenio.utils.html import nmtoken_from_string
+from invenio.utils.url import create_html_link, create_url, \
+    drop_default_urlargd, make_canonical_urlargd
 
 _RE_PUNCTUATION = re.compile(CFG_BIBINDEX_CHARS_PUNCTUATION)
 _RE_SPACES = re.compile(r"\s+")
@@ -3738,8 +3718,8 @@ class Template:
             return ''
 
         # search for a specific record having not done any search before
-        wlq = session_param_get(req, 'websearch-last-query', '')
-        wlqh = session_param_get(req, 'websearch-last-query-hits')
+        wlq = session.get('websearch-last-query', '')
+        wlqh = session.get('websearch-last-query-hits')
 
         out = '''<br/><br/><div align="right">'''
         # excedeed limit CFG_WEBSEARCH_PREV_NEXT_HIT_LIMIT,
@@ -4431,3 +4411,4 @@ class Template:
             if default_values:
                 default_args[item] = default_values[1]
         return default_args
+

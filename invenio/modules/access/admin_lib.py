@@ -30,27 +30,30 @@ import re
 
 from cgi import escape
 
+from flask import flash, redirect, url_for
+from flask_login import current_user
+
 from invenio.base.i18n import gettext_set_language
 from invenio.base.globals import cfg
 from invenio.ext.email import send_email
+from invenio.ext.sqlalchemy import db
 from invenio.legacy.bibrank.adminlib import addadminbox, addcheckboxes, \
     createhiddenform, tupletotable, tupletotable_onlyselected
 from invenio.legacy.dbquery import rlike, run_sql, wash_table_column_name
 from invenio.legacy.webpage import page
-from invenio.legacy.webuser import email_valid_p, getUid, \
-    get_user_preferences, isGuestUser, page_not_authorized, \
-    set_user_preferences, update_Uid
-from invenio.modules.access import control as acca
-from invenio.modules.access import engine as acce
+from invenio.modules.access import control as acca, engine as acce
 from invenio.modules.access.errors import InvenioWebAccessFireroleError
 from invenio.modules.access.firerole import compile_role_definition, serialize
 from invenio.modules.access.local_config import \
-    CFG_ACC_EMPTY_ROLE_DEFINITION_SRC, CFG_EXTERNAL_AUTHENTICATION, \
-    CFG_EXTERNAL_AUTH_DEFAULT, DELEGATEADDUSERROLE, MAXPAGEUSERS, \
-    MAXSELECTUSERS, SUPERADMINROLE, WEBACCESSACTION
+    CFG_ACC_EMPTY_ROLE_DEFINITION_SRC, \
+    CFG_EXTERNAL_AUTH_DEFAULT, CFG_EXTERNAL_AUTHENTICATION, \
+    DELEGATEADDUSERROLE, MAXPAGEUSERS, MAXSELECTUSERS, SUPERADMINROLE, \
+    WEBACCESSACTION
+from invenio.modules.accounts.helpers import flask_set_uid
+from invenio.modules.accounts.models import User, get_default_user_preferences
 from invenio.utils.url import redirect_to_url
 
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import DBAPIError, OperationalError
 
 
 def index(req, title='', body='', subtitle='', adminarea=2, authorized=0,
@@ -106,7 +109,7 @@ def index(req, title='', body='', subtitle='', adminarea=2, authorized=0,
                 '<a class="navtrail" href=%s/admin/webaccess/webaccessadmin.py' \
                 '/listgroups>List Groups</a> ' % (cfg['CFG_SITE_SECURE_URL'], )
 
-    id_user = getUid(req)
+    id_user = current_user.get_id()
     (auth_code, auth_message) = is_adminuser(req)
     if not authorized and auth_code != 0:
         return mustloginpage(req, auth_message)
@@ -127,12 +130,8 @@ def index(req, title='', body='', subtitle='', adminarea=2, authorized=0,
 
 def mustloginpage(req, message):
     """show a page asking the user to login."""
-    navtrail_previous_links = '<a class="navtrail" href="%s/admin/">' \
-        'Admin Area</a> &gt; <a class="navtrail" href="%s/admin/webaccess/">' \
-        'WebAccess Admin</a> ' % (cfg['CFG_SITE_SECURE_URL'], cfg['CFG_SITE_SECURE_URL'])
-
-    return page_not_authorized(req=req, text=message,
-                               navtrail=navtrail_previous_links)
+    flash(message)
+    redirect(url_for("webaccount.login"))
 
 
 def is_adminuser(req):
@@ -861,7 +860,7 @@ def perform_createaccount(req, email='', password='', callback='yes',
                                confirm=1,
                                button="Create")
 
-    if confirm in [1, "1"] and email and email_valid_p(email):
+    if confirm in [1, "1"] and email and check_email(email):
         res = run_sql("""SELECT email FROM "user" WHERE email=%s""", (email,))
         if not res:
             from invenio.modules.accounts.models import User
@@ -925,8 +924,7 @@ def perform_modifyaccountstatus(req, userID, email_user_pattern, limit_to,
 
         elif res[0][2] in [1, "1"]:
             run_sql("""UPDATE "user" SET note=0 WHERE id=%s""", (userID, ))
-            output += """<b><span class="info">The account '%s' has been set inactive.</span></b>""" % res[
-                0][1]
+            output += """<b><span class="info">The account '%s' has been set inactive.</span></b>""" % res[0][1]
     else:
         output += '<b><span class="info">The account id given does not exist.</span></b>'
 
@@ -1026,7 +1024,8 @@ def perform_becomeuser(req, userID='', callback='yes', confirm=0):
     res = run_sql("""SELECT email FROM "user" WHERE id=%s""", (userID, ))
     output = ""
     if res:
-        update_Uid(req, res[0][0])
+        uid = res[0][0]
+        flask_set_uid(uid)
         redirect_to_url(req, cfg['CFG_SITE_SECURE_URL'])
     else:
         output += '<b><span class="info">The account id given does not exist.</span></b>'
@@ -1075,7 +1074,7 @@ def perform_modifylogindata(req, userID, nickname='', email='', password='',
                                    userID=userID,
                                    confirm=1,
                                    button="Modify")
-        if confirm in [1, "1"] and email and email_valid_p(email):
+        if confirm in [1, "1"] and email and check_email(email):
             res = run_sql(
                 """SELECT nickname FROM "user" WHERE nickname=%s AND id<>%s""", (nickname, userID))
             if res:
@@ -1123,11 +1122,22 @@ def perform_modifypreferences(req, userID, login_method='', callback='yes',
     res = run_sql("""SELECT id, email FROM "user" WHERE id=%s""", (userID, ))
     output = ""
     if res:
-        user_pref = get_user_preferences(userID)
+        user = User.query.get(userID)
+        if user is not None:
+            user_pref = user.settings
+        else:
+            user_pref = get_default_user_preferences()
         if confirm in [1, "1"]:
             if login_method:
                 user_pref['login_method'] = login_method
-                set_user_preferences(userID, user_pref)
+
+                user2modify = User.query.filter_by(id=userID).first_or_404()
+                user2modify.settings = user_pref
+                db.session.merge(user2modify)
+                try:
+                    db.session.commit()
+                except DBAPIError:
+                    db.session.rollback()
 
         output += "Select default login method:<br />"
         text = ""
@@ -1407,8 +1417,7 @@ def perform_modifyaccounts(req, email_user_pattern='', limit_to=-1,
 def perform_delegate_startarea(req):
     """start area for lower level delegation of rights."""
     # refuse access to guest users:
-    uid = getUid(req)
-    if isGuestUser(uid):
+    if current_user.is_guest:
         return index(req=req,
                      title='Delegate Rights',
                      adminarea=0,
@@ -1590,7 +1599,7 @@ def perform_delegate_adduserrole(req, id_role=0, email_user_pattern='',
     rlike_op = rlike()
 
     # finding the allowed roles for this user
-    id_admin = getUid(req)
+    id_admin = current_user.get_id()
     id_action = acca.acc_get_action_id(name_action=DELEGATEADDUSERROLE)
     actions = acca.acc_find_possible_actions_user(
         id_user=id_admin, id_action=id_action)
@@ -1756,7 +1765,7 @@ def perform_delegate_deleteuserrole(req, id_role=0, id_user=0, confirm=0):
     output = '<p>in progress...</p>'
 
     # finding the allowed roles for this user
-    id_admin = getUid(req)
+    id_admin = current_user.get_id()
     id_action = acca.acc_get_action_id(name_action=DELEGATEADDUSERROLE)
     actions = acca.acc_find_possible_actions_user(
         id_user=id_admin, id_action=id_action)
@@ -3942,4 +3951,5 @@ def send_account_deleted_message(new_account_email, send_to,
     body += "\n---------------------------------"
     body += "\n%s" % cfg['CFG_SITE_NAME']
 
-    return send_email(cfg['CFG_SITE_SUPPORT_EMAIL'], send_to, sub, body, header='')
+    return send_email(
+        cfg['CFG_SITE_SUPPORT_EMAIL'], send_to, sub, body, header='')

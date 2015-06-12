@@ -28,19 +28,20 @@ import os
 import shutil
 import cgi
 import re
+
 from datetime import datetime, timedelta
+
 from six import iteritems
 
 # Invenio imports:
 
+from invenio.ext.login import UserInfo
 from invenio.legacy.dbquery import run_sql, datetime_format
 from invenio.base.globals import cfg
 from invenio.utils.mail import \
     email_quote_txt, \
     email_quoted_txt2html
 from invenio.utils.html import tidy_html
-from invenio.legacy.webuser import get_user_info, get_email, collect_user_info
-from invenio.legacy.search_engine import get_collection_reclist
 from invenio.utils.date import convert_datetext_to_dategui, \
                             datetext_default, \
                             convert_datestruct_to_datetext
@@ -53,6 +54,7 @@ from .config import CFG_WEBCOMMENT_ACTION_CODE, \
     InvenioWebCommentWarning
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.modules.access.models import CmtRECORDCOMMENT
+from invenio.modules.accounts.models import User
 from invenio.legacy.search_engine import \
     guess_primary_collection_of_a_record, \
     check_user_can_view_record
@@ -133,7 +135,7 @@ def perform_request_display_comments_or_remarks(req, recID, display_order='od', 
     # CERN hack ends
 
     # Query the database and filter results
-    user_info = collect_user_info(uid)
+    user_info = UserInfo(uid)
     res = query_retrieve_comments_or_remarks(recID, display_order, display_since, reviews, user_info=user_info)
     # res2 = query_retrieve_comments_or_remarks(recID, display_order, display_since, not reviews, user_info=user_info)
     nb_res = len(res)
@@ -220,6 +222,7 @@ def perform_request_display_comments_or_remarks(req, recID, display_order='od', 
         last_page = 1
 
     # Add information regarding visibility of comment for user
+    user_info = UserInfo(uid)
     user_collapsed_comments = get_user_collapsed_comments_for_record(uid, recID)
     if reviews:
         res = [row[:] + (row[10] in user_collapsed_comments,) for row in res]
@@ -352,7 +355,7 @@ def check_user_can_comment(recID, client_ip_address, uid=-1):
     time limit: CFG_WEBCOMMENT_TIMELIMIT_PROCESSING_COMMENTS_IN_SECONDS
     @param recID: record id
     @param client_ip_address: IP => use: str(req.remote_ip)
-    @param uid: user id, as given by invenio.legacy.webuser.getUid(req)
+    @param uid: user id
     """
     recID = wash_url_argument(recID, 'int')
     client_ip_address = wash_url_argument(client_ip_address, 'str')
@@ -381,7 +384,7 @@ def check_user_can_review(recID, client_ip_address, uid=-1):
     time limit: CFG_WEBCOMMENT_TIMELIMIT_PROCESSING_REVIEWS_IN_SECONDS
     @param recID: record ID
     @param client_ip_address: IP => use: str(req.remote_ip)
-    @param uid: user id, as given by invenio.legacy.webuser.getUid(req)
+    @param uid: user id
     """
     action_code = CFG_WEBCOMMENT_ACTION_CODE['ADD_REVIEW']
     query = """SELECT id_bibrec
@@ -403,7 +406,7 @@ def check_user_can_vote(cmt_id, client_ip_address, uid=-1):
     """ Checks if a user hasn't already voted
     @param cmt_id: comment id
     @param client_ip_address: IP => use: str(req.remote_ip)
-    @param uid: user id, as given by invenio.legacy.webuser.getUid(req)
+    @param uid: user id
     """
     cmt_id = wash_url_argument(cmt_id, 'int')
     client_ip_address = wash_url_argument(client_ip_address, 'str')
@@ -535,7 +538,7 @@ def check_user_can_report(cmt_id, client_ip_address, uid=-1):
     """ Checks if a user hasn't already reported a comment
     @param cmt_id: comment id
     @param client_ip_address: IP => use: str(req.remote_ip)
-    @param uid: user id, as given by invenio.legacy.webuser.getUid(req)
+    @param uid: user id
     """
     cmt_id = wash_url_argument(cmt_id, 'int')
     client_ip_address = wash_url_argument(client_ip_address, 'str')
@@ -1081,7 +1084,7 @@ def get_user_subscription_to_discussion(recID, uid):
                - 1 if user is subscribed, and is allowed to unsubscribe
                - 2 if user is subscribed, but cannot unsubscribe
     """
-    user_email = get_email(uid)
+    user_email = User.query.get(uid).email
     (emails1, emails2) = get_users_subscribed_to_discussion(recID, check_authorizations=False)
     if user_email in emails1:
         return 1
@@ -1116,7 +1119,7 @@ def get_users_subscribed_to_discussion(recID, check_authorizations=True):
     for row in res:
         uid = row[0]
         if check_authorizations:
-            user_info = collect_user_info(uid)
+            user_info = UserInfo(uid)
             (auth_code, auth_msg) = check_user_can_view_comments(user_info, recID)
         else:
             # Don't check and grant access
@@ -1126,13 +1129,14 @@ def get_users_subscribed_to_discussion(recID, check_authorizations=True):
             # Delete subscription
             unsubscribe_user_from_discussion(recID, uid)
         else:
-            email = get_email(uid)
-            if '@' in email:
-                subscribers_emails[email] = True
+            user = User.query.get(uid)
+            if user and '@' in user.email:
+                subscribers_emails[user.email] = True
 
     # Get users automatically subscribed, based on the record metadata
     collections_with_auto_replies = cfg['CFG_WEBCOMMENT_EMAIL_REPLIES_TO'].keys()
     for collection in collections_with_auto_replies:
+        # FIXME get_collection_reclist removed in 66ad8455f25
         if recID in get_collection_reclist(collection):
             fields = cfg['CFG_WEBCOMMENT_EMAIL_REPLIES_TO'][collection]
             for field in fields:
@@ -1288,6 +1292,7 @@ def get_record_status(recid):
     for collection in collections_with_rounds:
         # Find the first collection defines rounds field for this
         # record
+        # FIXME get_collection_reclist removed in 66ad8455f25
         if recid in get_collection_reclist(collection):
             commenting_rounds = get_fieldvalues(recid, cfg['CFG_WEBCOMMENT_ROUND_DATAFIELD'].get(collection, ""))
             if commenting_rounds:
@@ -1299,6 +1304,7 @@ def get_record_status(recid):
     for collection in collections_with_restrictions:
         # Find the first collection that defines restriction field for
         # this record
+        # FIXME get_collection_reclist removed in 66ad8455f25
         if recid in get_collection_reclist(collection):
             restrictions = get_fieldvalues(recid, cfg['CFG_WEBCOMMENT_RESTRICTION_DATAFIELD'].get(collection, ""))
             if restrictions:
@@ -1561,7 +1567,6 @@ def perform_request_add_comment_or_remark(recID=0,
     if warnings is None:
         warnings = []
 
-    actions = ['DISPLAY', 'REPLY', 'SUBMIT']
     _ = gettext_set_language(ln)
 
     ## check arguments
@@ -1614,11 +1619,11 @@ def perform_request_add_comment_or_remark(recID=0,
             if comID > 0:
                 comment = query_get_comment(comID)
                 if comment:
-                    user_info = get_user_info(comment[2])
-                    if user_info:
+                    user = User.query.get(comment[2])
+                    if user:
                         date_creation = convert_datetext_to_dategui(str(comment[4]))
                         # Build two msg: one mostly textual, the other one with HTML markup, for the CkEditor.
-                        msg = _("%(x_name)s wrote on %(x_date)s:")% {'x_name': user_info[2], 'x_date': date_creation}
+                        msg = _("%(x_name)s wrote on %(x_date)s:")% {'x_name': user.nickname, 'x_date': date_creation}
                         textual_msg = msg
                         # 1 For CkEditor input
                         msg += '\n\n'

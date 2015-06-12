@@ -25,7 +25,15 @@ from flask_login import UserMixin
 
 from werkzeug.datastructures import CallbackDict, CombinedMultiDict
 
+from invenio.base.wrappers import lazy_import
 from invenio.ext.cache import cache
+from invenio.modules.accounts.models import User
+from invenio.modules.access.local_config import SUPERADMINROLE
+
+acc_firerole_check_user = lazy_import('invenio.modules.access.firerole:acc_firerole_check_user')
+load_role_definition = lazy_import('invenio.modules.access.firerole:load_role_definition')
+acc_get_role_id = lazy_import('invenio.modules.access.control:acc_get_role_id')
+
 
 __all__ = ('UserInfo', )
 
@@ -57,6 +65,20 @@ CFG_USER_DEFAULT_INFO = {
     'precached_canseehiddenmarctags': False,
     'precached_sendcomments': False,
 }
+
+
+def isUserAdmin(user_info):
+    """Return True if the user has some admin rights; False otherwise."""
+    user = User.query.get(user_info['uid'])
+    return user and user.has_admin_role
+
+def isUserSuperAdmin(user_info):
+    """Return True if the user is superadmin; False otherwise."""
+    user = User.query.get(user_info['uid'])
+    if user and user.has_super_admin_role:
+        return True
+    return acc_firerole_check_user(
+        user_info, load_role_definition(acc_get_role_id(SUPERADMINROLE)))
 
 
 class UserInfo(CombinedMultiDict, UserMixin):
@@ -184,8 +206,6 @@ class UserInfo(CombinedMultiDict, UserMixin):
         user_info = info
         user_info.update(self.req)
 
-        from invenio.legacy.webuser import isUserSubmitter, isUserReferee, \
-            isUserAdmin, isUserSuperAdmin
         from invenio.modules.access.engine import acc_authorize_action
         from invenio.modules.access.control import acc_get_role_id, \
             acc_is_user_in_role
@@ -205,11 +225,6 @@ class UserInfo(CombinedMultiDict, UserMixin):
             user_info, 'usegroups')[0] == 0
         data['precached_usemessages'] = acc_authorize_action(
             user_info, 'usemessages')[0] == 0
-        try:
-            data['precached_viewsubmissions'] = isUserSubmitter(user_info)
-        except Exception:
-            data['precached_viewsubmissions'] = None
-        data['precached_useapprove'] = isUserReferee(user_info)
         data['precached_useadmin'] = isUserAdmin(user_info)
         data['precached_usesuperadmin'] = isUserSuperAdmin(user_info)
         data['precached_canseehiddenmarctags'] = acc_authorize_action(

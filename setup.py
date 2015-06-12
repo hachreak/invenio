@@ -297,7 +297,6 @@ setup(
             'dbdump = invenio.legacy.miscutil.scripts.dbdump:main',
             'docextract = invenio.legacy.docextract.scripts.docextract:main',
             'gotoadmin = invenio.modules.redirector.scripts.redirector:main',
-            'inveniogc = invenio.legacy.websession.scripts.inveniogc:main',
             'oairepositoryupdater = '
             ' invenio.legacy.oairepository.scripts.oairepositoryupdater:main',
             'refextract = invenio.legacy.refextract.scripts.refextract:main',

@@ -21,10 +21,11 @@ Implements persistent URLs
 
 import inspect
 
+from flask_login import current_user
+
 from invenio.config import CFG_SITE_URL
 from invenio.ext.legacy.handler import WebInterfaceDirectory
 from invenio.ext.logging import register_exception
-from invenio.legacy.webuser import collect_user_info
 from invenio.modules.redirector.api import get_redirection_data
 from invenio.modules.redirector.registry import get_redirect_method
 from invenio.utils.apache import SERVER_RETURN, HTTP_NOT_FOUND
@@ -62,7 +63,7 @@ class WebInterfaceGotoPages(WebInterfaceDirectory):
                 if 'path' in params_to_pass:
                     params_to_pass['path'] = path
                 if 'user_info' in params_to_pass:
-                    params_to_pass['user_info'] = collect_user_info(req)
+                    params_to_pass['user_info'] = current_user
                 if 'req' in params_to_pass:
                     params_to_pass['req'] = req
                 try:

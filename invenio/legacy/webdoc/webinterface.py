@@ -28,10 +28,11 @@ import cgi
 
 from six import iteritems
 
+from flask_login import current_user
+
 from invenio.config import CFG_SITE_URL, CFG_SITE_LANG, CFG_SITE_LANGS
 from invenio.base.i18n import gettext_set_language
 from invenio.legacy.webpage import page
-from invenio.legacy.webuser import getUid
 from invenio.legacy.webdoc.api import get_webdoc_parts, get_webdoc_topics
 from invenio.ext.legacy.handler import wash_urlargd, WebInterfaceDirectory
 from invenio.utils.url import redirect_to_url
@@ -126,7 +127,7 @@ def display_webdoc_page(webdocname, categ="help", ln=CFG_SITE_LANG, req=None):
 
     _ = gettext_set_language(ln)
 
-    uid = getUid(req)
+    uid = current_user.get_id(req)
 
     # wash arguments:
     if not webdocname:

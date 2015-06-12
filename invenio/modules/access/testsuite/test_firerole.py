@@ -21,7 +21,6 @@
 
 __revision__ = "$Id$"
 
-
 from invenio.base.wrappers import lazy_import
 from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
 
@@ -29,7 +28,6 @@ acc_firerole_check_user = lazy_import('invenio.modules.access.firerole:acc_firer
 compile_role_definition = lazy_import('invenio.modules.access.firerole:compile_role_definition')
 deserialize = lazy_import('invenio.modules.access.firerole:deserialize')
 serialize = lazy_import('invenio.modules.access.firerole:serialize')
-collect_user_info = lazy_import('invenio.legacy.webuser:collect_user_info')
 
 
 class AccessControlFireRoleTest(InvenioTestCase):
@@ -37,10 +35,11 @@ class AccessControlFireRoleTest(InvenioTestCase):
 
     def setUp(self):
         """setting up helper variables for tests"""
+        from invenio.ext.login import UserInfo
         self.user_info = {'email' : 'foo.bar@cern.ch', 'uid': 1000,
             'group' : ['patata', 'cetriolo'], 'remote_ip' : '127.0.0.1',
             'guest' : '0'}
-        self.guest = collect_user_info(None)
+        self.guest = UserInfo(None)
 
     def test_compile_role_definition_empty(self):
         """firerole - compiling empty role definitions"""

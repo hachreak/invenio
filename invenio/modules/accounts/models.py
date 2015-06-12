@@ -25,16 +25,18 @@ from datetime import datetime
 
 from flask_login import current_user
 
+from invenio.base.globals import cfg
 from invenio.ext.passlib import password_context
 from invenio.ext.passlib.hash import invenio_aes_encrypted_email
 from invenio.ext.sqlalchemy import db
+from invenio.ext.sqlalchemy.utils import session_manager
 
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import validates
 
 from sqlalchemy_utils.types.choice import ChoiceType
 
 from .errors import AccountSecurityError, IntegrityUsergroupError
-from .helpers import send_account_activation_email
 from .signals import profile_updated
 
 
@@ -74,9 +76,9 @@ class User(db.Model):
     _note = db.Column(db.String(255), name="note", nullable=True)
     given_names = db.Column(db.String(255), nullable=False, server_default='')
     family_name = db.Column(db.String(255), nullable=False, server_default='')
-    settings = db.Column(db.MutableDict.as_mutable(db.MarshalBinary(
+    _settings = db.Column(db.MutableDict.as_mutable(db.MarshalBinary(
         default_value=get_default_user_preferences, force_type=dict)),
-        nullable=True)
+        nullable=True, name="settings")
     nickname = db.Column(db.String(255), nullable=False, server_default='',
                          index=True)
     last_login = db.Column(db.DateTime, nullable=False,
@@ -84,6 +86,22 @@ class User(db.Model):
 
     PROFILE_FIELDS = ['nickname', 'email', 'family_name', 'given_names']
     """List of fields that can be updated with update_profile."""
+
+    @db.hybrid_property
+    def settings(self):
+        """Get settings."""
+        return self._settings or get_default_user_preferences()
+
+    @settings.setter
+    def settings(self, value):
+        """Set settings."""
+        self._settings = value
+
+    def validate_nickname(self, key, nickname):
+        """Validate nickname."""
+        assert User.check_nickname(nickname)
+        assert not User.query.filter_by(nickname=nickname).first()
+        return nickname
 
     @staticmethod
     def check_nickname(nickname):
@@ -99,6 +117,13 @@ class User(db.Model):
         """Check if it's a valid email."""
         r = re.compile(r'(.)+\@(.)+\.(.)+')
         return bool(email) and r.match(email) and not email.find(" ") > 0
+
+    @validates('email')
+    def validate_email(self, key, email):
+        """Validate email address."""
+        assert User.check_email(email)
+        assert not User.query.filter_by(email=email).first()
+        return email
 
     @hybrid_property
     def note(self):
@@ -159,20 +184,6 @@ class User(db.Model):
 
         return True
 
-    def verify_email(self, force=False):
-        """Verify email address."""
-        if force or self.note == "2":
-            if self.note != "2":
-                self.note = 2
-                try:
-                    db.session.commit()
-                except Exception:
-                    db.session.rollback()
-                    raise
-            send_account_activation_email(self)
-            return True
-        return False
-
     def update_profile(self, data):
         """Update user profile.
 
@@ -226,6 +237,21 @@ class User(db.Model):
     def is_active(self):
         """Return True if use is active."""
         return self.note != "0"
+
+    @classmethod
+    @session_manager
+    def update_password(cls, user_id, new_password):
+        """Update the password for the user.
+
+        :param user_id: user id
+        :param new_password: the new password
+        """
+        if cfg['CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS'] < 3:
+            u = cls.query.filter_by(id=user_id).first()
+            if u:
+                u.password = new_password
+                db.session.merge(u)
+        return 1
 
 
 def get_groups_user_not_joined(id_user, group_name=None):

@@ -20,87 +20,70 @@
 
 __revision__ = "$Id"
 
-from datetime import datetime
-
-import re
-import zlib
+import cookielib
 import copy
+import json
+import re
+import sys
 import urllib
 import urllib2
-import cookielib
-import json
-import sys
+import zlib
+from datetime import datetime
 
-from flask import url_for
-from invenio.modules import formatter as bibformat
-
-from invenio.ext.logging import register_exception
-from invenio.utils.json import CFG_JSON_AVAILABLE
-from invenio.utils.url import auto_version_url
-from invenio.legacy.bibrecord.xmlmarc2textmarc import create_marc_record
-
-from invenio.config import (CFG_SITE_LANG,
-                            CFG_BIBCATALOG_SYSTEM_RT_URL,
-                            CFG_BIBEDIT_SHOW_HOLDING_PEN_REMOVED_FIELDS,
-                            CFG_BIBCATALOG_SYSTEM, CFG_BIBEDIT_AUTOCOMPLETE,
-                            CFG_BIBEDIT_AJAX_RESULT_CODES_REV)
-
-from invenio.legacy.bibedit.db_layer import get_name_tags_all, reserve_record_id, \
-    get_related_hp_changesets, get_hp_update_xml, delete_hp_change, \
-    get_record_last_modification_date, get_record_revision_author, \
-    get_marcxml_of_record_revision, delete_related_holdingpen_changes, \
-    get_record_revisions, get_info_of_record_revision, \
-    deactivate_cache
-
-from invenio.legacy.bibedit.utils import cache_exists, cache_expired, \
-    create_cache, delete_cache, get_bibrecord, \
-    get_cache_contents, get_cache_mtime, get_record_templates, \
-    get_record_template, latest_record_revision, record_locked_by_other_user, \
-    record_locked_by_queue, save_xml_record, touch_cache, \
-    update_cache_contents, get_field_templates, get_marcxml_of_revision, \
-    revision_to_timestamp, timestamp_to_revision, \
-    get_record_revision_timestamps, get_record_revision_authors, record_revision_exists, \
-    can_record_have_physical_copies, extend_record_with_template, \
-    replace_references, merge_record_with_template, record_xml_output, \
-    record_is_conference, add_record_cnum, get_xml_from_textmarc, \
-    record_locked_by_user_details, crossref_process_template, \
-    modify_record_timestamp, get_affiliation_for_paper, InvalidCache, \
-    get_new_ticket_RT_info
-
-from invenio.legacy.bibrecord import create_record, print_rec, record_add_field, \
-    record_add_subfield_into, record_delete_field, \
-    record_delete_subfield_from, \
-    record_modify_subfield, record_move_subfield, \
-    create_field, record_replace_field, record_move_fields, \
-    record_modify_controlfield, record_get_field_values, \
-    record_get_subfields, record_get_field_instances, record_add_fields, \
-    record_strip_empty_fields, record_strip_empty_volatile_subfields, \
-    record_strip_controlfields, record_order_subfields, \
-    field_add_subfield, field_get_subfield_values, record_extract_dois
-
-from invenio.config import CFG_BIBEDIT_PROTECTED_FIELDS, CFG_CERN_SITE, \
-    CFG_SITE_URL, CFG_SITE_RECORD, CFG_BIBEDIT_KB_SUBJECTS, \
-    CFG_INSPIRE_SITE, CFG_BIBUPLOAD_INTERNAL_DOI_PATTERN, \
-    CFG_BIBEDIT_INTERNAL_DOI_PROTECTION_LEVEL
-from invenio.legacy.search_engine import record_exists, perform_request_search, \
-    guess_primary_collection_of_a_record
-from invenio.legacy.webuser import session_param_get, session_param_set
-from invenio.legacy.bibcatalog.api import BIBCATALOG_SYSTEM
-from invenio.legacy.bibcatalog.system import get_bibcat_from_prefs
-from invenio.legacy.webpage import page
-from invenio.utils.html import get_mathjax_header
-from invenio.utils.text import wash_for_xml, show_diff
-from invenio.modules.knowledge.api import get_kbd_values_for_bibedit, get_kbr_values, \
-     get_kbt_items_for_bibedit, kb_exists
-
-from invenio.legacy.refextract.api import FullTextNotAvailable, \
-                                   get_pdf_doc, \
-                                   record_has_fulltext
-
-from invenio.legacy.bibrecord import xmlmarc2textmarc as xmlmarc2textmarc
-from invenio.utils.crossref import get_marcxml_for_doi, CrossrefError
+from flask import url_for, session
 
 from invenio.base.globals import cfg
+from invenio.config import CFG_BIBCATALOG_SYSTEM_RT_URL, \
+    CFG_BIBEDIT_AUTOCOMPLETE, CFG_BIBEDIT_INTERNAL_DOI_PROTECTION_LEVEL, \
+    CFG_BIBEDIT_KB_SUBJECTS, CFG_BIBEDIT_SHOW_HOLDING_PEN_REMOVED_FIELDS, \
+    CFG_CERN_SITE, CFG_INSPIRE_SITE, CFG_SITE_LANG, CFG_SITE_RECORD, \
+    CFG_SITE_URL, CFG_BIBCATALOG_SYSTEM, CFG_BIBEDIT_AJAX_RESULT_CODES_REV, \
+    CFG_BIBUPLOAD_INTERNAL_DOI_PATTERN
+from invenio.ext.logging import register_exception
+from invenio.legacy.bibcatalog.api import BIBCATALOG_SYSTEM
+from invenio.legacy.bibcatalog.system import get_bibcat_from_prefs
+from invenio.legacy.bibedit.db_layer import deactivate_cache, \
+    delete_hp_change, delete_related_holdingpen_changes, get_hp_update_xml, \
+    get_marcxml_of_record_revision, \
+    get_name_tags_all, get_record_last_modification_date, \
+    get_record_revision_author, get_record_revisions, \
+    get_related_hp_changesets, reserve_record_id
+from invenio.legacy.bibedit.utils import InvalidCache, add_record_cnum, \
+    cache_exists, cache_expired, can_record_have_physical_copies, \
+    create_cache, crossref_process_template, delete_cache, \
+    extend_record_with_template, get_affiliation_for_paper, get_bibrecord, \
+    get_cache_contents, get_cache_mtime, get_field_templates, \
+    get_marcxml_of_revision, get_new_ticket_RT_info, \
+    get_record_revision_authors, get_record_revision_timestamps, \
+    get_record_template, get_record_templates, get_xml_from_textmarc, \
+    latest_record_revision, merge_record_with_template, \
+    modify_record_timestamp, record_is_conference, \
+    record_locked_by_other_user, record_locked_by_queue, \
+    record_locked_by_user_details, record_revision_exists, record_xml_output, \
+    replace_references, revision_to_timestamp, save_xml_record, \
+    timestamp_to_revision, touch_cache, update_cache_contents
+from invenio.legacy.bibrecord import xmlmarc2textmarc as xmlmarc2textmarc
+from invenio.legacy.bibrecord import create_field, create_record, \
+    field_add_subfield, field_get_subfield_values, print_rec, \
+    record_add_field, record_add_fields, record_add_subfield_into, \
+    record_delete_field, record_delete_subfield_from, record_extract_dois, \
+    record_get_field_instances, record_get_field_values, \
+    record_get_subfields, record_modify_controlfield, record_modify_subfield, \
+    record_move_fields, record_move_subfield, record_order_subfields, \
+    record_replace_field, record_strip_controlfields, \
+    record_strip_empty_fields, record_strip_empty_volatile_subfields
+from invenio.legacy.refextract.api import FullTextNotAvailable, get_pdf_doc, \
+    record_has_fulltext
+from invenio.legacy.search_engine import guess_primary_collection_of_a_record, \
+    perform_request_search, record_exists
+from invenio.legacy.webpage import page
+from invenio.modules import formatter as bibformat
+from invenio.modules.knowledge.api import get_kbd_values_for_bibedit, \
+    get_kbr_values, get_kbt_items_for_bibedit, kb_exists
+from invenio.utils.crossref import CrossrefError, get_marcxml_for_doi
+from invenio.utils.html import get_mathjax_header
+from invenio.utils.json import CFG_JSON_AVAILABLE
+from invenio.utils.text import wash_for_xml
 
 try:
     BIBCATALOG_SYSTEM.ticket_search(0)
@@ -302,8 +285,6 @@ def perform_request_init(uid, ln, req, lastupdated):
     # rec = create_record(format_record(235, "xm"))[0]
     #oaiId = record_extract_oai_id(rec)
 
-    body += bibedit_templates.menu()
-    body += bibedit_templates.focuson()
     body += """<div id="bibEditContent">
                <div class="revisionLine"></div>
                <div id="Toptoolbar"></div>
@@ -350,36 +331,11 @@ def perform_request_compare(ln, recid, rev1, rev2):
     body = ""
     errors = []
     warnings = []
-    person1 = ""
-    person2 = ""
 
     if (not record_revision_exists(recid, rev1)) or \
        (not record_revision_exists(recid, rev2)):
         body = "The requested record revision does not exist !"
-    else:
-        xml1 = get_marcxml_of_revision_id(recid, rev1)
-        xml2 = get_marcxml_of_revision_id(recid, rev2)
-        # Create MARC representations of the records
-        marc1 = create_marc_record(create_record(xml1)[0], '', {"text-marc": 1, "aleph-marc": 0})
-        marc2 = create_marc_record(create_record(xml2)[0], '', {"text-marc": 1, "aleph-marc": 0})
-        comparison = show_diff(marc1,
-                               marc2,
-                               prefix="<pre>", suffix="</pre>",
-                               prefix_removed='<strong class="diff_field_deleted">',
-                               suffix_removed='</strong>',
-                               prefix_added='<strong class="diff_field_added">',
-                               suffix_added='</strong>')
-        job_date1 = "%s-%s-%s %s:%s:%s" % re_revdate_split.search(rev1).groups()
-        job_date2 = "%s-%s-%s %s:%s:%s" % re_revdate_split.search(rev2).groups()
-        # Geting the author of each revision
-        info1 = get_info_of_record_revision(recid, job_date1)
-        info2 = get_info_of_record_revision(recid, job_date2)
-        if info1:
-            person1 = info1[0][1]
-        if info2:
-            person2 = info2[0][1]
-        body += bibedit_templates.history_comparebox(ln, job_date1, job_date2,
-                                                person1, person2, comparison)
+
     return body, errors, warnings
 
 def perform_request_newticket(recid, uid):
@@ -539,9 +495,9 @@ def perform_request_user(req, request_type, recid, data):
     """Handle user related requests."""
     response = {}
     if request_type == 'changeTagFormat':
-        tagformat_settings = session_param_get(req, 'bibedit_tagformat', {})
+        tagformat_settings = session.get(req, 'bibedit_tagformat', {})
         tagformat_settings[recid] = data['tagFormat']
-        session_param_set(req, 'bibedit_tagformat', tagformat_settings)
+        session.set(req, 'bibedit_tagformat', tagformat_settings)
         response['resultCode'] = 2
     return response
 
@@ -809,7 +765,7 @@ def perform_request_record(req, request_type, recid, uid, data, ln=CFG_SITE_LANG
             response['bibCirculationUrl'] = bibcirc_details_URL
             response['canRecordHavePhysicalCopies'] = can_have_copies
             # Set tag format from user's session settings.
-            tagformat_settings = session_param_get(req, 'bibedit_tagformat')
+            tagformat_settings = session.get(req, 'bibedit_tagformat')
             tagformat = (tagformat_settings is not None) and tagformat_settings.get(recid, cfg['CFG_BIBEDIT_TAG_FORMAT']) or cfg['CFG_BIBEDIT_TAG_FORMAT']
             response['tagFormat'] = tagformat
             # KB information
@@ -1942,3 +1898,4 @@ def perform_request_submit(recid, uid, data, response):
 
             save_xml_record(recid, uid)
             response['resultCode'] = 4
+

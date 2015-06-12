@@ -23,10 +23,10 @@ Exposes document extration facilities to the world
 """
 
 import pkg_resources
+from flask_login import current_user as user_info
 from tempfile import NamedTemporaryFile
 
 from invenio.ext.legacy.handler import WebInterfaceDirectory
-from invenio.legacy.webuser import collect_user_info
 from invenio.legacy.webpage import page
 from invenio.config import CFG_TMPSHAREDDIR, CFG_ETCDIR
 from invenio.legacy.refextract.api import extract_references_from_file_xml, \
@@ -40,7 +40,6 @@ docextract_templates = invenio.legacy.template.load('docextract')
 
 def check_login(req):
     """Check that the user is logged in"""
-    user_info = collect_user_info(req)
     if user_info['email'] == 'guest':
         # 1. User is guest: must login prior to upload
         # return 'Please login before uploading file.'
@@ -150,7 +149,6 @@ class WebInterfaceDocExtract(WebInterfaceDirectory):
 
         This page can be used for authors to test their pdfs against our
         refrences extraction process"""
-        user_info = collect_user_info(req)
 
         # Handle the 3 POST parameters
         if 'pdf' in form and form['pdf']:

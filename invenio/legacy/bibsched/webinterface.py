@@ -24,13 +24,15 @@ try:
 except ImportError:
     import simplejson as json
 
-from invenio.config import CFG_SITE_URL, CFG_SITE_SECURE_URL
+from flask import abort
+
+from invenio.base.helpers import utf8ifier
+from invenio.config import CFG_SITE_SECURE_URL
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.ext.legacy.handler import WebInterfaceDirectory
 from invenio.legacy.webpage import page
 from invenio.legacy.bibsched.webapi import get_javascript, get_bibsched_tasks, \
     get_bibsched_mode, get_css, get_motd_msg
-from invenio.legacy.webuser import page_not_authorized
 from invenio.utils.url import redirect_to_url
 
 
@@ -118,17 +120,11 @@ class WebInterfaceBibSchedPages(WebInterfaceDirectory):
     def index(self, req, form):
         """ Display live BibSched queue
         """
-        referer = '/admin2/bibsched/'
-        navtrail = ' <a class="navtrail" href=\"%s/help/admin\">Admin Area</a> ' % CFG_SITE_URL
-
         auth_code, auth_message = acc_authorize_action(req, 'cfgbibsched')
         if auth_code != 0:
-            return page_not_authorized(req=req, referer=referer,
-                                       text=auth_message, navtrail=navtrail)
+            abort(403, message=auth_message)
 
         bibsched_tasks = get_bibsched_tasks()
-        header = ["ID", "Name", "Priority", "User", "Time", "Status",
-                  "Progress"]
         map_status_css = {'WAITING': 'task_waiting', 'RUNNING': 'task_running',
                           'DONE WITH ERRORS': 'task_error'}
         bibsched_error = False

@@ -20,13 +20,17 @@
 __revision__ = "$Id$"
 
 import cgi
+
 from urllib import quote
 
-from .control import acc_find_possible_roles, acc_is_user_in_any_role, acc_get_roles_emails
-from .local_config import CFG_WEBACCESS_WARNING_MSGS, CFG_WEBACCESS_MSGS
-from invenio.legacy.webuser import collect_user_info
-from invenio.modules.access.firerole import load_role_definition, acc_firerole_extract_emails
 from flask_login import current_user
+
+from invenio.modules.access.firerole import acc_firerole_extract_emails, \
+    load_role_definition
+
+from .control import acc_find_possible_roles, acc_get_roles_emails, \
+    acc_is_user_in_any_role
+from .local_config import CFG_WEBACCESS_MSGS, CFG_WEBACCESS_WARNING_MSGS
 
 
 def acc_authorize_action(req, name_action, authorized_if_no_roles=False, batch_args=False, **arguments):
@@ -50,9 +54,9 @@ def acc_authorize_action(req, name_action, authorized_if_no_roles=False, batch_a
         user_info = req
     elif type(req) not in [int, long]:
         uid = current_user.get_id()
-        user_info = collect_user_info(uid)  # FIXME
+        user_info = UserInfo(uid)
     else:
-        user_info = collect_user_info(req)
+        user_info = current_user
 
     roles_list = acc_find_possible_roles(name_action, always_add_superadmin=True, batch_args=batch_args, **arguments)
 

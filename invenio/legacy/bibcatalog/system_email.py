@@ -17,16 +17,14 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-"""
-Provide a "ticket" interface with Email.
+"""Provide a "ticket" interface with Email.
+
 This is a subclass of BibCatalogSystem
 """
 
 
 import datetime
 from time import mktime
-import invenio.legacy.webuser
-from invenio.utils.shell import escape_shell_arg
 from invenio.legacy.bibcatalog.system import BibCatalogSystem
 from invenio.ext.email import send_email
 from invenio.ext.logging import register_exception

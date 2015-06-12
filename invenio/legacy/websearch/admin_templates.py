@@ -38,7 +38,6 @@ from invenio.utils.url import create_html_link, create_url
 from invenio.utils.html import escape_html
 from invenio.config import CFG_SITE_URL, CFG_SITE_LANG
 from invenio.base.i18n import gettext_set_language
-from invenio.legacy.webuser import get_user_info
 
 
 class Template:

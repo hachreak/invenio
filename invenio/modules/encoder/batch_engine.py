@@ -33,13 +33,13 @@ from invenio.legacy.bibdocfile.api import BibRecDocs, compose_file, \
     compose_format, decompose_file
 from invenio.legacy.bibsched.bibtask import task_low_level_submission, \
     task_update_progress, write_message
-from invenio.legacy.webuser import emailUnique, get_user_preferences
 from invenio.legacy.bibrecord import get_fieldvalues
 from invenio.modules.encoder.encode import assure_quality, encode_video
 from invenio.modules.encoder.extract import extract_frames
 from invenio.modules.encoder.metadata import pbcore_metadata
 from invenio.modules.encoder.profiles import get_encoding_profile, \
     get_extract_profile
+from invenio.modules.accounts.models import User
 from invenio.modules.encoder.utils import chose2, generate_timestamp, getval
 from invenio.utils.json import json, json_decode_file
 
@@ -90,9 +90,9 @@ def _notify_error_user(email_user, original_filename, recid, submission_title, l
     """
     if not email_user:
         return
-    uid = emailUnique(email_user)
-    if uid != -1 and uid != 0:
-        language = getval(get_user_preferences(uid), "language")
+    users = User.query.filter_by(email=email_user).all()
+    if len(users) == 1:
+        language = getval(users[0].settings, "language")
         if language:
             ln = language
     _ = gettext_set_language(ln)
@@ -134,9 +134,9 @@ def _notify_success_user(email_user, original_filename, recid, submission_title,
     @param email_admin: email address of the admin
     @type email_admin: string
     """
-    uid = emailUnique(email_user)
-    if uid != -1 and uid != 0:
-        language = getval(get_user_preferences(uid), "language")
+    users = User.query.filter_by(email=email_user).all()
+    if len(users) == 1:
+        language = getval(users[0].settings, "language")
         if language:
             ln = language
     _ = gettext_set_language(ln)

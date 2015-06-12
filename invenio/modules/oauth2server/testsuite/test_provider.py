@@ -105,7 +105,7 @@ class ProviderTestCase(InvenioTestCase):
 
         # Create needed objects
         u = User(
-            email='info@invenio-software.org', nickname='tester'
+            email='test-info@invenio-software.org', nickname='tester'
         )
         u.password = "tester"
 

@@ -25,6 +25,8 @@ __revision__ = "$Id: webmessage_webinterface.py,v 1.13 2008/03/12 16:48:08 tibor
 __lastupdated__ = """$Date: 2008/03/12 16:48:08 $"""
 
 import re
+from flask import abort
+from flask_login import current_user as user_info
 from invenio.legacy.webpage import page
 from invenio.ext.legacy.handler import WebInterfaceDirectory, \
                                          wash_urlargd
@@ -56,8 +58,6 @@ from invenio.legacy.bibexport.fieldexporter import get_css, \
 from invenio.legacy.bibexport.fieldexporter_dblayer import Job, \
                                                            Query, \
                                                            JobResult
-from invenio.legacy.webuser import collect_user_info, \
-                            page_not_authorized
 from invenio.modules.access.engine import acc_authorize_action
 
 class WebInterfaceFieldExporterPages(WebInterfaceDirectory):
@@ -416,11 +416,8 @@ class WebInterfaceFieldExporterPages(WebInterfaceDirectory):
         output_format = argd["output_format"]
         user_id = self._get_user_id(req)
 
-        _ = gettext_set_language(language)
-
         self._check_user_credentials(req, language)
 
-        title = _("Export Job Result")
         try:
             perform_request_download_job_result(req = req,
                                                 job_result_id = job_result_id,
@@ -463,7 +460,7 @@ class WebInterfaceFieldExporterPages(WebInterfaceDirectory):
         _ = gettext_set_language(language)
 
         text = _("You are not authorised to access this resource.")
-        return page_not_authorized(req = req, ln = language, text = text)
+        abort(403, text)
 
     def _check_user_credentials(self, req, language):
         """Check if the user is allowed to use field exporter
@@ -471,7 +468,6 @@ class WebInterfaceFieldExporterPages(WebInterfaceDirectory):
         @param req: request as received from apache
         @param language: the language of the page
         """
-        user_info = collect_user_info(req)
 
         #redirect guests to login page
         if "1" == user_info["guest"]:
@@ -520,7 +516,6 @@ class WebInterfaceFieldExporterPages(WebInterfaceDirectory):
 
         @return: identifier of currently logged user
         """
-        user_info = collect_user_info(req)
         user_id = user_info['uid']
 
         return user_id

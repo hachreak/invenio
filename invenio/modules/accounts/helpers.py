@@ -19,13 +19,111 @@
 
 """Helper methods for accounts."""
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-from flask import g, render_template, url_for
+from flask import g, render_template, url_for, current_app
+
+from flask_login import login_user, logout_user
 
 from invenio.base.globals import cfg
 from invenio.base.i18n import _
 from invenio.ext.email import send_email
+from invenio.ext.sqlalchemy import db
+from invenio.modules.accounts.models import User
+
+from sqlalchemy.orm.exc import NoResultFound
+
+
+def flask_set_uid(uid, remember_me=False):
+    """Set user id into the session, and raise the cookie to the client."""
+    if uid > 0:
+        login_user(uid, remember_me)
+    else:
+        logout_user()
+    return uid
+
+
+def register_user(email, password, nickname, login_method=None):
+    """Register user.
+
+    :param email: the user email
+    :param password: the user password
+    :param login_method: login method
+    """
+    activated = 1  # By default activated
+
+    # if local login
+    if not login_method or \
+            not cfg['CFG_EXTERNAL_AUTHENTICATION'][login_method]:
+        if cfg['CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS'] >= 2:
+            return 5
+        elif cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT']:
+            activated = 2  # Email confirmation required
+        elif cfg['CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS'] >= 1:
+            activated = 0  # Administrator confirmation required
+
+    # okay, go on and register the user
+    user = User(nickname=nickname,
+                email=email,
+                password=password,
+                note=activated,
+                last_login=datetime.now())
+
+    if cfg['CFG_ACCESS_CONTROL_NOTIFY_USER_ABOUT_NEW_ACCOUNT']:
+        verify_email(user)
+
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception:
+        current_app.logger.exception("Could not store user.")
+        db.session.rollback()
+        return 7
+    if activated == 1:  # Ok we consider the user as logged in :-)
+        flask_set_uid(user.id)
+    return 0
+
+
+def confirm_email(email):
+    """Confirm the email.
+
+    It returns None when there are problems, otherwise it return the uid
+    involved.
+    """
+    if cfg['CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS'] == 0:
+        activated = 1
+    elif cfg['CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS'] == 1:
+        activated = 0
+    elif cfg['CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS'] >= 2:
+        return -1
+    try:
+        user = User.query.filter_by(email=email).one()
+        user.note = activated
+
+        if cfg['CFG_ACCESS_CONTROL_NOTIFY_ADMIN_ABOUT_NEW_ACCOUNTS']:
+            send_new_admin_account_warning(email, cfg['CFG_SITE_ADMIN_EMAIL'])
+
+        return user.id
+    except NoResultFound:
+        return None
+
+
+def send_new_admin_account_warning(new_account_email, send_to):
+    """Send an email to the address given by send_to about the new account."""
+    sub = _("New account on '%(website)s'", website=cfg['CFG_SITE_NAME'])
+    if cfg['CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS'] == 1:
+        sub += " - " + _("PLEASE ACTIVATE")
+    body = _("A new account has been created on '%(website)s'",
+             website=cfg['CFG_SITE_NAME'])
+    if cfg['CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS'] == 1:
+        body += _(" and is awaiting activation")
+    body += ":\n\n"
+    body += _("Username/Email: %(email)s", email=new_account_email) + "\n\n"
+    body += _("You can approve or reject this account request at: %(link)s\n",
+              link="%s/admin/webaccess/webaccessadmin.py/manageaccounts" %
+              cfg['CFG_SITE_URL'])
+    return send_email(cfg['CFG_SITE_SUPPORT_EMAIL'], send_to, subject=sub,
+                      content=body)
 
 
 def send_account_activation_email(user):
@@ -64,3 +162,18 @@ def send_account_activation_email(user):
                                                  cfg['CFG_SITE_NAME'])),
         render_template("accounts/emails/activation.tpl", **ctx)
     )
+
+
+def verify_email(user, force=False):
+    """Verify email address."""
+    if force or user.note == "2":
+        if user.note != "2":
+            user.note = 2
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                raise
+        send_account_activation_email(user)
+        return True
+    return False

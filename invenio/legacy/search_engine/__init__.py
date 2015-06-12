@@ -41,79 +41,18 @@ import urllib
 import urlparse
 import zlib
 
-# import Invenio stuff:
-from invenio.config import \
-     CFG_ACCESS_CONTROL_LEVEL_ACCOUNTS, \
-     CFG_BASE_URL, \
-     CFG_BIBFORMAT_HIDDEN_TAGS, \
-     CFG_BIBINDEX_CHARS_PUNCTUATION, \
-     CFG_BIBRANK_SHOW_DOWNLOAD_GRAPHS, \
-     CFG_BIBSORT_BUCKETS, \
-     CFG_BIBSORT_ENABLED, \
-     CFG_BIBUPLOAD_EXTERNAL_SYSNO_TAG, \
-     CFG_BIBUPLOAD_SERIALIZE_RECORD_STRUCTURE, \
-     CFG_CERN_SITE, \
-     CFG_INSPIRE_SITE, \
-     CFG_LOGDIR, \
-     CFG_OAI_ID_FIELD, \
-     CFG_WEBSEARCH_FIELDS_CONVERT, \
-     CFG_WEBSEARCH_DEF_RECORDS_IN_GROUPS, \
-     CFG_WEBSEARCH_FULLTEXT_SNIPPETS, \
-     CFG_WEBSEARCH_DISPLAY_NEAREST_TERMS, \
-     CFG_WEBSEARCH_WILDCARD_LIMIT, \
-     CFG_WEBSEARCH_IDXPAIRS_FIELDS,\
-     CFG_WEBSEARCH_IDXPAIRS_EXACT_SEARCH, \
-     CFG_BIBUPLOAD_SERIALIZE_RECORD_STRUCTURE, \
-     CFG_BIBUPLOAD_EXTERNAL_SYSNO_TAG, \
-     CFG_BIBRANK_SHOW_DOWNLOAD_GRAPHS, \
-     CFG_WEBSEARCH_SYNONYM_KBRS, \
-     CFG_SITE_LANG, \
-     CFG_SITE_NAME, \
-     CFG_LOGDIR, \
-     CFG_SITE_URL, \
-     CFG_WEBSEARCH_DETAILED_META_FORMAT, \
-     CFG_SITE_RECORD, \
-     CFG_WEBSEARCH_PREV_NEXT_HIT_LIMIT, \
-     CFG_WEBSEARCH_VIEWRESTRCOLL_POLICY, \
-     CFG_WEBSEARCH_WILDCARD_LIMIT
+from flask_login import current_user
 
+from invenio.config import CFG_SITE_NAME, CFG_SITE_LANG, CFG_SITE_URL, \
+    CFG_WEBSEARCH_DEF_RECORDS_IN_GROUPS
+from invenio.legacy.bibrecord import get_fieldvalues
+from invenio.modules.collections.cache import collection_restricted_p
 from invenio.modules.search.searchext.engines.native import search_unit
-from invenio.modules.search.utils import get_most_popular_field_values
-from invenio.modules.search.errors import \
-     InvenioWebSearchUnknownCollectionError, \
-     InvenioWebSearchWildcardLimitError, \
-     InvenioWebSearchReferstoLimitError, \
-     InvenioWebSearchCitedbyLimitError
-from invenio.legacy.bibrecord import (get_fieldvalues,
-                                      get_fieldvalues_alephseq_like)
 from .utils import record_exists
-from invenio.legacy.bibrecord import create_record, record_xml_output
-from invenio.legacy.miscutil.data_cacher import DataCacher
-from invenio.modules.access.control import acc_get_action_id
-from invenio.modules.access.local_config import VIEWRESTRCOLL, \
-    CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_EMAILS_IN_TAGS, \
-    CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_USERIDS_IN_TAGS, \
-    CFG_ACC_GRANT_VIEWER_RIGHTS_TO_EMAILS_IN_TAGS, \
-    CFG_ACC_GRANT_VIEWER_RIGHTS_TO_USERIDS_IN_TAGS
 
-from intbitset import intbitset
-from invenio.legacy.dbquery import InvenioDbQueryWildcardLimitError
-from invenio.utils.serializers import deserialize_via_marshal
-from invenio.modules.access.engine import acc_authorize_action
-from invenio.ext.logging import register_exception
-from invenio.utils.text import encode_for_xml, wash_for_utf8, strip_accents
-from invenio.legacy import bibrecord
-
-from invenio.legacy.dbquery import run_sql, run_sql_with_limit, \
-    wash_table_column_name, get_table_update_time
-from invenio.legacy.webuser import getUid, collect_user_info
+from invenio.legacy.dbquery import run_sql
 from invenio.base.i18n import gettext_set_language
-
-from invenio.utils import apache
-
-from sqlalchemy.exc import DatabaseError
-
-VIEWRESTRCOLL_ID = acc_get_action_id(VIEWRESTRCOLL)
+from invenio.modules.collections.models import Collection
 
 # em possible values
 EM_REPOSITORY={"body" : "B",
@@ -134,15 +73,6 @@ EM_REPOSITORY={"body" : "B",
                "rt_portalbox" : "Prt",
                "search_services": "SER"};
 
-from invenio.modules.collections.cache import collection_restricted_p
-from invenio.modules.collections.cache import restricted_collection_cache
-from invenio.modules.search.utils import get_permitted_restricted_collections
-
-
-from invenio_records.access import check_user_can_view_record
-
-from invenio.modules.collections.cache import get_coll_i18nname
-from invenio.modules.search.cache import get_field_i18nname
 
 
 def create_navtrail_links(cc=CFG_SITE_NAME, aas=0, ln=CFG_SITE_LANG, self_p=1, tab=''):
@@ -152,7 +82,8 @@ def create_navtrail_links(cc=CFG_SITE_NAME, aas=0, ln=CFG_SITE_LANG, self_p=1, t
     """
     return ''
 
-from invenio.modules.search.washers import *
+from invenio.modules.search.washers import wash_pattern, wash_output_format, \
+    wash_field, wash_dates
 
 
 # FIXME remove from master in 66ad8455 commit
@@ -179,9 +110,6 @@ def get_coll_ancestors(coll):
     # ancestors found, return reversed list:
     coll_ancestors.reverse()
     return coll_ancestors
-
-
-from invenio.modules.collections.cache import get_collection_allchildren
 
 
 def search_pattern(req=None, p=None, f=None, m=None, ap=0, of="id", verbose=0,
@@ -229,9 +157,6 @@ def search_pattern(req=None, p=None, f=None, m=None, ap=0, of="id", verbose=0,
     return results
 
 
-from invenio.modules.search.searchext.engines.native import *
-
-
 def guess_primary_collection_of_a_record(recID):
     """Return primary collection name a record recid belongs to, by
        testing 980 identifier.
@@ -251,26 +176,6 @@ def guess_primary_collection_of_a_record(recID):
         if res:
             out = res[0][0]
             break
-    if CFG_CERN_SITE:
-        recID = int(recID)
-        # dirty hack for ATLAS collections at CERN:
-        if out in ('ATLAS Communications', 'ATLAS Internal Notes'):
-            for alternative_collection in ('ATLAS Communications Physics',
-                                           'ATLAS Communications General',
-                                           'ATLAS Internal Notes Physics',
-                                           'ATLAS Internal Notes General',):
-                if recID in get_collection_reclist(alternative_collection):
-                    return alternative_collection
-
-        # dirty hack for FP
-        FP_collections = {'DO': ['Current Price Enquiries', 'Archived Price Enquiries'],
-                          'IT': ['Current Invitation for Tenders', 'Archived Invitation for Tenders'],
-                          'MS': ['Current Market Surveys', 'Archived Market Surveys']}
-        fp_coll_ids = [coll for coll in dbcollids if coll in FP_collections]
-        for coll in fp_coll_ids:
-            for coll_name in FP_collections[coll]:
-                if recID in get_collection_reclist(coll_name):
-                    return coll_name
 
     return out
 
@@ -292,16 +197,10 @@ def guess_collection_of_a_record(recID, referer=None, recreate_cache_if_needed=T
             # check if this collection actually exist (also normalize the name
             # if case-insensitive)
             name = Collection.query.filter_by(name=name).value('name')
-            if name and recID in get_collection_reclist(name):
-                return name
         elif path.startswith('/search'):
-            if recreate_cache_if_needed:
-                collection_reclist_cache.recreate_cache_if_needed()
             query = cgi.parse_qs(query)
             for name in query.get('cc', []) + query.get('c', []):
                 name = Collection.query.filter_by(name=name).value('name')
-                if name and recID in get_collection_reclist(name, recreate_cache_if_needed=False):
-                    return name
     return guess_primary_collection_of_a_record(recID)
 
 
@@ -309,13 +208,7 @@ def get_all_collections_of_a_record(recID, recreate_cache_if_needed=True):
     """Return all the collection names a record belongs to.
     Note this function is O(n_collections)."""
     ret = []
-    if recreate_cache_if_needed:
-        collection_reclist_cache.recreate_cache_if_needed()
-    for name in collection_reclist_cache.cache.keys():
-        if recID in get_collection_reclist(name, recreate_cache_if_needed=False):
-            ret.append(name)
     return ret
-
 
 
 def slice_records(recIDs, jrec, rg):
@@ -483,9 +376,6 @@ def prs_wash_arguments(req=None, cc=CFG_SITE_NAME, c=None, p="", f="", rg=CFG_WE
     (d1y, d1m, d1d, d2y, d2m, d2d) = map(int, (d1y, d1m, d1d, d2y, d2m, d2d))
     datetext1, datetext2 = wash_dates(d1, d1y, d1m, d1d, d2, d2y, d2m, d2d)
 
-    # wash ranking method:
-    if not is_method_valid(None, rm):
-        rm = ""
 
     if id > 0 and recid == -1:
         recid = id
@@ -500,7 +390,7 @@ def prs_wash_arguments(req=None, cc=CFG_SITE_NAME, c=None, p="", f="", rg=CFG_WE
     # deduce user id (if applicable):
     if uid is None:
         try:
-            uid = getUid(req)
+            uid = current_user.get_id()
         except:
             uid = 0
 

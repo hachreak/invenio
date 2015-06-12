@@ -25,6 +25,8 @@ when the request is a journal reference
 
 import re
 
+from flask_login import current_user
+
 from cgi import escape
 
 from urllib import urlencode
@@ -32,7 +34,6 @@ from urllib import urlencode
 from invenio.base.globals import cfg
 from invenio.base.i18n import gettext_set_language
 from invenio.legacy.search_engine import perform_request_search, print_record
-from invenio.legacy.webuser import collect_user_info
 from invenio.modules.search.services import SearchService
 
 __plugin_version__ = "Search Service Plugin API 1.0"
@@ -95,7 +96,7 @@ class JournalHintService(SearchService):
 
         if len(recids) == 1:
             recid = recids.pop()
-            user_info = collect_user_info(req)
+            user_info = current_user
             return (100, """\
 <p><span class="journalhint">%s</span></p>
 <table style="padding: 5px; border: 2px solid #ccc; margin: 20px"><tr><td>

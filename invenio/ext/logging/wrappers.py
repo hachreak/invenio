@@ -17,19 +17,29 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-from __future__ import print_function, absolute_import
+"""Error handling library."""
 
-""" Error handling library """
+from __future__ import absolute_import, print_function
+
+import inspect
+
+import os
+
+import re
+
+import sys
+
+import time
 
 import traceback
+
 import warnings
-import os
-import sys
-import time
-import re
-import inspect
+
 from flask import current_app
-from six import iteritems, StringIO
+
+from flask_login import current_user as user_info
+
+from six import StringIO, iteritems
 
 from invenio.base.globals import cfg
 
@@ -43,8 +53,6 @@ def get_pretty_wide_client_info(req):
     """Return (in a pretty way) all the available information about the current
     user/client"""
     if req:
-        from invenio.legacy.webuser import collect_user_info
-        user_info = collect_user_info(req)
         keys = user_info.keys()
         keys.sort()
         max_key = max([len(key) for key in keys])

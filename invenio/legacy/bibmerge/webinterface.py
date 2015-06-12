@@ -22,12 +22,15 @@ __revision__ = "$Id$"
 
 __lastupdated__ = """$Date$"""
 
+from flask import abort
+
+from flask_login import current_user
+
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.config import CFG_SITE_LANG, CFG_SITE_SECURE_URL, \
                            CFG_SITE_RECORD, CFG_SITE_URL
 from invenio.legacy.search_engine import guess_primary_collection_of_a_record
 from invenio.legacy.webpage import page
-from invenio.legacy.webuser import getUid, page_not_authorized, collect_user_info
 from invenio.utils.json import json, json_unicode_to_utf8
 from invenio.utils.url import redirect_to_url
 from invenio.ext.legacy.handler import WebInterfaceDirectory, wash_urlargd
@@ -82,16 +85,14 @@ class WebInterfaceMergePages(WebInterfaceDirectory):
                     json_data["duplicate"] = int(json_data["duplicate"])
 
         # Authorization.
-        user_info = collect_user_info(req)
+        user_info = current_user
         if user_info['email'] == 'guest':
             # User is not logged in.
             if not ajax_request:
                 # Do not display the introductory recID selection box to guest
                 # users (as it used to be with v0.99.0):
                 auth_code, auth_message = acc_authorize_action(req, 'runbibmerge')
-                referer = '/merge/'
-                return page_not_authorized(req=req, referer=referer,
-                                           text=auth_message, navtrail=navtrail)
+                abort(403, auth_message)
             else:
                 # Session has most likely timed out.
                 json_response.update({'resultCode': 1,
@@ -120,7 +121,7 @@ class WebInterfaceMergePages(WebInterfaceDirectory):
                 return json.dumps(json_response)
 
         # Handle request.
-        uid = getUid(req)
+        uid = current_user.get_id()
         if not ajax_request:
             # Show BibEdit start page.
             body, errors, warnings = perform_request_init()

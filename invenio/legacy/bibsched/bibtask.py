@@ -63,7 +63,7 @@ from intbitset import intbitset
 from socket import gethostname
 
 from invenio.legacy.dbquery import run_sql, _db_login
-from invenio.modules.accounts.models import User
+from invenio.modules.accounts.models import User, get_default_user_preferences
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.config import (
     CFG_BIBSCHED_PROCESS_USER,
@@ -75,10 +75,10 @@ from invenio.config import (
     CFG_SITE_URL
 )
 from invenio.ext.logging import register_exception
+from invenio.ext.sqlalchemy import db
 
 from invenio.modules.access.local_config import CFG_EXTERNAL_AUTH_USING_SSO, \
                                                 CFG_EXTERNAL_AUTHENTICATION
-from invenio.legacy.webuser import get_user_preferences, get_email, get_email_from_username
 from invenio.legacy.bibsched.bibtask_config import (
     CFG_BIBTASK_VALID_TASKS,
     CFG_BIBTASK_DEFAULT_TASK_SETTINGS,
@@ -631,7 +631,11 @@ def task_init(authorization_action="",
                 else:
                     task_update_status("CERROR")
                 if not task_get_task_param('email_logs_to') and task_get_task_param('email_logs_on_error'):
-                    email_error_logs_to = get_email_from_username(task_get_task_param('user'))
+                    user = task_get_task_param('user')
+                    user_loaded = User.query.filter(
+                        db.or_(User.nickname==user. User.email==user)
+                    ).first()
+                    email_error_logs_to = user_loaded.email
                     _task_email_logs(email_error_logs_to, error_message=str(e))
                     task_update_status("ERRORS REPORTED")
         finally:
@@ -950,7 +954,9 @@ def authenticate(user, authorization_action, authorization_msg=""):
     else:
         uid = res[0][0]
         ok = False
-        login_method = get_user_preferences(uid)['login_method']
+        user = User.query.get(uid)
+        settings = user.settings if user else get_default_user_preferences()
+        login_method = settings['login_method']
         if not CFG_EXTERNAL_AUTHENTICATION[login_method]:
             #Local authentication, let's see if we want passwords.
             try:
@@ -976,7 +982,8 @@ def authenticate(user, authorization_action, authorization_msg=""):
                 except Exception:
                     pass
             else:
-                if CFG_EXTERNAL_AUTHENTICATION[login_method].auth_user(get_email(uid), password_entered):
+                user = User.query.filter_by(id=uid).first()
+                if CFG_EXTERNAL_AUTHENTICATION[login_method].auth_user(user.email, password_entered):
                     ok = True
         if not ok:
             print("Sorry, wrong credentials for %s." % user)
@@ -1195,7 +1202,11 @@ def _task_run(task_run_fnc):
         else:
             task_update_status("DONE WITH ERRORS")
             if not task_get_task_param('email_logs_to') and task_get_task_param('email_logs_on_error'):
-                email_error_logs_to = get_email_from_username(task_get_task_param('user'))
+                user = task_get_task_param('user')
+                user_loaded = User.query.filter(
+                    db.or_(User.nickname==user. User.email==user)
+                ).first()
+                email_error_logs_to = user_loaded.email
                 _task_email_logs(email_error_logs_to)
                 task_update_status("ERRORS REPORTED")
 

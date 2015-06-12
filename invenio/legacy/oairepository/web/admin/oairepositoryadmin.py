@@ -21,10 +21,13 @@ __revision__ = "$Id$"
 
 __lastupdated__ = """$Date$"""
 
+from flask import abort
+
+from flask_login import current_user
+
 import invenio.legacy.oairepository.admin as ora
 from invenio.legacy.webpage import page
 from invenio.config import CFG_SITE_URL, CFG_SITE_LANG
-from invenio.legacy.webuser import getUid, page_not_authorized
 
 from sqlalchemy.exc import SQLAlchemyError as Error
 
@@ -33,7 +36,7 @@ def index(req, ln=CFG_SITE_LANG):
     navtrail_previous_links = ora.getnavtrail(ln=ln)
 
     try:
-        uid = getUid(req)
+        uid = current_user.get_id()
     except Error as e:
         return page(title="OAI Repository Admin Interface - Error",
                     body=e,
@@ -54,14 +57,14 @@ def index(req, ln=CFG_SITE_LANG):
                 lastupdated=__lastupdated__,
                 req=req)
     else:
-        return page_not_authorized(req=req, text=auth[1], navtrail=navtrail_previous_links)
+        abort(403, auth[1])
 
 def addset(req, oai_set_name='', oai_set_spec='', oai_set_collection='', oai_set_description='', oai_set_p1='', oai_set_f1='', oai_set_m1='', oai_set_p2='', oai_set_f2='', oai_set_m2='', oai_set_p3='', oai_set_f3='', oai_set_m3='', oai_set_op1='a', oai_set_op2='a', ln=CFG_SITE_LANG, func=0):
 
     navtrail_previous_links = ora.getnavtrail(' &gt; <a class="navtrail" href="%s/admin/oairepository/oairepositoryadmin.py?ln=%s">OAI Repository Admin Interface</a> ' % (CFG_SITE_URL, ln), ln=ln)
 
     try:
-        uid = getUid(req)
+        uid = current_user.get_id()
     except Error as e:
         return page(title="OAI Repository Admin Interface - Error",
                     body=e,
@@ -97,14 +100,14 @@ def addset(req, oai_set_name='', oai_set_spec='', oai_set_collection='', oai_set
                 req=req,
                 lastupdated=__lastupdated__)
     else:
-        return page_not_authorized(req=req, text=auth[1], navtrail=navtrail_previous_links)
+        abort(403, auth[1])
 
 
 def delset(req, oai_set_id=None, ln=CFG_SITE_LANG, func=0):
     navtrail_previous_links = ora.getnavtrail(' &gt; <a class="navtrail" href="%s/admin/oairepository/oairepositoryadmin.py?ln=%s">OAI Repository Admin Interface</a> ' % (CFG_SITE_URL, ln), ln=ln)
 
     try:
-        uid = getUid(req)
+        uid = current_user.get_id()
     except Error as e:
         return page(title="OAI Repository Admin Interface - Error",
                     body=e,
@@ -126,13 +129,13 @@ def delset(req, oai_set_id=None, ln=CFG_SITE_LANG, func=0):
                     navtrail = navtrail_previous_links,
                     lastupdated=__lastupdated__)
     else:
-        return page_not_authorized(req=req, text=auth[1], navtrail=navtrail_previous_links)
+        abort(403, auth[1])
 
 def touchset(req, oai_set_id=None, ln=CFG_SITE_LANG, func=0):
     navtrail_previous_links = ora.getnavtrail(' &gt; <a class="navtrail" href="%s/admin/oairepository/oairepositoryadmin.py?ln=%s">OAI Repository Admin Interface</a> ' % (CFG_SITE_URL, ln), ln=ln)
 
     try:
-        uid = getUid(req)
+        uid = current_user.get_id()
     except Error as e:
         return page(title="OAI Repository Admin Interface - Error",
                     body=e,
@@ -154,7 +157,7 @@ def touchset(req, oai_set_id=None, ln=CFG_SITE_LANG, func=0):
                     navtrail = navtrail_previous_links,
                     lastupdated=__lastupdated__)
     else:
-        return page_not_authorized(req=req, text=auth[1], navtrail=navtrail_previous_links)
+        abort(403, auth[1])
 
 
 def editset(req, oai_set_id=None, oai_set_name='', oai_set_spec='', oai_set_collection='', oai_set_description='', oai_set_p1='', oai_set_f1='', oai_set_m1='', oai_set_p2='', oai_set_f2='', oai_set_m2='', oai_set_p3='', oai_set_f3='', oai_set_m3='', oai_set_op1='a', oai_set_op2='a', ln=CFG_SITE_LANG, func=0):
@@ -162,7 +165,7 @@ def editset(req, oai_set_id=None, oai_set_name='', oai_set_spec='', oai_set_coll
     navtrail_previous_links = ora.getnavtrail(' &gt; <a class="navtrail" href="%s/admin/oairepository/oairepositoryadmin.py?ln=%s">OAI Repository Admin Interface</a> ' % (CFG_SITE_URL, ln), ln=ln)
 
     try:
-        uid = getUid(req)
+        uid = current_user.get_id()
     except Error as e:
         return page(title="OAI Repository Admin Interface - Error",
                     body=e,
@@ -200,4 +203,4 @@ def editset(req, oai_set_id=None, oai_set_name='', oai_set_spec='', oai_set_coll
                     navtrail = navtrail_previous_links,
                     lastupdated=__lastupdated__)
     else:
-        return page_not_authorized(req=req, text=auth[1], navtrail=navtrail_previous_links)
+        abort(403, auth[1])

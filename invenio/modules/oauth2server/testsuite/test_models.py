@@ -40,7 +40,7 @@ class OAuth2ModelsTestCase(InvenioTestCase):
 
         # Create needed objects
         u = User(
-            email='info@invenio-software.org', nickname='tester'
+            email='test@example.com', nickname='tester'
         )
         u.password = "tester"
 

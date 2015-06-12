@@ -23,7 +23,8 @@ Please see the help/hacking/bibcatalog-api page for details.
 This is a base class that cannot be instantiated.
 """
 
-from invenio.legacy.webuser import get_user_preferences
+from invenio.modules.accounts.models import User, get_default_user_preferences
+
 
 class BibCatalogSystem(object):
     """ A template class for ticket support."""
@@ -186,7 +187,8 @@ def get_bibcat_from_prefs(uid):
        @return: ('bibcatalog_username', 'bibcatalog_password')
        @rtype: tuple
     """
-    user_pref = get_user_preferences(uid)
+    user = User.query.get(uid)
+    user_pref = user.settings if user else get_default_user_preferences()
     if 'bibcatalog_username' not in user_pref:
         return (None, None)
     if 'bibcatalog_password' not in user_pref:

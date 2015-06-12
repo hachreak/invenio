@@ -35,9 +35,10 @@ import time
 import zlib
 import tempfile
 import sys
-import traceback
 from datetime import datetime
 from MySQLdb import ProgrammingError
+
+from flask_login import current_user as user_info
 
 try:
     from six import StringIO
@@ -61,19 +62,16 @@ from invenio.config import CFG_BIBEDIT_LOCKLEVEL, \
     CFG_BIBEDIT_TIMEOUT, CFG_BIBUPLOAD_EXTERNAL_OAIID_TAG as OAIID_TAG, \
     CFG_BIBUPLOAD_EXTERNAL_SYSNO_TAG as SYSNO_TAG, \
     CFG_BIBEDIT_QUEUE_CHECK_METHOD, \
-    CFG_BIBEDIT_EXTEND_RECORD_WITH_COLLECTION_TEMPLATE, \
-    CFG_PYLIBDIR
+    CFG_BIBEDIT_EXTEND_RECORD_WITH_COLLECTION_TEMPLATE
 from invenio.utils.date import convert_datetext_to_dategui
 from invenio.utils.text import wash_for_xml
 from invenio.legacy.bibedit.db_layer import get_bibupload_task_opts, \
     get_marcxml_of_record_revision, get_record_revisions, \
     get_info_of_record_revision
 from invenio.legacy.search_engine import record_exists, \
-     guess_primary_collection_of_a_record, get_record, \
+     get_record, \
      get_all_collections_of_a_record
 from invenio.legacy.bibrecord import get_fieldvalues
-from invenio.legacy.webuser import get_user_info, get_email, \
-     collect_user_info, get_user_preferences, list_registered_users
 from invenio.legacy.dbquery import run_sql
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.legacy.refextract.api import extract_references_from_record_xml, \
@@ -86,12 +84,8 @@ from invenio.modules.editor.registry import field_templates, record_templates, \
 
 from invenio.base.globals import cfg
 from invenio.legacy.bibcatalog.api import BIBCATALOG_SYSTEM
-from invenio.modules.collections.models import Collection
+from invenio.modules.accounts.models import User
 
-try:
-    from cPickle import loads
-except ImportError:
-    from pickle import loads
 from msgpack import packb, unpackb
 
 serialize = packb
@@ -134,7 +128,6 @@ def user_can_edit_record_collection(req, recid):
     # Get the collections the record belongs to
     record_collections = get_all_collections_of_a_record(recid)
 
-    user_info = collect_user_info(req)
     uid = user_info["uid"]
     # In case we are creating a new record
     if cache_exists(recid, uid):
@@ -378,7 +371,8 @@ def save_xml_record(recid, uid, xml_record='', to_upload=True, to_merge=False,
         xml_file.write(xml_to_write)
         xml_file.close()
 
-    user_name = get_user_info(uid)[1]
+    user = User.query.filter_by(id=uid).first()
+    user_name = user.nickname if user else ""
     if to_upload:
         args = ['bibupload', user_name, '-P', '5', '-r',
                 file_path, '-u', user_name]
@@ -440,8 +434,9 @@ def record_locked_by_user_details(recid, uid):
 
     if active_uids:
         record_blocked_by_uid = active_uids[0]
-        record_blocked_by_nickname = get_user_info(record_blocked_by_uid)[1]
-        record_blocked_by_email = get_email(record_blocked_by_uid)
+        user = User.query.filter_by(id=record_blocked_by_uid).one()
+        record_blocked_by_nickname = user.nickname
+        record_blocked_by_email = user.email
         locked_since = get_record_locked_since(recid, record_blocked_by_uid)
 
     return record_blocked_by_nickname, record_blocked_by_email, locked_since
@@ -778,8 +773,6 @@ def can_record_have_physical_copies(recid):
     if get_record(recid) is None:
         return False
 
-    col_id = Collection.query.filter_by(
-        name=guess_primary_collection_of_a_record(recid)).value('id')
     return False
     # collections = get_detailed_page_tabs(col_id, recid)
 
@@ -1116,11 +1109,11 @@ def get_new_ticket_RT_info(uid, recId):
         if bibcat_resp == "":
             # add available owners
             users = []
-            users_list = list_registered_users()
+            users_list = User.query.filter(User.email!="").all()
             for user_tuple in users_list:
                 try:
-                    user = {'username': get_user_preferences(user_tuple[0])['bibcatalog_username'],
-                        'id': user_tuple[0]}
+                    user = {'username': user_tuple.nickname,
+                        'id': user_tuple.id}
                 except KeyError:
                     continue
                 users.append(user)
@@ -1128,7 +1121,8 @@ def get_new_ticket_RT_info(uid, recId):
             # add available queues
             response['queues'] = BIBCATALOG_SYSTEM.get_queues(uid)
             # add user email
-            response['email'] = get_email(uid)
+            user = User.query.filter_by(id=uid).one()
+            response['email'] = user.email
             # TODO try catch
             response['ticketTemplates'] = load_ticket_templates(recId)
             response['resultCode'] = 1

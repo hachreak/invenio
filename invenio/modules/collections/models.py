@@ -140,7 +140,7 @@ class Collection(db.Model):
     @property
     def name_ln(self):
         """Name ln."""
-        from invenio.legacy.search_engine import get_coll_i18nname
+        from invenio.modules.collections.cache import get_coll_i18nname
         return get_coll_i18nname(self.name,
                                  getattr(g, 'ln', cfg['CFG_SITE_LANG']))
         # Another possible implementation with cache memoize
@@ -716,7 +716,8 @@ class FacetCollection(db.Model):
     __tablename__ = 'facet_collection'
 
     id = db.Column(db.Integer, primary_key=True)
-    id_collection = db.Column(db.MediumInteger(9, unsigned=True), db.ForeignKey(Collection.id))
+    id_collection = db.Column(db.MediumInteger(9, unsigned=True),
+                              db.ForeignKey(Collection.id))
     order = db.Column(db.Integer)
     facet_name = db.Column(db.String(80))
 

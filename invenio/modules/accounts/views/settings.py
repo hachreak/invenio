@@ -32,6 +32,7 @@ from flask_menu import current_menu, register_menu
 
 from invenio.base.i18n import _
 from invenio.ext.sqlalchemy import db
+from invenio.modules.accounts.helpers import verify_email
 from invenio.ext.sslify import ssl_required
 
 from ..forms import ChangePasswordForm, LostPasswordForm, ProfileForm, \
@@ -108,7 +109,7 @@ def profile():
     elif form == 'verification':
         verification_form.process(formdata=request.form)
         if verification_form.validate_on_submit():
-            if u.verify_email():
+            if verify_email(u):
                 flash(_("Verification email sent."), category="success")
 
     return render_template(

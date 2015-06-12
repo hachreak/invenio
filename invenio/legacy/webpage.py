@@ -19,6 +19,8 @@
 
 __revision__ = "$Id$"
 
+from flask_login import current_user
+
 from invenio.config import \
      CFG_WEBSTYLE_CDSPAGEBOXLEFTBOTTOM, \
      CFG_WEBSTYLE_CDSPAGEBOXLEFTTOP, \
@@ -27,16 +29,43 @@ from invenio.config import \
      CFG_SITE_LANG, \
      CFG_SITE_URL, \
      CFG_SITE_NAME_INTL, \
-     CFG_SITE_NAME
+     CFG_SITE_NAME, CFG_SITE_SECURE_URL
 from invenio.base.i18n import gettext_set_language
-from invenio.legacy.webuser import \
-     create_userinfobox_body, \
-     getUid
-
+from invenio.legacy.dbquery import run_sql
 import invenio.legacy.template
 webstyle_templates = invenio.legacy.template.load('webstyle')
 
 from xml.dom.minidom import getDOMImplementation
+
+
+def get_nickname_or_email(uid):
+    """Return nickname (preferred) or the email address of the user uid.
+    Return string 'guest' in case the user is not found."""
+    out = "guest"
+    res = run_sql("SELECT nickname, email FROM user WHERE id=%s", (uid,), 1)
+    if res and res[0]:
+        if res[0][0]:
+            out = res[0][0]
+        elif res[0][1]:
+            out = res[0][1].lower()
+    return out
+
+
+def create_userinfobox_body(req, uid, language="en"):
+    """Create user info box body for user UID in language LANGUAGE."""
+
+    if req:
+        if req.is_https():
+            url_referer = CFG_SITE_SECURE_URL + req.unparsed_uri
+        else:
+            url_referer = CFG_SITE_URL + req.unparsed_uri
+        if '/youraccount/logout' in url_referer:
+            url_referer = ''
+    else:
+        url_referer = CFG_SITE_URL
+
+    return ""
+
 
 def create_navtrailbox_body(title,
                             previous_links,
@@ -98,10 +127,9 @@ def page(title, body, navtrail="", description="", keywords="",
        output: the final cds page with header, footer, etc.
     """
 
-    _ = gettext_set_language(language)
     if req is not None:
         if uid is None:
-            uid = getUid(req)
+            uid = current_user.get_id()
         secure_page_p = req.is_https() and 1 or 0
     if uid is None:
         ## 0 means generic guest user.
@@ -162,7 +190,7 @@ def pageheaderonly(title, navtrail="", description="", keywords="", uid=0,
        Suitable for the search results page and any long-taking scripts."""
     if req is not None:
         if uid is None:
-            uid = getUid(uid)
+            uid = current_user.get_id(uid)
         secure_page_p = req.is_https() and 1 or 0
     return webstyle_templates.tmpl_pageheader(req,
                       ln = language,
@@ -196,7 +224,6 @@ def create_error_box(req, title=None, verbose=1, ln=CFG_SITE_LANG, errors=None):
        message box with internal information that would be suitful to
        display when something bad has happened.
     """
-    _ = gettext_set_language(ln)
     return webstyle_templates.tmpl_error_box(title = title,
                                              ln = ln,
                                              verbose = verbose,
@@ -234,7 +261,7 @@ def error_page(title, req, ln=CFG_SITE_LANG):
                 body = create_error_box(req, title=str(title), verbose=0, ln=ln),
                 description="%s - Internal Error" % site_name,
                 keywords="%s, Internal Error" % site_name,
-                uid = getUid(req),
+                uid = current_user.get_id(req),
                 language=ln,
                 req=req)
 
@@ -248,7 +275,7 @@ def warning_page(title, req, ln=CFG_SITE_LANG):
                 body = title,
                 description="%s - Internal Error" % site_name,
                 keywords="%s, Internal Error" % site_name,
-                uid = getUid(req),
+                uid = current_user.get_id(req),
                 language=ln,
                 req=req)
 

@@ -102,8 +102,6 @@ from invenio.legacy.bibdocfile.api import BibRecDocs, file_strip_ext, normalize_
     bibdocfile_url_p, CFG_BIBDOCFILE_AVAILABLE_FLAGS, guess_format_from_url, \
     BibRelation, MoreInfo
 
-from invenio.legacy.search_engine import search_pattern
-
 from invenio.legacy.bibupload.revisionverifier import RevisionVerifier, \
                                                InvenioBibUploadConflictingRevisionsError, \
                                                InvenioBibUploadInvalidRevisionError, \
@@ -766,12 +764,17 @@ def submit_ticket_for_holding_pen(rec_id, err, msg, pretend=False):
     msg: verbose message
     """
     from invenio.legacy.bibsched import bibtask
-    from invenio.legacy.webuser import get_email_from_username, get_uid_from_email
+    from invenio.modules.accounts.models import User
+    from invenio.ext.sqlalchemy import db
+
     user = task_get_task_param("user")
+    user_loaded = User.query.filter(
+        db.or_(User.nickname==user, User.email==user)
+    ).first()
     uid = None
     if user:
         try:
-            uid = get_uid_from_email(get_email_from_username(user))
+            uid = user_loaded.id if user_loaded else 0
         except Exception as err:
             write_message("WARNING: can't reliably retrieve uid for user %s: %s" % (user, err), stream=sys.stderr)
 

@@ -20,6 +20,10 @@ import os
 import time
 import shutil
 
+from flask import abort
+
+from flask_login import current_user
+
 from six import iteritems
 
 from invenio.config import \
@@ -40,34 +44,32 @@ from invenio.modules.access.local_config import VIEWRESTRCOLL
 from invenio.modules.access.mailcookie import mail_cookie_create_authorize_action
 from invenio.modules.access.engine import acc_authorize_action
 from invenio.modules.access.control import acc_is_role
+from invenio.modules.accounts.models import User
 from invenio_records.api import get_record
 from invenio.legacy.bibrecord import record_empty
 from invenio.legacy.webpage import page, pageheaderonly, \
     pagefooteronly, warning_page, write_warning
-from invenio.legacy.webuser import getUid, page_not_authorized, collect_user_info, isUserSuperAdmin, \
-                            isGuestUser
 from invenio.ext.legacy.handler import wash_urlargd, WebInterfaceDirectory
 from invenio.utils.url import make_canonical_urlargd, redirect_to_url
 from invenio.base.i18n import gettext_set_language
 from invenio.legacy.search_engine import \
      guess_primary_collection_of_a_record, record_exists, \
-     create_navtrail_links, check_user_can_view_record
-from invenio_records.access import is_user_owner_of_record
+     create_navtrail_links
+from invenio_records.access import is_user_owner_of_record, check_user_can_view_record
 from invenio.legacy.bibdocfile.api import BibRecDocs, normalize_format, file_strip_ext, \
     stream_restricted_icon, BibDoc, InvenioBibDocFileError, \
     get_subformat_from_format
 from invenio.ext.logging import register_exception
-from invenio.modules.collections.models import Collection
 import invenio.legacy.template
 bibdocfile_templates = invenio.legacy.template.load('bibdocfile')
 webstyle_templates = invenio.legacy.template.load('webstyle')
 websearch_templates = invenio.legacy.template.load('websearch')
-
 from invenio.legacy.bibdocfile.managedocfiles import \
      create_file_upload_interface, \
      get_upload_file_interface_javascript, \
      get_upload_file_interface_css, \
      move_uploaded_files_to_storage
+from invenio.ext.login.legacy_user import isUserSuperAdmin
 
 
 class WebInterfaceFilesPages(WebInterfaceDirectory):
@@ -86,8 +88,8 @@ class WebInterfaceFilesPages(WebInterfaceDirectory):
 
             _ = gettext_set_language(ln)
 
-            uid = getUid(req)
-            user_info = collect_user_info(req)
+            uid = current_user.get_id()
+            user_info = current_user
 
             verbose = args['verbose']
             if verbose >= 1 and not isUserSuperAdmin(user_info):
@@ -95,8 +97,7 @@ class WebInterfaceFilesPages(WebInterfaceDirectory):
                 verbose = 0
 
             if uid == -1 or CFG_ACCESS_CONTROL_LEVEL_SITE > 1:
-                return page_not_authorized(req, "/%s/%s" % (CFG_SITE_RECORD, self.recid),
-                                           navmenuid='submit')
+                abort(403)
 
             if record_exists(self.recid) < 1:
                 msg = "<p>%s</p>" % _("Requested record does not seem to exist.")
@@ -114,8 +115,7 @@ class WebInterfaceFilesPages(WebInterfaceDirectory):
                                                     CFG_SITE_SECURE_URL + user_info['uri']}, {})
                 return redirect_to_url(req, target, norobot=True)
             elif auth_code:
-                return page_not_authorized(req, "../", \
-                                            text = auth_message)
+                abort(403, auth_message)
 
             readonly = CFG_ACCESS_CONTROL_LEVEL_SITE == 1
 
@@ -236,7 +236,6 @@ class WebInterfaceFilesPages(WebInterfaceDirectory):
                 filelist=filelist)
 
             cc = guess_primary_collection_of_a_record(self.recid)
-            cc_id = Collection.query.filter_by(name=cc).value('id')
             unordered_tabs = None  # get_detailed_page_tabs(cc_id, self.recid, ln)
             ordered_tabs_id = [(tab_id, values['order']) for (tab_id, values) in iteritems(unordered_tabs)]
             ordered_tabs_id.sort(lambda x, y: cmp(x[1], y[1]))
@@ -352,8 +351,8 @@ class WebInterfaceManageDocFilesPages(WebInterfaceDirectory):
             })
 
         _ = gettext_set_language(argd['ln'])
-        uid = getUid(req)
-        user_info = collect_user_info(req)
+        uid = current_user.get_id()
+        user_info = current_user
         # Check authorization
         (auth_code, auth_msg) = acc_authorize_action(req,
                                                      'runbibdocfile')
@@ -364,10 +363,7 @@ class WebInterfaceManageDocFilesPages(WebInterfaceDirectory):
                                              'referer' : CFG_SITE_SECURE_URL + user_info['uri']}, {})
             return redirect_to_url(req, target)
         elif auth_code:
-            return page_not_authorized(req, referer="/%s/managedocfiles" % CFG_SITE_RECORD,
-                                       uid=uid, text=auth_msg,
-                                       ln=argd['ln'],
-                                       navmenuid="admin")
+            abort(403, auth_msg)
 
         # Prepare navtrail
         navtrail = '''<a class="navtrail" href="%(CFG_SITE_URL)s/help/admin">Admin Area</a> &gt; %(manage_files)s''' \
@@ -485,7 +481,7 @@ class WebInterfaceManageDocFilesPages(WebInterfaceDirectory):
             'indir': (str, ''),
             })
 
-        user_info = collect_user_info(req)
+        user_info = current_user
         include_headers = False
         # User submitted either through WebSubmit, or admin interface.
         if 'doctype' in form and 'indir' in form \
@@ -513,10 +509,17 @@ class WebInterfaceManageDocFilesPages(WebInterfaceDirectory):
             except:
                 action = ""
 
+            uid = current_user.get_id()
+            if uid:
+                user = User.query.filter_by(id=uid).first()
+                guest = user.guest
+            else:
+                guest = True
+
             # Is user authorized to perform this action?
             auth_code = acc_authorize_action(user_info,
                 "submit",
-                authorized_if_no_roles=not isGuestUser(getUid(req)),
+                authorized_if_no_roles=not guest,
                 doctype=argd['doctype'],
                 act=action)[0]
             if auth_code and not acc_is_role("submit", doctype=argd['doctype'], act=action):

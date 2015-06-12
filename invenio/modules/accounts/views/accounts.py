@@ -21,7 +21,7 @@
 
 from __future__ import absolute_import
 
-from flask import Blueprint, abort, current_app, flash, g, redirect, \
+from flask import Blueprint, abort, current_app, flash, redirect, \
     render_template, request, url_for
 
 from flask_breadcrumbs import register_breadcrumb
@@ -37,15 +37,10 @@ from invenio.ext.login import UserInfo, authenticate, login_redirect, \
     login_user, logout_user
 from invenio.ext.sqlalchemy import db
 from invenio.ext.sslify import ssl_required
-from invenio.legacy import webuser
-from invenio.modules.access.errors import \
-    InvenioWebAccessMailCookieDeletedError, InvenioWebAccessMailCookieError
-from invenio.modules.access.mailcookie import \
-    mail_cookie_check_mail_activation, mail_cookie_check_pw_reset, \
-    mail_cookie_delete_cookie
-from invenio.modules.accounts.forms import LoginForm, LostPasswordForm, \
-    RegisterForm, ResetPasswordForm
-
+from invenio.modules.access.errors import InvenioWebAccessMailCookieDeletedError, \
+    InvenioWebAccessMailCookieError
+from invenio.modules.access.mailcookie import mail_cookie_check_mail_activation, \
+    mail_cookie_check_pw_reset, mail_cookie_delete_cookie
 from invenio.utils.datastructures import LazyDict, flatten_multidict
 
 from six import text_type
@@ -54,8 +49,11 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from werkzeug import CombinedMultiDict, ImmutableMultiDict
 
-from ..models import User
 from ..errors import AccountSecurityError
+from ..forms import LoginForm, LostPasswordForm, RegisterForm, \
+    ResetPasswordForm
+from ..helpers import register_user
+from ..models import User
 from ..utils import send_reset_password_email
 from ..validators import wash_login_method
 
@@ -120,14 +118,6 @@ def login(nickname=None, password=None, login_method=None, action='',
 @ssl_required
 def register():
     """Register."""
-    req = request.get_legacy_request()
-
-    # FIXME
-    if cfg.get('CFG_ACCESS_CONTROL_LEVEL_SITE') > 0:
-        return webuser.page_not_authorized(
-            req, "../youraccount/register?ln=%s" % g.ln,
-            navmenuid='youraccount')
-
     form = RegisterForm(request.values, csrf_enabled=False)
 
     title = _("Register")
@@ -135,10 +125,9 @@ def register():
     state = ""
 
     if form.validate_on_submit():
-        ruid = webuser.registerUser(req, form.email.data.encode('utf8'),
-                                    form.password.data.encode('utf8'),
-                                    form.nickname.data.encode('utf8'),
-                                    ln=g.ln)
+        ruid = register_user(form.email.data.encode('utf8'),
+                             form.password.data.encode('utf8'),
+                             form.nickname.data.encode('utf8'))
         if ruid == 0:
             title = _("Account created")
             messages.append(_("Your account has been successfully created."))

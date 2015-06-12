@@ -23,10 +23,13 @@ import cgi
 import os
 import fcntl
 
+from flask import abort
+
+from flask_login import current_user
+
 from invenio.config import CFG_SITE_URL, CFG_SITE_LANG
 from invenio.base.i18n import gettext_set_language
 from invenio.legacy.webpage import page
-from invenio.legacy.webuser import getUid, collect_user_info, page_not_authorized
 from invenio.legacy.webdoc.api import get_webdoc_parts, webdoc_dirs
 from invenio.ext.legacy.handler import wash_urlargd, WebInterfaceDirectory
 from invenio.legacy.bibdocfile.api import stream_file
@@ -93,7 +96,7 @@ class WebInterfaceInfoPages(WebInterfaceDirectory):
 
     def manage(self, req, form):
         """ Web interface for the management of the info space """
-        uid = getUid(req)
+        uid = current_user.get_id(req)
         argd = wash_urlargd(form, {'ln': (str, CFG_SITE_LANG)})
 
         # If it is an Ajax request, extract any JSON data.
@@ -105,7 +108,7 @@ class WebInterfaceInfoPages(WebInterfaceDirectory):
             json_response = {}
 
         # Authorization.
-        user_info = collect_user_info(req)
+        user_info = current_user
         if user_info['email'] == 'guest':
             # User is not logged in.
             if not ajax_request:
@@ -113,9 +116,7 @@ class WebInterfaceInfoPages(WebInterfaceDirectory):
                 # users (as it used to be with v0.99.0):
                 dummy_auth_code, auth_message = acc_authorize_action(req,
                                                                      'runinfomanager')
-                referer = '/info'
-                return page_not_authorized(req=req, referer=referer,
-                                           text=auth_message)
+                abort(403, message=auth_message)
             else:
                 # Session has most likely timed out.
                 json_response.update({'status': "timeout"})
@@ -176,7 +177,7 @@ def display_webdoc_page(webdocname, categ="help", ln=CFG_SITE_LANG, req=None):
 
     _ = gettext_set_language(ln)
 
-    uid = getUid(req)
+    uid = current_user.get_id(req)
 
     # wash arguments:
     if not webdocname:

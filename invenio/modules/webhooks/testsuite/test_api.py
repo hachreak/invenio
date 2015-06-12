@@ -31,7 +31,7 @@ class WebHooksTestCase(APITestCase):
     def setUp(self):
         from invenio.modules.accounts.models import User
         self.user = User(
-            email='info@invenio-software.org', nickname='tester'
+            email='test-info@invenio-software.org', nickname='tester'
         )
         self.user.password = "tester"
         db.session.add(self.user)
@@ -130,7 +130,7 @@ class WebHooksScopesTestCase(APITestCase):
     def setUp(self):
         from invenio.modules.accounts.models import User
         self.user = User(
-            email='info@invenio-software.org', nickname='tester'
+            email='test-info@invenio-software.org', nickname='tester'
         )
         self.user.password = "tester"
         db.session.add(self.user)
