@@ -89,7 +89,6 @@ from invenio.legacy.bibrecord import (get_fieldvalues,
 from .utils import record_exists
 from invenio.legacy.bibrecord import create_record, record_xml_output
 from invenio.legacy.miscutil.data_cacher import DataCacher
-from invenio.modules.access.control import acc_get_action_id
 from invenio.modules.access.local_config import VIEWRESTRCOLL, \
     CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_EMAILS_IN_TAGS, \
     CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_USERIDS_IN_TAGS, \
@@ -107,13 +106,15 @@ from invenio.legacy import bibrecord
 from invenio.legacy.dbquery import run_sql, run_sql_with_limit, \
     wash_table_column_name, get_table_update_time
 from invenio.legacy.webuser import getUid, collect_user_info
+from invenio.modules.access.modules import AccACTION
 from invenio.base.i18n import gettext_set_language
 
 from invenio.utils import apache
 
 from sqlalchemy.exc import DatabaseError
 
-VIEWRESTRCOLL_ID = acc_get_action_id(VIEWRESTRCOLL)
+action = AccACTION.factory(name=VIEWRESTRCOLL)
+VIEWRESTRCOLL_ID = action.id
 
 # em possible values
 EM_REPOSITORY={"body" : "B",

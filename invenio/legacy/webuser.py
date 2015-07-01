@@ -88,11 +88,7 @@ from invenio.legacy.websession.webuser_config import CFG_WEBUSER_USER_TABLES
 
 from sqlalchemy.exc import OperationalError
 
-acc_get_role_id = lazy_import('invenio.modules.access.control:acc_get_role_id')
-acc_get_action_roles = lazy_import('invenio.modules.access.control:acc_get_action_roles')
-acc_get_action_id = lazy_import('invenio.modules.access.control:acc_get_action_id')
-acc_is_user_in_role = lazy_import('invenio.modules.access.control:acc_is_user_in_role')
-acc_find_possible_activities = lazy_import('invenio.modules.access.control:acc_find_possible_activities')
+from invenio.modules.access import models, api
 mail_cookie_create_mail_activation = lazy_import('invenio.modules.access.mailcookie:mail_cookie_create_mail_activation')
 acc_firerole_check_user = lazy_import('invenio.modules.access.firerole:acc_firerole_check_user')
 load_role_definition = lazy_import('invenio.modules.access.firerole:load_role_definition')
@@ -357,8 +353,12 @@ def isUserReferee(user_info):
     if CFG_CERN_SITE:
         return True
     else:
-        for (role_id, role_name, role_description) in acc_get_action_roles(acc_get_action_id('referee')):
-            if acc_is_user_in_role(user_info, role_id):
+        for (role_id, role_name, role_description) in \
+                api.get_action_roles(
+                    models.AccACTION.factory(name='referee').id):
+            if models.UserAccROLE.is_user_in_any_roles(
+                user_info=user_info,
+                roles=[models.AccROLE.factory(name=role_name)]):
                 return True
     return False
 
@@ -372,8 +372,9 @@ def isUserSuperAdmin(user_info):
     user = User.query.get(user_info['uid'])
     if user and user.has_super_admin_role:
         return True
+    action=models.AccACTION.factory(name=SUPERADMINROLE)
     return acc_firerole_check_user(
-        user_info, load_role_definition(acc_get_role_id(SUPERADMINROLE)))
+        user_info, load_role_definition(action.id))
 
 def nickname_valid_p(nickname):
     """Check whether wanted NICKNAME supplied by the user is valid.
@@ -498,7 +499,7 @@ def registerUser(req, email, passw, nickname, register_without_nickname=False,
         db.session.rollback()
         return 7
     if activated == 1: # Ok we consider the user as logged in :-)
-        setUid(req, uid)
+        setUid(req, user.id)
     return 0
 
 def updateDataUser(uid, email, nickname):

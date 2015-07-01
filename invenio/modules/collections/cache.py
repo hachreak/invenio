@@ -21,14 +21,10 @@
 
 import warnings
 
-from intbitset import intbitset
-from werkzeug import cached_property
-
 from invenio.base.globals import cfg
 from invenio.legacy.miscutil.data_cacher import DataCacher, DataCacherProxy
+from invenio.modules.collections.models import Collection, Collectionname
 from invenio.utils.memoise import memoize
-
-from .models import Collection, Collectionname
 
 
 class CollectionAllChildrenDataCacher(DataCacher):
@@ -73,14 +69,17 @@ def get_collection_nbrecs(coll):
 
 
 class RestrictedCollectionDataCacher(DataCacher):
+
+    """RestrictedCollectionDataCacher."""
+
     def __init__(self):
+        """Init."""
         def cache_filler():
-            from invenio.modules.access.control import acc_get_action_id
             from invenio.modules.access.local_config import VIEWRESTRCOLL
             from invenio.modules.access.models import (
-                AccAuthorization, AccARGUMENT
+                AccAuthorization, AccARGUMENT, AccACTION
             )
-            VIEWRESTRCOLL_ID = acc_get_action_id(VIEWRESTRCOLL)
+            VIEWRESTRCOLL_ID = AccACTION.factory(name=VIEWRESTRCOLL).id
 
             return [auth[0] for auth in AccAuthorization.query.join(
                 AccAuthorization.argument
@@ -101,6 +100,7 @@ restricted_collection_cache = DataCacherProxy(RestrictedCollectionDataCacher)
 
 
 def collection_restricted_p(collection, recreate_cache_if_needed=True):
+    """Collection restricted p."""
     if recreate_cache_if_needed:
         restricted_collection_cache.recreate_cache_if_needed()
     return collection in restricted_collection_cache.cache
@@ -119,11 +119,15 @@ def is_record_in_any_collection(recID, recreate_cache_if_needed=True):
 
 
 class CollectionI18nNameDataCacher(DataCacher):
+
+    """Provide cache for I18N collection names.
+
+    This class is not to be used directly; use function get_coll_i18nname()
+    instead.
     """
-    Provides cache for I18N collection names.  This class is not to be
-    used directly; use function get_coll_i18nname() instead.
-    """
+
     def __init__(self):
+        """Init."""
         def cache_filler():
             res = Collection.query.join(
                 Collection.collection_names

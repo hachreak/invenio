@@ -19,25 +19,23 @@
 
 """Query definitions for module webmessage"""
 
-from time import localtime, mktime
 from datetime import datetime
-
-from invenio.legacy.dbquery import run_sql, rlike
-from invenio.modules.messages.config import \
-    CFG_WEBMESSAGE_STATUS_CODE, \
-    CFG_WEBMESSAGE_ROLES_WITHOUT_QUOTA, \
-    CFG_WEBMESSAGE_MAX_NB_OF_MESSAGES, \
-    CFG_WEBMESSAGE_DAYS_BEFORE_DELETE_ORPHANS
-
-from invenio.utils.date import datetext_default, \
-                              convert_datestruct_to_datetext
-from invenio.legacy.websession.websession_config import CFG_WEBSESSION_USERGROUP_STATUS
-
-from invenio.ext.sqlalchemy import db
-from invenio.modules.messages.models import MsgMESSAGE, UserMsgMESSAGE
-from invenio.modules.accounts.models import User
+from time import localtime, mktime
 
 from sqlalchemy.exc import OperationalError
+
+from invenio.ext.sqlalchemy import db
+from invenio.legacy.dbquery import rlike, run_sql
+from invenio.legacy.websession.websession_config import \
+    CFG_WEBSESSION_USERGROUP_STATUS
+from invenio.modules.access.models import AccROLE
+from invenio.modules.messages.config import \
+    CFG_WEBMESSAGE_DAYS_BEFORE_DELETE_ORPHANS, \
+    CFG_WEBMESSAGE_MAX_NB_OF_MESSAGES, CFG_WEBMESSAGE_ROLES_WITHOUT_QUOTA, \
+    CFG_WEBMESSAGE_STATUS_CODE
+from invenio.modules.messages.models import MsgMESSAGE, UserMsgMESSAGE
+from invenio.modules.access.models import UserAccROLE
+from invenio.utils.date import convert_datestruct_to_datetext, datetext_default
 
 
 def filter_messages_from_user_with_status(uid, status):
@@ -437,13 +435,14 @@ def check_quota(nb_messages):
     @return: a dictionary of users over-quota
     """
     from invenio.legacy.webuser import collect_user_info
-    from invenio.modules.access.control import acc_is_user_in_role, acc_get_role_id
-    no_quota_role_ids = [acc_get_role_id(role) for role in CFG_WEBMESSAGE_ROLES_WITHOUT_QUOTA]
+    no_quota_roles = [AccROLE.factory(name=role_name)
+                         for role_name in CFG_WEBMESSAGE_ROLES_WITHOUT_QUOTA]
     res = {}
     for uid, n in run_sql("SELECT id_user_to, COUNT(id_user_to) FROM user_msgMESSAGE GROUP BY id_user_to HAVING COUNT(id_user_to) > %s", (nb_messages, )):
         user_info = collect_user_info(uid)
-        for role_id in no_quota_role_ids:
-            if acc_is_user_in_role(user_info, role_id):
+        for role in no_quota_roles:
+            if UserAccROLE.is_user_in_any_roles(
+                user_info=user_info, roles=[role]):
                 break
         else:
             res[uid] = n
@@ -456,7 +455,6 @@ def update_user_inbox_for_reminders(uid):
     @param uid: user id
     @return: integer number of new expired reminders
     """
-    now =  convert_datestruct_to_datetext(localtime())
     reminder_status = CFG_WEBMESSAGE_STATUS_CODE['REMINDER']
     new_status = CFG_WEBMESSAGE_STATUS_CODE['NEW']
     expired_reminders = db.session.query(UserMsgMESSAGE.id_msgMESSAGE).\

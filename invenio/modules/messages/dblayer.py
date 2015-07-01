@@ -29,8 +29,10 @@ from invenio.modules.messages.config import \
     CFG_WEBMESSAGE_MAX_NB_OF_MESSAGES, \
     CFG_WEBMESSAGE_DAYS_BEFORE_DELETE_ORPHANS
 from invenio.utils.date import datetext_default, \
-                              convert_datestruct_to_datetext
-from invenio.legacy.websession.websession_config import CFG_WEBSESSION_USERGROUP_STATUS
+    convert_datestruct_to_datetext
+from invenio.legacy.websession.websession_config import \
+    CFG_WEBSESSION_USERGROUP_STATUS
+from invenio.modules.access.models import AccROLE, UserAccROLE
 
 from sqlalchemy.exc import OperationalError
 
@@ -478,13 +480,14 @@ def check_quota(nb_messages):
     @return: a dictionary of users over-quota
     """
     from invenio.legacy.webuser import collect_user_info
-    from invenio.modules.access.control import acc_is_user_in_role, acc_get_role_id
-    no_quota_role_ids = [acc_get_role_id(role) for role in CFG_WEBMESSAGE_ROLES_WITHOUT_QUOTA]
+    no_quota_roles = [AccROLE.factory(neme=role_name)
+                      for role_name in CFG_WEBMESSAGE_ROLES_WITHOUT_QUOTA]
     res = {}
     for uid, n in run_sql("SELECT id_user_to, COUNT(id_user_to) FROM user_msgMESSAGE GROUP BY id_user_to HAVING COUNT(id_user_to) > %s", (nb_messages, )):
         user_info = collect_user_info(uid)
-        for role_id in no_quota_role_ids:
-            if acc_is_user_in_role(user_info, role_id):
+        for role in no_quota_roles:
+            if UserAccROLE.is_user_in_any_roles(
+                user_info=user_info, roles=[role]):
                 break
         else:
             res[uid] = n

@@ -22,8 +22,6 @@ from __future__ import print_function
 
 import os
 
-import sys
-
 from flask import (abort, current_app, g, render_template, request,
                    send_from_directory, url_for)
 
@@ -31,7 +29,6 @@ from flask_admin.menu import MenuLink
 
 from invenio.base import signals
 from invenio.base.scripts.database import create, recreate
-from invenio.base.utils import run_py_func
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import BaseResponse
@@ -41,15 +38,10 @@ from .request_class import LegacyRequest
 
 def cli_cmd_reset(sender, yes_i_know=False, drop=True, **kwargs):
     """Reset legacy values."""
-    from invenio.modules.access.scripts.webaccessadmin import main as \
-        webaccessadmin
+    from invenio.modules.access.manage import repair, add
 
-    for cmd in (
-        (webaccessadmin, "webaccessadmin -u admin -c -a -D"),
-    ):
-        if run_py_func(*cmd, passthrough=True).exit_code:
-            print("ERROR: failed execution of", *cmd)
-            sys.exit(1)
+    repair()
+    add(demo=True)
 
 signals.post_command.connect(cli_cmd_reset, sender=create)
 signals.post_command.connect(cli_cmd_reset, sender=recreate)

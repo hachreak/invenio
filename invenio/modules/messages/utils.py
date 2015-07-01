@@ -21,16 +21,15 @@
 
 from invenio.base.globals import cfg
 from invenio.ext.login import UserInfo
-from invenio.modules.access.control import acc_get_role_id, \
-    acc_is_user_in_role
+from invenio.modules.access.models import AccROLE, UserAccROLE
 
 
 def is_no_quota_user(uid):
     """Return True if the user belongs to any of the no_quota roles."""
-    no_quota_role_ids = [acc_get_role_id(role) for role in
-                         cfg['CFG_WEBMESSAGE_ROLES_WITHOUT_QUOTA']]
+    no_quota_roles = [AccROLE.factory(name=role_name) for role_name in
+                      cfg['CFG_WEBMESSAGE_ROLES_WITHOUT_QUOTA']]
     user_info = UserInfo(uid)
-    for role_id in no_quota_role_ids:
-        if acc_is_user_in_role(user_info, role_id):
+    for role in no_quota_roles:
+        if UserAccROLE.is_user_in_any_roles(user_info=user_info, roles=[role]):
             return True
     return False

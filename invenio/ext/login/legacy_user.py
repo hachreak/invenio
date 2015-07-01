@@ -187,8 +187,7 @@ class UserInfo(CombinedMultiDict, UserMixin):
         from invenio.legacy.webuser import isUserSubmitter, isUserReferee, \
             isUserAdmin, isUserSuperAdmin
         from invenio.modules.access.engine import acc_authorize_action
-        from invenio.modules.access.control import acc_get_role_id, \
-            acc_is_user_in_role
+        from invenio.modules.access import models
         from invenio.modules.search.utils import \
             get_permitted_restricted_collections
         from invenio.modules.deposit.cache import \
@@ -218,12 +217,16 @@ class UserInfo(CombinedMultiDict, UserMixin):
         usepaperattribution = False
         viewclaimlink = False
 
-        if (CFG_BIBAUTHORID_ENABLED and acc_is_user_in_role(
-                user_info, acc_get_role_id("paperclaimviewers"))):
+        if CFG_BIBAUTHORID_ENABLED and \
+            models.UserAccROLE.is_user_in_any_roles(
+                user_info,
+                [models.AccROLE.factory(name="paperclaimviewers")]):
             usepaperclaim = True
 
-        if (CFG_BIBAUTHORID_ENABLED and acc_is_user_in_role(
-                user_info, acc_get_role_id("paperattributionviewers"))):
+        if CFG_BIBAUTHORID_ENABLED and \
+            models.UserAccROLE.is_user_in_any_roles(
+                user_info,
+                [models.AccROLE.factory(name="paperattributionviewers")]):
             usepaperattribution = True
 
         viewlink = False
@@ -235,12 +238,6 @@ class UserInfo(CombinedMultiDict, UserMixin):
         if (current_app.config.get('CFG_BIBAUTHORID_ENABLED') and
            usepaperattribution and viewlink):
             viewclaimlink = True
-
-#       if (CFG_BIBAUTHORID_ENABLED
-#               and ((usepaperclaim or usepaperattribution)
-#               and acc_is_user_in_role(
-#                   data, acc_get_role_id("paperattributionlinkviewers")))):
-#           viewclaimlink = True
 
         data['precached_viewclaimlink'] = viewclaimlink
         data['precached_usepaperclaim'] = usepaperclaim

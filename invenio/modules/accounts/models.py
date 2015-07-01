@@ -27,6 +27,7 @@ from flask_login import current_user
 from invenio.ext.passlib import password_context
 from invenio.ext.passlib.hash import invenio_aes_encrypted_email
 from invenio.ext.sqlalchemy import db
+from invenio.ext.sqlalchemy.utils import session_manager
 
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -210,6 +211,14 @@ class User(db.Model):
     def is_active(self):
         """Return True if use is active."""
         return self.note != "0"
+
+    @classmethod
+    @session_manager
+    def delete(cls, *criteria, **filters):
+        """Delete user."""
+        obj = cls.query.filter(*criteria).filter_by(**filters).first()
+        if obj:
+            db.session.delete(obj)
 
 
 def get_groups_user_not_joined(id_user, group_name=None):

@@ -22,6 +22,7 @@ import re
 import MySQLdb
 import urllib
 
+from intbitset import intbitset
 from six import iteritems
 
 from invenio.base.globals import cfg
@@ -40,13 +41,94 @@ from invenio.modules.access.local_config import CFG_EXTERNAL_AUTHENTICATION, \
 from invenio.legacy.dbquery import run_sql
 from invenio.legacy.webuser import getUid, get_user_preferences, \
         collect_user_info
-from invenio.modules.access.control import acc_find_user_role_actions
 from invenio.base.i18n import gettext_set_language
+from invenio.modules.access.models import AccROLE, AccACTION
+from invenio.modules.access.firerole import acc_firerole_check_user, \
+    deserialize
 
 import invenio.legacy.template
 websession_templates = invenio.legacy.template.load('websession')
 
 from invenio.modules import apikeys as web_api_key
+
+
+def acc_get_user_roles_from_user_info(user_info):
+    """get all roles a user is connected to."""
+    uid = user_info['uid']
+    if uid == -1:
+        roles = intbitset()
+    else:
+        roles = intbitset(run_sql("""SELECT ur."id_accROLE"
+            FROM "user_accROLE" ur
+            WHERE ur.id_user = %s AND ur.expiration >= NOW()
+            ORDER BY ur."id_accROLE" """, (uid, ), run_on_slave=True))
+
+    potential_implicit_roles = run_sql("""SELECT id, firerole_def_ser FROM "accROLE"
+        WHERE firerole_def_ser IS NOT NULL""", run_on_slave=True)
+
+    for role_id, firerole_def_ser in potential_implicit_roles:
+        if role_id not in roles:
+            if acc_firerole_check_user(user_info,
+                                       deserialize(firerole_def_ser)):
+                roles.add(role_id)
+
+    return roles
+
+
+def acc_get_all_actions():
+    """return all entries in accACTION."""
+    actions = AccACTION.query.order_by(AccACTION.name).all()
+    return [[action.id, action.name, action.description] for action in actions]
+
+
+def acc_find_user_role_actions(user_info):
+    """find name of all roles and actions connected to user_info."""
+    uid = user_info['uid']
+    # Not actions for anonymous
+    if uid == -1:
+        res1 = []
+    else:
+        # Let's check if user is superadmin
+        id_superadmin = AccROLE.factory(name=SUPERADMINROLE).id
+        if id_superadmin in acc_get_user_roles_from_user_info(user_info):
+            return [(SUPERADMINROLE, action[1])
+                    for action in acc_get_all_actions()]
+
+        query = """SELECT DISTINCT r.name, a.name
+                   FROM "user_accROLE" ur, "accROLE_accACTION_accARGUMENT" raa,
+                   "accACTION" a, "accROLE" r
+                   WHERE ur.id_user = %s AND
+                   ur.expiration >= NOW() AND
+                   ur."id_accROLE"  = raa."id_accROLE"  AND
+                   raa."id_accACTION"  = a.id AND
+                   raa."id_accROLE"  = r.id """
+        res1 = run_sql(query, (uid, ), run_on_slave=True)
+
+    res2 = []
+    for res in res1:
+        res2.append(res)
+    res2.sort()
+
+    if isinstance(user_info, dict):
+        query = """SELECT DISTINCT r.name, a.name, r.firerole_def_ser
+        FROM "accROLE_accACTION_accARGUMENT" raa, "accACTION" a, "accROLE" r
+        WHERE raa."id_accACTION"  = a.id AND raa."id_accROLE"  = r.id """
+
+        res3 = run_sql(query, run_on_slave=True)
+        res4 = []
+        for role_name, action_name, role_definition in res3:
+            if acc_firerole_check_user(user_info,
+                                       deserialize(role_definition)):
+                if role_name == SUPERADMINROLE:
+                    # Ok, every action. There's no need to go on :-)
+                    return [(id_superadmin, action[0]) for action in
+                            acc_get_all_actions()]
+                res4.append((role_name, action_name))
+        return list(set(res2) | set(res4))
+    else:
+        return res2
+
+
 
 def perform_info(req, ln):
     """Display the main features of CDS personalize"""
@@ -62,7 +144,6 @@ def perform_info(req, ln):
 
 def perform_display_external_user_settings(settings, ln):
     """show external user settings which is a dictionary."""
-    _ = gettext_set_language(ln)
     html_settings = ""
     print_settings = False
     settings_keys = settings.keys()
@@ -263,9 +344,6 @@ def template_account(title, body, ln):
 
 def warning_guest_user(type, ln=CFG_SITE_LANG):
     """It returns an alert message,showing that the user is a guest user and should log into the system."""
-
-    # load the right message language
-    _ = gettext_set_language(ln)
 
     return websession_templates.tmpl_warning_guest_user(
              ln = ln,

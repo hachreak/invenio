@@ -101,7 +101,7 @@ from invenio.legacy.bibrecord import record_get_field_instances, \
 from invenio.utils.url import create_url, make_user_agent_string
 from invenio.utils.text import nice_size
 from invenio.modules.access.engine import acc_authorize_action
-from invenio.modules.access.control import acc_is_user_in_role, acc_get_role_id
+from invenio.modules.access.models import UserAccROLE, AccROLE
 from invenio.modules.access.firerole import compile_role_definition, acc_firerole_check_user
 from invenio.modules.access.local_config import SUPERADMINROLE, CFG_WEBACCESS_WARNING_MSGS
 from invenio.config import CFG_SITE_URL, \
@@ -3216,7 +3216,9 @@ def check_bibdoc_authorization(user_info, status):
             return (g.group('type').lower(), g.group('value'))
         else:
             return ('status', status)
-    if acc_is_user_in_role(user_info, acc_get_role_id(SUPERADMINROLE)):
+    if UserAccROLE.is_user_in_any_roles(
+        user_info,
+        [AccROLE.factory(name=SUPERADMINROLE)]):
         return (0, CFG_WEBACCESS_WARNING_MSGS[0])
     auth_type, auth_value = parse_status(status)
     if auth_type == 'status':
@@ -3228,7 +3230,9 @@ def check_bibdoc_authorization(user_info, status):
         if not auth_value in user_info['group']:
             return (1, 'You must be member of the group %s in order to access this document' % repr(auth_value))
     elif auth_type == 'role':
-        if not acc_is_user_in_role(user_info, acc_get_role_id(auth_value)):
+        if not UserAccROLE.is_user_in_any_roles(
+            user_info=user_info,
+            roles=[AccROLE.factory(name=auth_value)]):
             return (1, 'You must be member in the role %s in order to access this document' % repr(auth_value))
     elif auth_type == 'firerole':
         if not acc_firerole_check_user(user_info, compile_role_definition(auth_value)):
