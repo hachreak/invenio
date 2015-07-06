@@ -112,7 +112,6 @@ install_requires = [
     "mechanize>=0.2.5",
     "mistune>=0.4.1",
     "msgpack-python>=0.3",
-    "MySQL-python>=1.2.5",
     "numpy>=1.7",
     "nydus>=0.10.8",
     "passlib>=1.6.2",
@@ -195,6 +194,9 @@ extras_require = {
     ],
     "postgresql": [
         "psycopg2>=2.5",
+    ],
+    "mysql": [
+        "MySQL-python>=1.2.5",
     ],
     # Alternative XML parser
     #
