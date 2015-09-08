@@ -295,9 +295,6 @@ setup(
             'inveniomanage = invenio.base.manage:main',
             'plotextractor = invenio.utils.scripts.plotextractor:main',
             # Legacy
-            'alertengine = invenio.legacy.webalert.scripts.alertengine:main',
-            'bibauthorid = '
-            ' invenio.legacy.bibauthorid.scripts.bibauthorid:main',
             'bibdocfile = invenio.legacy.bibdocfile.scripts.bibdocfile:main',
             'bibsched = invenio.legacy.bibsched.scripts.bibsched:main',
             'bibtaskex = invenio.legacy.bibsched.scripts.bibtaskex:main',
