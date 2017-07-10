@@ -121,3 +121,5 @@ ${INVENIO_WEB_INSTANCE} index queue init
 # sphinxdoc-populate-with-demo-records-begin
 ${INVENIO_WEB_INSTANCE} demo init
 # sphinxdoc-populate-with-demo-records-end
+
+${INVENIO_WEB_INSTANCE} files location default /tmp --default

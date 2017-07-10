@@ -109,6 +109,7 @@ set -o nounset
 if [[ "$@" != *"--devel"* ]]; then
 # sphinxdoc-install-invenio-full-begin
 pip install invenio-app-ils[postgresql,elasticsearch2]
+pip install -e "git+https://github.com/hachreak/invenio-deposit.git@fix_bugs#egg=invenio-deposit"
 # sphinxdoc-install-invenio-full-end
 else
     pip install -r "$scriptpathname/../requirements-devel.txt"

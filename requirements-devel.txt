@@ -31,6 +31,7 @@
 -e git+https://github.com/inveniosoftware/invenio-celery.git#egg=invenio-celery
 -e git+https://github.com/inveniosoftware/invenio-config.git#egg=invenio-config
 -e git+https://github.com/inveniosoftware/invenio-db.git#egg=invenio-db[postgresql,versioning]
+-e git+https://github.com/hachreak/invenio-deposit.git@fix_bugs#egg=invenio-deposit
 -e git+https://github.com/inveniosoftware/invenio-i18n.git#egg=invenio-i18n
 -e git+https://github.com/inveniosoftware/invenio-indexer.git#egg=invenio-indexer
 -e git+https://github.com/inveniosoftware/invenio-logging.git#egg=invenio-logging
@@ -41,7 +42,8 @@
 -e git+https://github.com/inveniosoftware/invenio-records-rest.git#egg=invenio-records-rest
 -e git+https://github.com/inveniosoftware/invenio-records-ui.git#egg=invenio-records-ui
 -e git+https://github.com/inveniosoftware/invenio-records.git#egg=invenio-records
--e git+https://github.com/inveniosoftware/invenio-rest.git#egg=invenio-rest
+#-e git+https://github.com/inveniosoftware/invenio-rest.git#egg=invenio-rest
+-e git+https://github.com/hachreak/invenio-rest.git@fix_cors#egg=invenio-rest
 -e git+https://github.com/inveniosoftware/invenio-search-ui.git#egg=invenio-search-ui
 -e git+https://github.com/inveniosoftware/invenio-search.git#egg=invenio-search
 -e git+https://github.com/inveniosoftware/invenio-theme.git#egg=invenio-theme
